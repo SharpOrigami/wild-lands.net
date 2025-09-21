@@ -413,9 +413,9 @@ export const handleUseFromSatchel = ({ player, gameState, payload, isBossActive,
     const theme = getThemeName(modPlayer.ngPlusLevel);
 
     if (modPlayer.turnEnded) { _log("Turn ended.", "error"); return { player, gameUpdates }; }
-    if (modPlayer.satchel.length === 0 || itemIndexInSatchel === undefined || !modPlayer.satchel[itemIndexInSatchel]) { 
-        _log("Item not in satchel.", "error"); 
-        return { player, gameUpdates }; 
+    if (modPlayer.satchel.length === 0 || itemIndexInSatchel === undefined || !modPlayer.satchel[itemIndexInSatchel]) {
+        _log("Item not in satchel.", "error");
+        return { player, gameUpdates };
     }
     
     const itemToUseFromSatchel = modPlayer.satchel[itemIndexInSatchel];

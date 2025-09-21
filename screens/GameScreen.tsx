@@ -156,6 +156,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   }, [gameState.newlyDrawnCardIndices, onCardAction]);
 
+  useEffect(() => {
+    // When satchel contents change (e.g., an item is used),
+    // ensure the viewed index is still valid to prevent out-of-bounds errors.
+    if (viewedSatchelItemIndex >= playerDetails.satchel.length) {
+        const newIndex = Math.max(0, playerDetails.satchel.length - 1);
+        setViewedSatchelItemIndex(newIndex);
+        setLastViewedSatchelIndex(newIndex);
+    }
+  }, [playerDetails.satchel.length, viewedSatchelItemIndex]);
 
   useEffect(() => {
     activePanelRef.current = activePanel;
@@ -556,28 +565,30 @@ const GameScreen: React.FC<GameScreenProps> = ({
                           lastViewedSatchelIndex={lastViewedSatchelIndex}
                         />
                         {isViewingThisSatchel && playerDetails.satchel.length > 0 && (
-                          <div className={`absolute top-0 left-0 z-20 ${satchelAnimClass}`} style={{ transform: 'translate(15%, -15%) scale(1.05)' }}>
-                            <CardComponent
-                              card={playerDetails.satchel[viewedSatchelItemIndex]}
-                              context={CardContext.SATCHEL_VIEW}
-                              indexInSource={viewedSatchelItemIndex}
-                              isSelected={true}
-                              playerDetails={playerDetails}
-                              onAction={(actionType, payload) => {
-                                if (actionType === 'USE_ITEM') {
-                                  onCardAction('USE_FROM_SATCHEL', { itemFromSatchel: payload.card, itemIndexInSatchel: payload.index });
-                                } else if (actionType === 'SELL_FROM_SATCHEL') {
-                                  onCardAction('SELL_FROM_SATCHEL', { 
-                                      cardToSell: payload.card, 
-                                      satchelEquipmentIndex: selectedCardDetails?.index,
-                                      itemIndexInSatchel: payload.index
-                                  });
-                                }
-                                setSelectedCard(null); // Close view after use
-                              }}
-                              onCycleSatchel={handleCycleSatchel}
-                              isSellable={!gameState.blockTradeDueToHostileEvent && !playerDetails.turnEnded}
-                            />
+                          <div className="absolute top-0 left-0 z-20" style={{ transform: 'translate(15%, -15%) scale(1.05)' }}>
+                            <div className={satchelAnimClass}>
+                              <CardComponent
+                                card={playerDetails.satchel[viewedSatchelItemIndex]}
+                                context={CardContext.SATCHEL_VIEW}
+                                indexInSource={viewedSatchelItemIndex}
+                                isSelected={true}
+                                playerDetails={playerDetails}
+                                onAction={(actionType, payload) => {
+                                  if (actionType === 'USE_ITEM') {
+                                    onCardAction('USE_FROM_SATCHEL', { itemFromSatchel: payload.card, itemIndexInSatchel: payload.index });
+                                  } else if (actionType === 'SELL_FROM_SATCHEL') {
+                                    onCardAction('SELL_FROM_SATCHEL', { 
+                                        cardToSell: payload.card, 
+                                        satchelEquipmentIndex: selectedCardDetails?.index,
+                                        itemIndexInSatchel: payload.index
+                                    });
+                                  }
+                                  setSelectedCard(null); // Close view after use
+                                }}
+                                onCycleSatchel={handleCycleSatchel}
+                                isSellable={!gameState.blockTradeDueToHostileEvent && !playerDetails.turnEnded}
+                              />
+                            </div>
                           </div>
                         )}
                       </div>

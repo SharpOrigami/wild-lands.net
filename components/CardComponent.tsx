@@ -324,8 +324,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
        // Play button (will be at the top)
        if (!playerDetails.turnEnded) {
            if (card.effect?.subtype === 'storage') {
-              const itemToUse = playerDetails.satchel[lastViewedSatchelIndex || 0];
-              actionButtons.push(createActionBtn('Use from Satchel', 'USE_FROM_SATCHEL', (playerDetails.satchel?.length || 0) === 0, { itemFromSatchel: itemToUse }));
+              actionButtons.push(createActionBtn('Use from Satchel', 'USE_FROM_SATCHEL', (playerDetails.satchel?.length || 0) === 0, { itemIndexInSatchel: lastViewedSatchelIndex || 0 }));
            } else if (card.effect && ['heal', 'weapon', 'conditional_weapon', 'campfire', 'gold', 'draw', 'fire_arrow'].includes(card.effect.type)) {
               let useEquippedDisabled = !isPlayable;
                if (card.effect.type === 'weapon' || card.effect.type === 'conditional_weapon' || card.effect.type === 'fire_arrow') {
@@ -356,7 +355,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
     actionButtons.push(
       <button
         key="satchel-next"
-        className="py-2 w-[85%] rounded-sm transition-colors duration-150 font-['Special_Elite'] uppercase text-xs lg:text-sm bg-[var(--ink-main)] text-[var(--paper-bg)] border border-[var(--paper-bg)] hover:bg-stone-600"
+        className="py-2 w-[85%] rounded-sm transition-colors duration-150 font-['Special_Elite'] uppercase text-xs lg:text-sm bg-[var(--ink-main)] text-[var(--paper-bg)] border border-[var(--paper-bg)] hover:bg-[var(--blood-red)]"
         onClick={(e) => { e.stopPropagation(); if (onCycleSatchel) onCycleSatchel(); }}
       >
         Next

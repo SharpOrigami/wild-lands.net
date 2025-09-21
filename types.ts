@@ -1,6 +1,6 @@
 // FIX: Removed self-import of CardData and CardEffect which was causing a conflict.
 
-
+export type Theme = 'western' | 'japan' | 'safari' | 'horror' | 'cyberpunk';
 
 
 export type CardEffectType = 

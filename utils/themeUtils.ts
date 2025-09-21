@@ -1,7 +1,7 @@
 import { CardData } from '../types';
 import { ALL_CARDS_DATA_MAP } from '../constants';
 // FIX: Changed import path to resolve circular dependency and export error.
-import { Theme } from './logs/personalityLogTemplates';
+import { Theme } from '../types';
 
 /**
  * Determines the theme name (e.g., 'western', 'japan') based on the NG+ level.

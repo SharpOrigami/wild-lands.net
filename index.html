@@ -270,11 +270,23 @@
             animation: screen-blur-pulse 4s ease-in-out;
         }
 
-        /* Keyframes for panel swiping on mobile */
-        @keyframes slideOutToLeft { from { transform: translateX(0); } to { transform: translateX(-100%); } }
-        @keyframes slideInFromRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        @keyframes slideOutToRight { from { transform: translateX(0); } to { transform: translateX(100%); } }
-        @keyframes slideInFromLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        /* Keyframes for panel swiping on mobile and card cycling */
+        @keyframes slideOutToLeft {
+            from { transform: translateX(0) rotate(0deg); opacity: 1; }
+            to { transform: translateX(-110%) rotate(-15deg); opacity: 0; }
+        }
+        @keyframes slideInFromRight {
+            from { transform: translateX(110%) rotate(15deg); opacity: 0; }
+            to { transform: translateX(0) rotate(0deg); opacity: 1; }
+        }
+        @keyframes slideOutToRight {
+            from { transform: translateX(0) rotate(0deg); opacity: 1; }
+            to { transform: translateX(110%) rotate(15deg); opacity: 0; }
+        }
+        @keyframes slideInFromLeft {
+            from { transform: translateX(-110%) rotate(-15deg); opacity: 0; }
+            to { transform: translateX(0) rotate(0deg); opacity: 1; }
+        }
 
         /* Classes to apply animations */
         .slide-out-left { animation: slideOutToLeft 0.4s ease-out forwards; }
