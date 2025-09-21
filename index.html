@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wild Lands a Deckbuilding Game by Charles Falk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Alex+Brush&family=Rye&family=Special+Elite&family=Great+Vibes&family=Cedarville+Cursive&family=Dancing+Script&family=Parisienne&display=swap" rel="stylesheet">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                    console.log('Old service worker unregistered successfully.');
+                }
+            }).catch(function(err) {
+                console.log('Service worker unregistration failed: ', err);
+            });
+        }
+    </script>
+    <style>
+        :root {
+            --paper-bg: #f4f1ea;
+            --ink-main: #3a3a3a;
+            --ink-secondary: #5c5c5c;
+            --border-color: #b0a69a;
+            
+            --blood-red: #8a0303;
+            --blood-red-rgb: 138, 3, 3;
+
+            --faded-blue: #4a6b8a;
+            --faded-blue-rgb: 74, 107, 138;
+
+            --tarnished-gold: #c8a415;
+            --tarnished-gold-rgb: 200, 164, 21;
+
+            --faded-green: #556b2f;
+            --faded-green-rgb: 85, 107, 47;
+            
+            --scarlet-fever-color: #C71585; 
+            --puke-yellow: #BDB76B;
+
+            /* Card Tint Full RGBA Variables */
+            --tint-event: rgba(138,3,3,0.07);
+            --tint-provision-heal: rgba(85,107,47,0.08);
+            --tint-provision-draw: rgba(70,100,160,0.07);
+            --tint-provision-neutral: rgba(120,120,120,0.05);
+            --tint-item-weapon: rgba(74,107,138,0.08); /* Also for Action (other) */
+            --tint-item-gold: rgba(200,164,21,0.07);   /* Also for Player Upgrade */
+            --tint-item-trap: rgba(160,100,70,0.07);
+            --tint-item-campfire: rgba(200,100,50,0.07);
+            --tint-item-neutral: rgba(130,130,130,0.06);
+            --tint-action-scout: rgba(100,160,100,0.07);
+            --tint-trophy-bounty: rgba(160,140,100,0.08);
+        }
+
+        body { 
+            color: var(--paper-bg); 
+            font-family: 'Merriweather', serif; 
+            overscroll-behavior-y: contain;
+            min-height: 100vh;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            background-attachment: fixed;
+            background-image: var(--bg-landscape);
+            background-color: #1a1a1a; /* Dark fallback */
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        @media (orientation: portrait) {
+            body {
+                background-image: var(--bg-portrait);
+            }
+        }
+
+        /* NG+10 Theme */
+        body.ng-plus-10-theme {
+        }
+        @media (orientation: portrait) {
+            body.ng-plus-10-theme {
+            }
+        }
+
+        /* NG+20 Theme */
+        body.ng-plus-20-theme {
+        }
+        @media (orientation: portrait) {
+            body.ng-plus-20-theme {
+            }
+        }
+
+        /* NG+30 Theme */
+        body.ng-plus-30-theme {
+        }
+        @media (orientation: portrait) {
+            body.ng-plus-30-theme {
+            }
+        }
+
+        /* NG+40 Theme */
+        body.ng-plus-40-theme {
+        }
+        @media (orientation: portrait) {
+            body.ng-plus-40-theme {
+            }
+        }
+
+        .font-western { font-family: 'Rye', cursive; }
+        .font-pulp-title { font-family: 'Special Elite', monospace; }
+        
+        .font-signature-l1 { font-family: 'Great Vibes', cursive; }
+        .font-signature-l2 { font-family: 'Cedarville Cursive', cursive; }
+        .font-signature-l3 { font-family: 'Dancing Script', cursive; }
+        .font-signature-l4 { font-family: 'Parisienne', cursive; }
+        .font-signature-l5plus { font-family: 'Alex Brush', cursive; }
+       
+        @keyframes player-flash-bg-red {
+            0%, 100% { background-color: rgba(244, 241, 234, 0.9); } /* Player area default bg */
+            50% { background-color: var(--blood-red); } /* Solid red flash */
+        }
+        .player-damage-flash-bg { animation: player-flash-bg-red 0.3s ease-out; }
+
+        @keyframes player-heal-flash-bg {
+            0%, 100% { background-color: rgba(244, 241, 234, 0.9); }
+            50% { background-color: rgba(var(--faded-green-rgb), 0.35); }
+        }
+        .player-heal-flash-bg { animation: player-flash-bg-green 0.3s ease-out; }
+        
+        @keyframes player-border-pulse-red-anim {
+            0%, 100% { border-color: var(--border-color); box-shadow: none; transform: scale(1); }
+            50% { border-color: var(--blood-red); box-shadow: 0 0 15px rgba(var(--blood-red-rgb), 0.6); transform: scale(1.02); }
+        }
+        .player-border-pulse-red { animation: player-border-pulse-red-anim 0.45s ease-in-out; }
+
+        @keyframes player-damage-border-pulse-anim {
+            0%, 100% {
+                border-color: var(--border-color);
+                box-shadow: none;
+                transform: scale(1.0);
+            }
+            50% {
+                border-color: var(--blood-red);
+                box-shadow: 0 0 30px 8px rgba(var(--blood-red-rgb), 0.75);
+                transform: scale(1.02);
+            }
+        }
+        .player-damage-pulse { animation: player-damage-border-pulse-anim 0.6s ease-in-out; }
+
+        @keyframes player-border-pulse-green-anim {
+            0%, 100% { border-color: var(--border-color); box-shadow: none; transform: scale(1); }
+            50% { border-color: var(--faded-green); box-shadow: 0 0 15px rgba(var(--faded-green-rgb), 0.6); transform: scale(1.02); }
+        }
+        .player-border-pulse-green { animation: player-border-pulse-green-anim 0.45s ease-in-out; }
+
+        @keyframes player-area-shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(2px); }
+            30%, 50%, 70% { transform: translateX(-4px); } /* Increased shake intensity */
+            40%, 60% { transform: translateX(4px); } /* Increased shake intensity */
+        }
+        .player-area-shake-effect { animation: player-area-shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        .frontier-panel-shake { animation: player-area-shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+
+        @keyframes card-draw-enter-anim {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9) rotate(-5deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+        .card-enter-animation {
+            animation: card-draw-enter-anim 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+
+        @keyframes event-card-drop-anim {
+            0% {
+                transform: translateY(-100px) scale(1.1);
+                opacity: 0;
+            }
+            60% {
+                transform: translateY(10px) scale(0.98);
+                opacity: 1;
+            }
+            80% {
+                transform: translateY(-5px) scale(1.02);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        .event-card-drop { animation: event-card-drop-anim 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+
+        @keyframes button-area-fade-in { 
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            } to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            } 
+        }
+        .action-buttons-enter { animation: button-area-fade-in 0.2s ease-out both; }
+
+        @keyframes stat-flash-red {
+            0%, 100% { color: var(--blood-red); transform: scale(1); }
+            50% { color: #ef4444; /* red-500 */ transform: scale(1.25); }
+        }
+        .stat-damage-flash { animation: stat-flash-red 0.4s ease-out; display: inline-block; }
+
+        @keyframes stat-flash-green {
+            0%, 100% { color: #15803d; /* green-700 */ transform: scale(1); }
+            50% { color: #22c55e; /* green-500 */ transform: scale(1.25); }
+        }
+        .stat-heal-flash { animation: stat-flash-green 0.4s ease-out; display: inline-block; }
+
+        @keyframes threat-card-shake-damage-bg-anim {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+            20%, 40%, 60%, 80% { transform: translateX(3px); }
+            25%, 75% { background-color: rgba(var(--blood-red-rgb), 0.15); }
+        }
+        .threat-card-shake-damage-bg { animation: threat-card-shake-damage-bg-anim 0.4s ease-out; }
+        
+        @keyframes threat-card-border-pulse-red-anim {
+            0%, 100% { border-color: var(--ink-main); box-shadow: 3px 3px 8px rgba(0,0,0,0.2); }
+            50% { border-color: var(--blood-red); box-shadow: 0 0 15px 5px rgba(var(--blood-red-rgb), 0.5); }
+        }
+        .threat-card-border-pulse-red { animation: threat-card-border-pulse-red-anim 0.45s ease-in-out; }
+
+        @keyframes gold-flash {
+            0%, 100% { transform: scale(1); color: var(--tarnished-gold); }
+            50% { transform: scale(1.2); color: #f59e0b; }
+        }
+        .gold-gained { animation: gold-flash 0.5s ease-out; display: inline-block; }
+        
+        /* Keyframe animations for Laudanum and Skunk Spray */
+        @keyframes laudanum-effect {
+            0% { opacity: 0; } /* Start of fade-in */
+            20% { opacity: 1; } /* End of fade-in (1s of 5s total) */
+            40% { opacity: 1; } /* End of hold (1s_in + 1s_hold = 2s of 5s total) */
+            100% { opacity: 0; } /* End of fade-out (1s_in + 1s_hold + 3s_out = 5s of 5s total) */
+        }
+        .animate-laudanum {
+            animation: laudanum-effect 5s ease-in-out forwards;
+        }
+
+        @keyframes skunk-spray-effect {
+            0% { opacity: 0; }
+            20% { opacity: 1; } /* 1s / 5s */
+            40% { opacity: 1; } /* 2s / 5s */
+            100% { opacity: 0; } /* 5s / 5s */
+        }
+        .animate-skunk-spray {
+            animation: skunk-spray-effect 5s ease-in-out forwards;
+        }
+        
+        /* Keyframe for new screen blur pulse */
+        @keyframes screen-blur-pulse {
+            0%, 50%, 100% { backdrop-filter: blur(0px); }
+            25%, 75% { backdrop-filter: blur(4px); }
+        }
+        .animate-screen-blur {
+            animation: screen-blur-pulse 4s ease-in-out;
+        }
+
+        /* Keyframes for panel swiping on mobile */
+        @keyframes slideOutToLeft { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+        @keyframes slideInFromRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes slideOutToRight { from { transform: translateX(0); } to { transform: translateX(100%); } }
+        @keyframes slideInFromLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+
+        /* Classes to apply animations */
+        .slide-out-left { animation: slideOutToLeft 0.4s ease-out forwards; }
+        .slide-in-right { animation: slideInFromRight 0.4s ease-out forwards; }
+        .slide-out-right { animation: slideOutToRight 0.4s ease-out forwards; }
+        .slide-in-left { animation: slideInFromLeft 0.4s ease-out forwards; }
+
+
+        /* Legacy Animations (kept if still used by OverlayEffects or other logic) */
+        @keyframes trap-caught-small-event {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            40% { transform: scale(0.8) rotate(5deg); opacity: 0.7; }
+            100% { transform: scale(0.2) rotate(15deg) translateY(20px); opacity: 0; }
+        }
+        .event-trapped-small { animation: trap-caught-small-event 0.7s ease-out forwards; }
+
+        @keyframes trap-display-interact {
+            0%, 100% { background-color: white; color: initial; transform: scale(1); box-shadow: none;}
+            50% { background-color: var(--tarnished-gold); color: var(--paper-bg); font-weight: bold; transform: scale(1.1); box-shadow: 0 0 8px var(--tarnished-gold); }
+        }
+        .trap-display-activated { animation: trap-display-interact 0.6s ease-in-out; }
+
+        @keyframes player-illness-pulse {
+            0%, 100% { background-color: rgba(244, 241, 234, 0.9); box-shadow: none; }
+            50% { background-color: var(--puke-yellow); opacity: 0.7; box-shadow: 0 0 15px color-mix(in srgb, var(--puke-yellow) 40%, transparent); }
+        }
+        .player-is-ill { animation: player-illness-pulse 0.8s ease-in-out 2; }
+
+        @keyframes player-scarlet-fever-flash-bg {
+            0%, 100% { background-color: rgba(244, 241, 234, 0.9); } /* Player area default bg */
+            50% { background-color: var(--scarlet-fever-color); } /* Scarlet/purple flash */
+        }
+        .player-scarlet-fever-effect { animation: player-scarlet-fever-flash-bg 0.5s ease-out 2; } /* Flash twice for emphasis */
+
+        @keyframes hat-saved-player-bg {
+            0%, 100% { background-color: rgba(244, 241, 234, 0.9); border-color: var(--border-color); }
+            50% { background-color: rgba(var(--tarnished-gold-rgb), 0.25); border-color: var(--tarnished-gold); box-shadow: 0 0 10px rgba(var(--tarnished-gold-rgb),0.5); transform: scale(1.02); }
+        }
+        .player-hat-saved-damage { animation: hat-saved-player-bg 0.5s ease-out; }
+        
+        @keyframes threat-attacks-player-anim {
+            0%, 100% { transform: scale(1) rotate(0deg); box-shadow: 3px 3px 8px rgba(0,0,0,0.2); }
+            20%, 60% { transform: translateX(-6px) rotate(-3deg) scale(1.05); }
+            40%, 80% { transform: translateX(6px) rotate(3deg) scale(1.05); }
+            50% { box-shadow: 0 0 18px 6px var(--blood-red); background-color: rgba(var(--blood-red-rgb), 0.1); }
+        }
+        .threat-attacks-player { animation: threat-attacks-player-anim 0.8s ease-in-out; }
+        
+        .log-area::-webkit-scrollbar { width: 8px; }
+        .log-area::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 2px; }
+        .log-area::-webkit-scrollbar-thumb { background: var(--ink-secondary); border-radius: 2px; }
+        .log-area::-webkit-scrollbar-thumb:hover { background: var(--ink-main); }
+
+        .modal-body::-webkit-scrollbar { width: 8px; }
+        .modal-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 2px; }
+        .modal-body::-webkit-scrollbar-thumb { background: var(--ink-secondary); border-radius: 2px; }
+        .modal-body::-webkit-scrollbar-thumb:hover { background: var(--ink-main); }
+
+        /* Base Button Styles */
+        .button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem; /* Tailwind 'rounded' */
+            font-family: 'Special Elite', monospace;
+            text-transform: uppercase;
+            font-size: 0.875rem; /* Tailwind 'text-sm' */
+            letter-spacing: 0.05em; /* Tailwind 'tracking-wider' */
+            border: 1px solid var(--ink-main);
+            background-color: var(--paper-bg);
+            color: var(--ink-main);
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.1s ease-out;
+            cursor: pointer;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); /* Tailwind 'shadow' */
+        }
+        .button:hover {
+            background-color: color-mix(in srgb, var(--paper-bg) 90%, var(--ink-main));
+            border-color: color-mix(in srgb, var(--ink-main) 80%, black);
+        }
+        .button:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Tailwind 'shadow-sm' */
+        }
+        .button:disabled {
+            background-color: #cccccc; /* Tailwind 'bg-gray-300' */
+            color: #666666; /* Tailwind 'text-gray-500' */
+            border-color: #999999; /* Tailwind 'border-gray-400' */
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Card back styling */
+        .card-back {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"), 
+                              linear-gradient(135deg, var(--ink-secondary) 25%, transparent 25%),
+                              linear-gradient(225deg, var(--ink-secondary) 25%, transparent 25%),
+                              linear-gradient(45deg, var(--ink-secondary) 25%, transparent 25%),
+                              linear-gradient(315deg, var(--ink-secondary) 25%, var(--paper-bg) 25%);
+            background-position: 0 0, 10px 0, 10px 0, 0 0, 0 0; /* Adjusted positions slightly */
+            background-size: 20px 20px; /* Size of the pattern unit */
+            background-repeat: repeat, repeat, repeat, repeat, repeat; /* Ensure all layers repeat */
+            border: 2px solid var(--ink-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-back::before {
+            content: "WL"; /* Initials for Wild Lands */
+            font-family: 'Rye', cursive;
+            font-size: 2.2rem; /* Adjusted for card size */
+            color: var(--ink-main);
+            opacity: 0.8;
+            text-shadow: 1px 1px 1px var(--paper-bg);
+            transform: rotate(-5deg);
+        }
+
+        /* Tooltip Styles */
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+            z-index: 50;
+        }
+        .tooltip {
+            visibility: hidden;
+            position: absolute;
+            z-index: 50;
+            bottom: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 300px;
+            background-color: var(--paper-bg);
+            color: var(--ink-main);
+            text-align: left;
+            border-radius: 4px;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.2s, visibility 0.2s;
+            pointer-events: none;
+        }
+        .tooltip.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Status Icon Styles */
+        .status-icon {
+            font-size: 1.1rem;
+            color: var(--blood-red);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .status-icon.illness {
+            color: var(--puke-yellow);
+        }
+
+        /* Store Blocked Styles */
+        .store-blocked {
+            position: relative;
+            pointer-events: none;
+        }
+        .store-blocked::after {
+            content: 'TRADING BLOCKED';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--blood-red);
+            font-family: 'Rye', cursive;
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 3px var(--paper-bg), -1px -1px 3px var(--paper-bg);
+            border-radius: 0.1rem;
+            pointer-events: none;
+        }
+
+
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.2",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "vite": "https://aistudiocdn.com/vite@^7.1.5"
+  }
+}
+</script>
+</head>
+<body class="antialiased">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
