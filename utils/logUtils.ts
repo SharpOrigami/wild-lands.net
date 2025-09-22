@@ -310,40 +310,60 @@ const characterLogTemplates: {
 ];
 
 const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
-  itemBought: {
+  animalWandersOff: {
     western: [
-      "{playerName} barters for a new {itemName}, parting with {cost} Gold.",
-      "The {itemName} changes hands for {cost} Gold. A fine purchase.",
-      "{playerName} parts with {cost} Gold for a much-needed {itemName}.",
-      "A deal is struck. The {itemName} is yours for {cost} Gold.",
+      "{enemyName} moseys on, uninterested in a tussle with {playerName}.",
+      "{enemyName} decides {playerName} ain't worth the bother and wanders off.",
     ],
   },
-  itemSold: {
+  bossDeEscalated: {
     western: [
-      "{playerName} lightens their load, selling the {itemName} for {sellAmount} Gold.",
-      "A savvy buyer takes that {itemName} off your hands for {sellAmount} Gold.",
-      "A good trade! The {itemName} sold for {sellAmount} cold hard cash.",
+      "'This fight is beneath me,' says {enemyName}. The boss pays you {goldAmount} Gold to look the other way!",
+      "Seeing a worthy adversary, {enemyName} offers a tribute of {goldAmount} Gold to end things peacefully. You accept.",
     ],
   },
-  itemEquipped: {
+  campfireDoused: {
     western: [
-      "{playerName} equips the {itemName}, ready for what's next.",
-      "Gearing up. The {itemName} is now ready.",
-      "The {itemName} is readied for the trail ahead.",
+      "The morning light extinguishes the campfire's last embers.",
+      "The campfire has burned out, its protection gone with the night.",
     ],
   },
-  itemTaken: {
+  cardsDrawn: {
     western: [
-      "{playerName} picks up the {itemName} and adds it to their gear.",
-      "The {itemName} is yours now. It goes into your discard pile.",
-      "{playerName} takes the {itemName}. A useful find.",
+      "{playerName} draws {cardsDrawn} cards.",
+      "The hand's been dealt. {playerName} draws {cardsDrawn} cards.",
     ],
   },
-  storeRestock: { 
-    western: ["{playerName} pays the storekeep {cost} Gold to clear the shelves and put out new stock."],
+  enemyAttackImmediate: {
+    western: [
+        "The {enemyName} attacks {playerName} without warning!",
+        "Ambush! The {enemyName} strikes {playerName} immediately!",
+    ],
+  },
+  eventRevealEnvironmental: {
+    western: [
+      "The sky darkens ominously... a {eventName} is upon you!",
+      "The very land turns against {playerName}! A {eventName} strikes!",
+      "Look out, {playerName}! A {eventName}!",
+    ],
+  },
+  eventRevealItem: {
+    western: [
+      "The trail provides. {playerName} finds a {itemName}.",
+      "A lucky find! A {itemName} lies on the path ahead.",
+    ],
   },
   eventRevealObjective: {
     western: ["A new contract arrives for {playerName}: '{objectiveName}'. The request is clear: {objective_description}"],
+  },
+  eventRevealThreat: { 
+    western: ["A {enemyName} appears before {playerName}!"],
+  },
+  eventRevealThreatHigh: {
+    western: [
+      "Hold your horses, {playerName}! An unwelcome visitor: the notorious {enemyName} appears!",
+      "This is the big one! The legendary {enemyName} stands before {playerName}!",
+    ],
   },
   eventRevealThreatLow: {
     western: [
@@ -358,128 +378,23 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
       "The sound of trouble... a {enemyName} is blocking your way, {playerName}.",
     ],
   },
-  eventRevealThreatHigh: {
+  goldFoundFromItem: {
     western: [
-      "Hold your horses, {playerName}! An unwelcome visitor: the notorious {enemyName} appears!",
-      "This is the big one! The legendary {enemyName} stands before {playerName}!",
+      "{playerName}'s {itemName} yields {goldAmount} Gold!",
+      "A glint of gold! The {itemName} pays off, providing {goldAmount} Gold.",
     ],
   },
-  eventRevealEnvironmental: {
+  goldStolen: {
     western: [
-      "The sky darkens ominously... a {eventName} is upon you!",
-      "The very land turns against {playerName}! A {eventName} strikes!",
-      "Look out, {playerName}! A {eventName}!",
+      "The {eventName} deftly relieves {playerName} of {stolenAmount} Gold!",
+      "A quick hand and a flash of steel! The {eventName} makes off with {stolenAmount} Gold from {playerName}.",
     ],
   },
-  threatDefeatedLow: {
-    western: ["{playerName} dealt with the {enemyName}. Just another day on the frontier."],
-  },
-  threatDefeatedMid: {
-    western: ["Another one bites the dust. {playerName} sent the {enemyName} packing."],
-  },
-  threatDefeatedHigh: {
-    western: ["The {enemyName} met its match today. The trail's a bit safer, thanks to {playerName}."],
-  },
-  laudanumHeal: {
+  hatSaved: {
     western: [
-      "The {itemName} does the trick. Pain fades as {healAmount} HP is restored. Health: {currentHP}/{maxHP}.",
-      "A swig of {itemName} knits the wounds, recovering {healAmount} HP. Now at {currentHP}/{maxHP}.",
-    ],
-  },
-  laudanumNoHeal: {
-    western: [
-      "A swig of {itemName} is taken. The world goes fuzzy, but there was no pain to dull.",
-      "Already feelin' fit as a fiddle, but the {itemName} is downed anyway. The pleasant haze is its own reward.",
-    ],
-  },
-  playerVictoryFinalDay: {
-    western: [
-      "{playerName} takes one last look at the setting sun, the long trail finally at its end.",
-      "The dust settles. {playerName} has seen the journey through, a legend forged in grit and gunpowder.",
-    ],
-  },
-  playerAttack: {
-    western: [
-      "{playerName} attacks {enemyName} with {itemName} for {attackPower} damage.",
-      "{playerName} unleashes hell on {enemyName} with the {itemName}, dealing {attackPower} damage.",
-    ],
-  },
-  playerHeal: { 
-    western: [
-      "{playerName} patches themself up with {sourceName}, restoring {healAmount} HP. Now at {currentHP}/{maxHP}.",
-      "Using the {sourceName} restores {healAmount} HP. Back in the fight at {currentHP}/{maxHP}.",
-    ],
-  },
-  playerDefeat: { 
-    western: [
-      "{playerName} was defeated by {enemyName}. The frontier claims another soul.",
-      "The journey ends here for {playerName}, bested by {enemyName}.",
-    ],
-  },
-  newDay: {
-    western: [
-      "Day {dayNumber}: The sun rises, casting long shadows across the plains for {playerName}.",
-      "The morning brings a new set of challenges for {playerName}. Day {dayNumber}.",
-      "Day {dayNumber}: A new dawn, a new day of survival for {playerName}.",
-    ],
-  },
-  newDayWithIllnessWorsened: {
-    western: [
-      "Day {dayNumber}: A restless night for {playerName}. The {illnessName} has worsened.",
-      "The fevered dawn of Day {dayNumber} arrives. The {illnessName} tightens its grip on {playerName}.",
-    ],
-  },
-  objectiveVoided: {
-    western: ["The terms of the contract were clear. By letting the target go, the objective '{objectiveName}' is now void."],
-  },
-   playerDeckFinalized: { western: [
-    "{playerName}'s kit is packed and ready for the trail. Health: {currentHP}/{maxHP}.",
-    "Ready to ride! {playerName} begins the journey with {currentHP}/{maxHP} HP.",
-    "The hand's been dealt. {playerName} starts with {currentHP}/{maxHP} HP.",
-  ]},
-  playerCuresIllness: { western: [
-    "{playerName} shook off the {eventName} with {itemName}.",
-    "That {itemName} worked wonders! {playerName} is cured of {eventName}.",
-  ]},
-  playerRecoversMaxHealth: { western: [
-    "Vitality returning. {playerName}'s max health is now {newMaxHealth}.",
-    "Strength flows back. {playerName}'s max HP increased to {newMaxHealth}.",
-  ]},
-  animalWandersOff: { western: [
-    "{enemyName} moseys on, uninterested in a tussle with {playerName}.",
-    "{enemyName} decides {playerName} ain't worth the bother and wanders off.",
-  ]},
-  mountainSicknessDrawReduction: { western: [
-    "The thin air takes its toll on {playerName}. You draw {reducedAmount} fewer cards due to Mountain Sickness.",
-    "Gasping in the high altitude, {playerName} draws {reducedAmount} less cards.",
-  ]},
-  illnessTemporaryCure: { western: [
-    "{playerName} is no longer suffering from {illnessName}.",
-    "The bout of {illnessName} has passed. {playerName} feels much better.",
-  ]},
-  threatDefeated: { 
-    western: ["The {enemyName} has been defeated by {playerName}."],
-  },
-  eventRevealThreat: { 
-    western: ["A {enemyName} appears before {playerName}!"],
-  },
-  playerDamage: {
-    western: [
-        "{sourceName} hits {playerName} for {damageAmount} damage. Health: {currentHP}/{maxHP}.",
-        "{playerName} takes {damageAmount} damage from {sourceName}. Now at {currentHP}/{maxHP}.",
-    ],
-  },
-  enemyAttackImmediate: {
-    western: [
-        "The {enemyName} attacks {playerName} without warning!",
-        "Ambush! The {enemyName} strikes {playerName} immediately!",
-    ],
-  },
-  threatFlees: {
-    western: [
-        "The {enemyName} decides {playerName} is not worth the trouble and flees.",
-        "Seeing {playerName}, the {enemyName} thinks better of it and disappears into the brush.",
-    ],
+      "A close call! {playerName}'s {itemName} absorbs the blow from {sourceName}, but is destroyed in the process.",
+      "That could have been nasty! The {itemName} takes the full force of the attack from {sourceName} and is ruined.",
+    ]
   },
   illnessContracts: {
     western: [
@@ -500,6 +415,154 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
       "{itemName} proves effective against the lingering {eventName}.",
     ]
   },
+  illnessTemporaryCure: { 
+    western: [
+      "{playerName} is no longer suffering from {illnessName}.",
+      "The bout of {illnessName} has passed. {playerName} feels much better.",
+    ],
+  },
+  itemBought: {
+    western: [
+      "{playerName} barters for a new {itemName}, parting with {cost} Gold.",
+      "The {itemName} changes hands for {cost} Gold. A fine purchase.",
+      "{playerName} parts with {cost} Gold for a much-needed {itemName}.",
+      "A deal is struck. The {itemName} is yours for {cost} Gold.",
+    ],
+  },
+  itemDiscarded: {
+    western: [
+      "{playerName} discards the {itemName}, lightening their load.",
+      "No longer needed, the {itemName} is left behind.",
+    ]
+  },
+  itemEquipped: {
+    western: [
+      "{playerName} equips the {itemName}, ready for what's next.",
+      "Gearing up. The {itemName} is now ready.",
+      "The {itemName} is readied for the trail ahead.",
+    ],
+  },
+  itemLeftBehind: {
+    western: [
+        "The {itemName} was left behind on the trail.",
+        "Unclaimed, the {itemName} was returned to the general store's stock.",
+    ],
+  },
+  itemSold: {
+    western: [
+      "{playerName} lightens their load, selling the {itemName} for {sellAmount} Gold.",
+      "A savvy buyer takes that {itemName} off your hands for {sellAmount} Gold.",
+      "A good trade! The {itemName} sold for {sellAmount} cold hard cash.",
+    ],
+  },
+  itemStored: {
+    western: [
+      "{playerName} stores the {itemName} away safely in their satchel.",
+      "The {itemName} is tucked into the satchel for later.",
+    ]
+  },
+  itemTaken: {
+    western: [
+      "{playerName} picks up the {itemName} and adds it to their gear.",
+      "The {itemName} is yours now. It goes into your discard pile.",
+      "{playerName} takes the {itemName}. A useful find.",
+    ],
+  },
+  laudanumHeal: {
+    western: [
+      "The {itemName} does the trick. Pain fades as {healAmount} HP is restored. Health: {currentHP}/{maxHP}.",
+      "A swig of {itemName} knits the wounds, recovering {healAmount} HP. Now at {currentHP}/{maxHP}.",
+    ],
+  },
+  laudanumNoHeal: {
+    western: [
+      "A swig of {itemName} is taken. The world goes fuzzy, but there was no pain to dull.",
+      "Already feelin' fit as a fiddle, but the {itemName} is downed anyway. The pleasant haze is its own reward.",
+    ],
+  },
+  mountainSicknessDrawReduction: { 
+    western: [
+      "The thin air takes its toll on {playerName}. You draw {reducedAmount} fewer cards due to Mountain Sickness.",
+      "Gasping in the high altitude, {playerName} draws {reducedAmount} less cards.",
+    ],
+  },
+  newDay: {
+    western: [
+      "Day {dayNumber}: The sun rises, casting long shadows across the plains for {playerName}.",
+      "The morning brings a new set of challenges for {playerName}. Day {dayNumber}.",
+      "Day {dayNumber}: A new dawn, a new day of survival for {playerName}.",
+    ],
+  },
+  newDayWithIllnessWorsened: {
+    western: [
+      "Day {dayNumber}: A restless night for {playerName}. The {illnessName} has worsened.",
+      "The fevered dawn of Day {dayNumber} arrives. The {illnessName} tightens its grip on {playerName}.",
+    ],
+  },
+  noGoldToSteal: {
+    western: [
+      "The {eventName} tries to rob {playerName}, but finds only empty pockets.",
+      "'Your money or your life!' the {eventName} demands. {playerName} has no money to give.",
+    ]
+  },
+  objectiveVoided: {
+    western: ["The terms of the contract were clear. By letting the target go, the objective '{objectiveName}' is now void."],
+  },
+  playerAttack: {
+    western: [
+      "{playerName} attacks {enemyName} with {itemName} for {attackPower} damage.",
+      "{playerName} unleashes hell on {enemyName} with the {itemName}, dealing {attackPower} damage.",
+    ],
+  },
+  playerCuresIllness: { 
+    western: [
+      "{playerName} shook off the {eventName} with {itemName}.",
+      "That {itemName} worked wonders! {playerName} is cured of {eventName}.",
+    ],
+  },
+  playerDamage: {
+    western: [
+        "{sourceName} hits {playerName} for {damageAmount} damage. Health: {currentHP}/{maxHP}.",
+        "{playerName} takes {damageAmount} damage from {sourceName}. Now at {currentHP}/{maxHP}.",
+    ],
+  },
+  playerDeckFinalized: { 
+    western: [
+      "{playerName}'s kit is packed and ready for the trail. Health: {currentHP}/{maxHP}.",
+      "Ready to ride! {playerName} begins the journey with {currentHP}/{maxHP} HP.",
+      "The hand's been dealt. {playerName} starts with {currentHP}/{maxHP} HP.",
+    ],
+  },
+  playerDefeat: { 
+    western: [
+      "{playerName} was defeated by {enemyName}. The frontier claims another soul.",
+      "The journey ends here for {playerName}, bested by {enemyName}.",
+    ],
+  },
+  playerHeal: { 
+    western: [
+      "{playerName} patches themself up with {sourceName}, restoring {healAmount} HP. Now at {currentHP}/{maxHP}.",
+      "Using the {sourceName} restores {healAmount} HP. Back in the fight at {currentHP}/{maxHP}.",
+    ],
+  },
+  playerRecoversMaxHealth: { 
+    western: [
+      "Vitality returning. {playerName}'s max health is now {newMaxHealth}.",
+      "Strength flows back. {playerName}'s max HP increased to {newMaxHealth}.",
+    ],
+  },
+  playerVictory: {
+    western: [
+      "{playerName} has overcome the wilds! A new legend is born!",
+      "{playerName} has survived the frontier! A tale to be told for ages.",
+    ],
+  },
+  playerVictoryFinalDay: {
+    western: [
+      "{playerName} takes one last look at the setting sun, the long trail finally at its end.",
+      "The dust settles. {playerName} has seen the journey through, a legend forged in grit and gunpowder.",
+    ],
+  },
   rockslideDiscardEquipped: {
     western: [
       "Caught in the {eventName}, {playerName} loses their footing and their gear! Lost: {discardedItemNames}.",
@@ -512,34 +575,31 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
       "With an iron will, {playerName} holds their ground and their gear through the {eventName}!",
     ]
   },
-  goldStolen: {
-    western: [
-      "The {eventName} deftly relieves {playerName} of {stolenAmount} Gold!",
-      "A quick hand and a flash of steel! The {eventName} makes off with {stolenAmount} Gold from {playerName}.",
-    ]
+  storeRestock: { 
+    western: ["{playerName} pays the storekeep {cost} Gold to clear the shelves and put out new stock."],
   },
-  noGoldToSteal: {
-    western: [
-      "The {eventName} tries to rob {playerName}, but finds only empty pockets.",
-      "'Your money or your life!' the {eventName} demands. {playerName} has no money to give.",
-    ]
+  threatDefeated: { 
+    western: ["The {enemyName} has been defeated by {playerName}."],
   },
-  hatSaved: {
-    western: [
-      "A close call! {playerName}'s {itemName} absorbs the blow from {sourceName}, but is destroyed in the process.",
-      "That could have been nasty! The {itemName} takes the full force of the attack from {sourceName} and is ruined.",
-    ]
+  threatDefeatedHigh: {
+    western: ["The {enemyName} met its match today. The trail's a bit safer, thanks to {playerName}."],
   },
-  itemStored: {
-    western: [
-      "{playerName} stores the {itemName} away safely in their satchel.",
-      "The {itemName} is tucked into the satchel for later.",
-    ]
+  threatDefeatedLow: {
+    western: ["{playerName} dealt with the {enemyName}. Just another day on the frontier."],
   },
-  itemDiscarded: {
+  threatDefeatedMid: {
+    western: ["Another one bites the dust. {playerName} sent the {enemyName} packing."],
+  },
+  threatFlees: {
     western: [
-      "{playerName} discards the {itemName}, lightening their load.",
-      "No longer needed, the {itemName} is left behind.",
+        "The {enemyName} decides {playerName} is not worth the trouble and flees.",
+        "Seeing {playerName}, the {enemyName} thinks better of it and disappears into the brush.",
+    ],
+  },
+  trapBroken: {
+    western: [
+      "The powerful {enemyName} breaks free from the {trapName}, taking {damageAmount} damage in the process!",
+      "With a roar, the {enemyName} smashes the {trapName}, but not before taking {damageAmount} damage.",
     ]
   },
   trapCaught: {
@@ -548,22 +608,10 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
       "Got 'em! The {enemyName} is caught fast in the {trapName}.",
     ]
   },
-  trapBroken: {
-    western: [
-      "The powerful {enemyName} breaks free from the {trapName}, taking {damageAmount} damage in the process!",
-      "With a roar, the {enemyName} smashes the {trapName}, but not before taking {damageAmount} damage.",
-    ]
-  },
   trapHumanBrokeNoDamage: {
     western: [
       "The wily {enemyName} spots the {trapName} at the last second and disables it.",
       "'Not today,' mutters the {enemyName}, carefully disarming the {trapName}.",
-    ]
-  },
-  bossDeEscalated: {
-    western: [
-      "'This fight is beneath me,' says {enemyName}. The boss pays you {goldAmount} Gold to look the other way!",
-      "Seeing a worthy adversary, {enemyName} offers a tribute of {goldAmount} Gold to end things peacefully. You accept.",
     ]
   },
 };
