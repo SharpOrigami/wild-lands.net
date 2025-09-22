@@ -1,4 +1,5 @@
-import { CardData } from '../../types';
+
+import { CardData } from '../../types.ts';
 
 export const OBJECTIVE_CARDS: { [id: string]: CardData } = {
     'objective_take_em_alive': { id: 'objective_take_em_alive', name: "Wanted: Alive", type: 'Event', subType: 'objective', description: "A territorial governor wants to make an example of the final threat, not a martyr. The poster is clear: bring them in alive, if barely.\n\nOBJECTIVE: Defeat the final boss with a final blow that deals 5 or less damage.\nREWARD: +100 Gold.\nFAILURE: If the final blow deals more than 5 damage, the objective is void.", effect: { type: 'objective_boss_condition', objective_description: "Defeat the final boss with a final blow that deals 5 or less damage.", reward_description: "+100 Gold.", failure_description: "If the final blow deals more than 5 damage, the objective is void. No reward." }},

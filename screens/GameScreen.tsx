@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { GameState, PlayerDetails, CardData, CardContext, LogEntry } from '../types';
-import CardComponent from '../components/CardComponent';
-import GameLogComponent from '../components/GameLogComponent';
-import { getCardCategory, getFormattedEffectText, calculateHealAmount, calculateAttackPower, isFirearm } from '../utils/cardUtils';
-import { REQUIRED_ACCURACY_METERS, MAX_LOG_ENTRIES } from '../constants';
-import { soundManager } from '../utils/soundManager';
-import { ttsManager } from '../utils/ttsManager';
+import { GameState, PlayerDetails, CardData, CardContext, LogEntry } from '../types.ts';
+import CardComponent from '../components/CardComponent.tsx';
+import GameLogComponent from '../components/GameLogComponent.tsx';
+import { getCardCategory, getFormattedEffectText, calculateHealAmount, calculateAttackPower, isFirearm } from '../utils/cardUtils.ts';
+import { REQUIRED_ACCURACY_METERS, MAX_LOG_ENTRIES } from '../constants.ts';
+import { soundManager } from '../utils/soundManager.ts';
+import { ttsManager } from '../utils/ttsManager.ts';
 
 
 interface GameScreenProps {
@@ -61,7 +61,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   // --- State for Satchel View ---
   const [viewedSatchelItemIndex, setViewedSatchelItemIndex] = useState(0);
-  const [lastViewedSatchelIndex, setLastViewedSatchelIndex] = useState(0);
+  // FIX: Corrected the useState setter name from 'setLastViewedSatchelIndex' to 'setLastViewedSatchelItemIndex'.
+  const [lastViewedSatchelIndex, setLastViewedSatchelItemIndex] = useState(0);
   const [satchelAnimation, setSatchelAnimation] = useState<'in' | 'out' | null>(null);
 
   const animatingIndices = useMemo(() => new Set(gameState.newlyDrawnCardIndices || []), [gameState.newlyDrawnCardIndices]);
@@ -162,7 +163,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     if (viewedSatchelItemIndex >= playerDetails.satchel.length) {
         const newIndex = Math.max(0, playerDetails.satchel.length - 1);
         setViewedSatchelItemIndex(newIndex);
-        setLastViewedSatchelIndex(newIndex);
+        setLastViewedSatchelItemIndex(newIndex);
     }
   }, [playerDetails.satchel.length, viewedSatchelItemIndex]);
 
@@ -428,7 +429,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     setTimeout(() => {
         const newIndex = (viewedSatchelItemIndex + 1) % playerDetails.satchel.length;
         setViewedSatchelItemIndex(newIndex);
-        setLastViewedSatchelIndex(newIndex);
+        setLastViewedSatchelItemIndex(newIndex);
         setSatchelAnimation('in');
         setTimeout(() => setSatchelAnimation(null), 400); // match animation duration
     }, 400); // match animation duration

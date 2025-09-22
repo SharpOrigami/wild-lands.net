@@ -1,5 +1,5 @@
-import { LifetimeStats, RunStats } from '../types';
-import { INITIAL_LIFETIME_STATS } from '../constants';
+import { LifetimeStats, RunStats } from '../types.ts';
+import { INITIAL_LIFETIME_STATS } from '../constants.ts';
 
 // The key for storing lifetime stats in localStorage.
 const LIFETIME_STATS_KEY = 'wildWestLifetimeStats_WWS';

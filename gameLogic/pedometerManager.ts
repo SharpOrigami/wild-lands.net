@@ -1,10 +1,10 @@
 import React from 'react';
-import { GameState, PlayerDetails, LogEntry } from '../types';
-import { getRandomLogVariation } from '../utils/logUtils';
+import { GameState, PlayerDetails, LogEntry } from '../types.ts';
+import { getRandomLogVariation } from '../utils/logUtils.ts';
 // FIX: The getScaledCard function was moved to cardUtils, so this import is now correct. - This comment is obsolete.
-import { shuffleArray, getScaledCard } from '../utils/cardUtils';
+import { shuffleArray, getScaledCard } from '../utils/cardUtils.ts';
 // FIX: Import REQUIRED_ACCURACY_METERS from constants where it is now defined. - This comment is obsolete.
-import { PLAYER_ID, REQUIRED_ACCURACY_METERS } from '../constants';
+import { PLAYER_ID, REQUIRED_ACCURACY_METERS } from '../constants.ts';
 
 // --- Pedometer Constants ---
 export const METERS_TO_FEET = 3.28084;

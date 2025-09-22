@@ -1,5 +1,6 @@
+
 import React, { useState, useLayoutEffect, CSSProperties, useRef, useEffect } from 'react';
-import { soundManager } from '../utils/soundManager';
+import { soundManager } from '../utils/soundManager.ts';
 
 interface TutorialComponentProps {
   step: number;

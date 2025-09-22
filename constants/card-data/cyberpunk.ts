@@ -1,4 +1,4 @@
-import { CardData } from '../../types';
+import { CardData } from '../../types.ts';
 
 export const CYBERPUNK_CARDS: { [id: string]: CardData } = {
     // --- 2200s Cyberpunk NG+40 Card Variants ---

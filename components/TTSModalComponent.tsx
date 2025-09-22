@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { ttsManager } from '../utils/ttsManager';
-import ModalComponent from './ModalComponent';
+import { ttsManager } from '../utils/ttsManager.ts';
+import ModalComponent from './ModalComponent.tsx';
 
 interface TTSModalComponentProps {
   isOpen: boolean;

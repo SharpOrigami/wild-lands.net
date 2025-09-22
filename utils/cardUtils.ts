@@ -1,5 +1,5 @@
-import { CardData, CardContext, PlayerDetails } from '../types';
-import { NG_PLUS_THEME_MILESTONE_INTERVAL, APP_VERSION } from '../constants';
+import { CardData, CardContext, PlayerDetails } from '../types.ts';
+import { NG_PLUS_THEME_MILESTONE_INTERVAL, APP_VERSION } from '../constants.ts';
 
 // A static version string for cache busting. Change this value to force all clients to re-download assets.
 const BUSTER = `v=${APP_VERSION}`;

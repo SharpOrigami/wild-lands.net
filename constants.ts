@@ -1,6 +1,6 @@
 
-import { CardData, Character, RunStats, LifetimeStats } from './types';
-import { ALL_CARDS_DATA_MAP as allCards } from './constants/card-data';
+import { CardData, Character, RunStats, LifetimeStats } from './types.ts';
+import { ALL_CARDS_DATA_MAP as allCards } from './constants/card-data/index.ts';
 
 export const APP_VERSION = '20240725.1';
 export const PLAYER_ID = 'player1';

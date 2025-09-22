@@ -1,6 +1,7 @@
-import * as allIllustrations from '../assets/card-illustrations';
-import { getCacheBustedUrl } from './cardUtils';
-import { CHARACTERS_LIST, NG_PLUS_THEME_MILESTONE_INTERVAL } from '../constants';
+
+import * as allIllustrations from '../assets/card-illustrations/index.ts';
+import { getCacheBustedUrl } from './cardUtils.ts';
+import { CHARACTERS_LIST, NG_PLUS_THEME_MILESTONE_INTERVAL } from '../constants.ts';
 
 const BACKGROUND_ASSETS: { [key: number]: string[] } = {
     0: [

@@ -1,9 +1,10 @@
-import { COMMON_ILLUSTRATIONS } from './common';
-import { WESTERN_ILLUSTRATIONS } from './western';
-import { JAPAN_ILLUSTRATIONS } from './japan';
-import { AFRICA_ILLUSTRATIONS } from './africa';
-import { HORROR_ILLUSTRATIONS } from './horror';
-import { CYBERPUNK_ILLUSTRATIONS } from './cyberpunk';
+
+import { COMMON_ILLUSTRATIONS } from './common.ts';
+import { WESTERN_ILLUSTRATIONS } from './western.ts';
+import { JAPAN_ILLUSTRATIONS } from './japan.ts';
+import { AFRICA_ILLUSTRATIONS } from './africa.ts';
+import { HORROR_ILLUSTRATIONS } from './horror.ts';
+import { CYBERPUNK_ILLUSTRATIONS } from './cyberpunk.ts';
 
 export { COMMON_ILLUSTRATIONS, WESTERN_ILLUSTRATIONS, JAPAN_ILLUSTRATIONS, AFRICA_ILLUSTRATIONS, HORROR_ILLUSTRATIONS, CYBERPUNK_ILLUSTRATIONS };
 

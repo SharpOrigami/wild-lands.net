@@ -1,6 +1,6 @@
-import { GameState, LogEntry, CardData, AIBossData, Character, PlayerDetails } from '../types';
-import { ALL_CARDS_DATA_MAP, PLAYER_ID } from '../constants';
-import { getThemeSuffix } from '../utils/themeUtils';
+import { GameState, LogEntry, CardData, AIBossData, Character, PlayerDetails } from '../types.ts';
+import { ALL_CARDS_DATA_MAP, PLAYER_ID } from '../constants.ts';
+import { getThemeSuffix } from '../utils/themeUtils.ts';
 
 const API_BASE_URL = 'https://wild-lands-backend-service-757227038530.us-east1.run.app/'; // Updated to user's Cloud Run URL
 

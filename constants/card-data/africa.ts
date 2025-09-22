@@ -1,4 +1,4 @@
-import { CardData } from '../../types';
+import { CardData } from '../../types.ts';
 
 export const AFRICA_CARDS: { [id: string]: CardData } = {
     // --- 1910s Africa Safari NG+20 Card Variants ---

@@ -1,9 +1,9 @@
-import { PlayerDetails, CardData, LogEntry, ActiveGameBannerState } from '../types';
-import { soundManager } from './soundManager';
-import { getRandomLogVariation } from './logUtils';
-import { createTrophyOrBountyCard } from './cardUtils';
-import { PLAYER_ID, CURRENT_CARDS_DATA } from '../constants';
-import { getThemeName } from './themeUtils';
+import { PlayerDetails, CardData, LogEntry, ActiveGameBannerState } from '../types.ts';
+import { soundManager } from './soundManager.ts';
+import { getRandomLogVariation } from './logUtils.ts';
+import { createTrophyOrBountyCard } from './cardUtils.ts';
+import { PLAYER_ID, CURRENT_CARDS_DATA } from '../constants.ts';
+import { getThemeName } from './themeUtils.ts';
 
 // Forward declaration for ObjectiveCheckResult since it's used before definition
 interface ObjectiveCheckResult {

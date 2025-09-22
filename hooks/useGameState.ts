@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { GameState, PlayerDetails, Character, CardData, LogEntry, CardEffect, CardContext, ModalState, ActiveGameBannerState, RunStats } from '../types';
+import { GameState, PlayerDetails, Character, CardData, LogEntry, CardEffect, CardContext, ModalState, ActiveGameBannerState, RunStats } from '../types.ts';
 import {
     PLAYER_ID, MAX_LOG_ENTRIES, HAND_LIMIT, EQUIP_LIMIT, STORE_DISPLAY_LIMIT, EVENT_DECK_SIZE, PLAYER_DECK_TARGET_SIZE, STORE_DECK_TARGET_SIZE,
     CHARACTERS_DATA_MAP, INITIAL_PLAYER_STATE_TEMPLATE,
@@ -9,18 +9,18 @@ import {
     NG_PLUS_THEME_MILESTONE_INTERVAL,
     APEX_PREDATOR_IDS,
     PEST_IDS
-} from '../constants';
-import { shuffleArray, calculateAttackPower, calculateHealAmount, isEventConsideredHostile, getCardCategory, pickRandomDistinctFromPool, createTrophyOrBountyCard, isFirearm, NON_HOSTILE_ON_REVEAL_IDS, getScaledCard, applyDifficultyBonus } from '../utils/cardUtils';
-import { getRandomLogVariation } from '../utils/logUtils';
-import { generateStoryForGame, generateAIBossForGame, remixCardsForNGPlusGame, generateBossIntroStory, generateRemixedWeapon } from '../services/geminiService';
-import { updateLifetimeStats } from '../utils/statsUtils';
-import { soundManager } from '../utils/soundManager';
-import { ttsManager } from '../utils/ttsManager';
-import { getThemedCardPool, getThemeSuffix, getThemeSuffixForMilestone, getThemeName } from '../utils/themeUtils';
-import { applyHealToPlayer as applyHealToPlayerUtil, applyDamageAndGetAnimation as applyDamageAndGetAnimationUtil, handleTrapInteractionWithEvent as handleTrapInteractionWithEventUtil, handleObjectiveCompletionChecks as handleObjectiveCompletionChecksUtil, applyImmediateEventAndCheckEndTurn as applyImmediateEventAndCheckEndTurnUtil } from '../utils/gameplayUtils';
-import { createPedometerManager } from '../gameLogic/pedometerManager';
-import * as actionHandlers from '../utils/actionHandlers';
-import { CHEAT_CODES } from '../utils/cheatCodes';
+} from '../constants.ts';
+import { shuffleArray, calculateAttackPower, calculateHealAmount, isEventConsideredHostile, getCardCategory, pickRandomDistinctFromPool, createTrophyOrBountyCard, isFirearm, NON_HOSTILE_ON_REVEAL_IDS, getScaledCard, applyDifficultyBonus } from '../utils/cardUtils.ts';
+import { getRandomLogVariation } from '../utils/logUtils.ts';
+import { generateStoryForGame, generateAIBossForGame, remixCardsForNGPlusGame, generateBossIntroStory, generateRemixedWeapon } from '../services/geminiService.ts';
+import { updateLifetimeStats } from '../utils/statsUtils.ts';
+import { soundManager } from '../utils/soundManager.ts';
+import { ttsManager } from '../utils/ttsManager.ts';
+import { getThemedCardPool, getThemeSuffix, getThemeSuffixForMilestone, getThemeName } from '../utils/themeUtils.ts';
+import { applyHealToPlayer as applyHealToPlayerUtil, applyDamageAndGetAnimation as applyDamageAndGetAnimationUtil, handleTrapInteractionWithEvent as handleTrapInteractionWithEventUtil, handleObjectiveCompletionChecks as handleObjectiveCompletionChecksUtil, applyImmediateEventAndCheckEndTurn as applyImmediateEventAndCheckEndTurnUtil } from '../utils/gameplayUtils.ts';
+import { createPedometerManager } from '../gameLogic/pedometerManager.ts';
+import * as actionHandlers from '../utils/actionHandlers.ts';
+import { CHEAT_CODES } from '../utils/cheatCodes.ts';
 
 
 const initialModalState: ModalState = { isOpen: false, title: '', text: '' };

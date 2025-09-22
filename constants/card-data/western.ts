@@ -1,4 +1,5 @@
-import { CardData } from '../../types';
+
+import { CardData } from '../../types.ts';
 
 export const WESTERN_CARDS: { [id: string]: CardData } = {
     // Animal Threats

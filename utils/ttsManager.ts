@@ -1,4 +1,4 @@
-import { soundManager } from './soundManager';
+import { soundManager } from './soundManager.ts';
 
 class TTSManager {
     private narrating: boolean = false;

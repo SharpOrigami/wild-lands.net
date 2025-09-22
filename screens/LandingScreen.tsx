@@ -1,5 +1,5 @@
 import React from 'react';
-import { soundManager } from '../utils/soundManager';
+import { soundManager } from '../utils/soundManager.ts';
 
 interface LandingScreenProps {
   onEnter: () => void;

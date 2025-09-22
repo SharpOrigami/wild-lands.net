@@ -1,8 +1,8 @@
-import { GameState, PlayerDetails, LogEntry, CardData, CardContext, ActiveGameBannerState, RunStats } from '../types';
-import { getRandomLogVariation } from './logUtils';
-import { calculateHealAmount, calculateAttackPower, isFirearm, getScaledCard, createTrophyOrBountyCard, getCardCategory, shuffleArray, isBow } from './cardUtils';
-import { PLAYER_ID, APEX_PREDATOR_IDS, PEST_IDS, CURRENT_CARDS_DATA } from '../constants';
-import { getThemeName } from './themeUtils';
+import { GameState, PlayerDetails, LogEntry, CardData, CardContext, ActiveGameBannerState, RunStats } from '../types.ts';
+import { getRandomLogVariation } from './logUtils.ts';
+import { calculateHealAmount, calculateAttackPower, isFirearm, getScaledCard, createTrophyOrBountyCard, getCardCategory, shuffleArray, isBow } from './cardUtils.ts';
+import { PLAYER_ID, APEX_PREDATOR_IDS, PEST_IDS, CURRENT_CARDS_DATA } from '../constants.ts';
+import { getThemeName } from './themeUtils.ts';
 
 export interface ActionHandlerArgs {
   player: PlayerDetails;

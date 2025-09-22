@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Character, CardContext, PlayerDetails } from '../types';
-import { CHARACTERS_LIST, CURRENT_CARDS_DATA, INITIAL_PLAYER_STATE_TEMPLATE, PERSONALITY_TRAITS } from '../constants';
-import CardComponent from '../components/CardComponent'; // Changed to default import
-import { soundManager } from '../utils/soundManager';
-import { CHEAT_CODES, CHEAT_ADD_GOLD_AMOUNT } from '../utils/cheatCodes';
+import { Character, CardContext, PlayerDetails } from '../types.ts';
+import { CHARACTERS_LIST, CURRENT_CARDS_DATA, INITIAL_PLAYER_STATE_TEMPLATE, PERSONALITY_TRAITS } from '../constants.ts';
+import CardComponent from '../components/CardComponent.tsx'; // Changed to default import
+import { soundManager } from '../utils/soundManager.ts';
+import { CHEAT_CODES, CHEAT_ADD_GOLD_AMOUNT } from '../utils/cheatCodes.ts';
 
 interface SetupScreenProps {
   playerDetails: PlayerDetails;

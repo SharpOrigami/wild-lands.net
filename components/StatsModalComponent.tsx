@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { LifetimeStats } from '../types';
-import ModalComponent from './ModalComponent';
-import { CHARACTERS_DATA_MAP } from '../constants';
+import { LifetimeStats } from '../types.ts';
+import ModalComponent from './ModalComponent.tsx';
+import { CHARACTERS_DATA_MAP } from '../constants.ts';
 
 interface StatsModalProps {
   isOpen: boolean;

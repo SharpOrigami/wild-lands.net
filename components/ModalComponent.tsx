@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState, useRef } from 'react';
-import { soundManager } from '../utils/soundManager';
-import { ttsManager } from '../utils/ttsManager';
+import { soundManager } from '../utils/soundManager.ts';
+import { ttsManager } from '../utils/ttsManager.ts';
 
 interface ModalProps {
   isOpen: boolean;

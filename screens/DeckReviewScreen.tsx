@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { CardData, CardContext } from '../types';
-import CardComponent from '../components/CardComponent';
-import { PLAYER_NG_PLUS_CARRY_OVER_LIMIT } from '../constants';
-import { soundManager } from '../utils/soundManager';
+import { CardData, CardContext } from '../types.ts';
+import CardComponent from '../components/CardComponent.tsx';
+import { PLAYER_NG_PLUS_CARRY_OVER_LIMIT } from '../constants.ts';
+import { soundManager } from '../utils/soundManager.ts';
 
 interface DeckReviewScreenProps {
   deck: CardData[];

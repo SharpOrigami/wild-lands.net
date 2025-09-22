@@ -1,27 +1,28 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useGameState } from './hooks/useGameState';
-import LandingScreen from './screens/LandingScreen';
-import SetupScreen from './screens/SetupScreen';
-import GameScreen from './screens/GameScreen';
-import DeckReviewScreen from './screens/DeckReviewScreen';
-import ModalComponent from './components/ModalComponent';
-import OverlayEffectsComponent from './components/OverlayEffectsComponent';
-import BossIntroStoryComponent from './components/BossIntroStoryComponent'; 
-import StoryLoadingComponent from './components/StoryLoadingComponent'; 
-import NGPlusLoadingComponent from './components/NGPlusLoadingComponent'; 
-import TutorialComponent from './components/TutorialComponent';
-import StatsModalComponent from './components/StatsModalComponent';
-import TTSModalComponent from './components/TTSModalComponent';
-import ManualContent from './components/ManualContent'; // Import the new component
-import { loadLifetimeStats, resetLifetimeStats } from './utils/statsUtils';
-import { LifetimeStats } from './types';
-import { PLAYER_ID, NG_PLUS_THEME_MILESTONE_INTERVAL, APP_VERSION } from './constants';
-import { soundManager, ALL_THEMES as ALL_SOUND_THEMES, ThemeName as SoundTheme } from './utils/soundManager';
-import { imageManager, ALL_THEMES as ALL_IMAGE_THEMES, ThemeName as ImageTheme } from './utils/imageManager';
-import { ttsManager } from './utils/ttsManager'; // Import TTS Manager
-import { hapticManager } from './utils/hapticUtils';
-import { getCacheBustedUrl } from './utils/cardUtils';
-import { generateStoryForGame } from './services/geminiService';
+import { useGameState } from './hooks/useGameState.ts';
+import LandingScreen from './screens/LandingScreen.tsx';
+import SetupScreen from './screens/SetupScreen.tsx';
+import GameScreen from './screens/GameScreen.tsx';
+import DeckReviewScreen from './screens/DeckReviewScreen.tsx';
+import ModalComponent from './components/ModalComponent.tsx';
+import OverlayEffectsComponent from './components/OverlayEffectsComponent.tsx';
+import BossIntroStoryComponent from './components/BossIntroStoryComponent.tsx'; 
+import StoryLoadingComponent from './components/StoryLoadingComponent.tsx'; 
+import NGPlusLoadingComponent from './components/NGPlusLoadingComponent.tsx'; 
+import TutorialComponent from './components/TutorialComponent.tsx';
+import StatsModalComponent from './components/StatsModalComponent.tsx';
+import TTSModalComponent from './components/TTSModalComponent.tsx';
+import ManualContent from './components/ManualContent.tsx'; // Import the new component
+import { loadLifetimeStats, resetLifetimeStats } from './utils/statsUtils.ts';
+import { LifetimeStats } from './types.ts';
+import { PLAYER_ID, NG_PLUS_THEME_MILESTONE_INTERVAL, APP_VERSION } from './constants.ts';
+import { soundManager, ALL_THEMES as ALL_SOUND_THEMES, ThemeName as SoundTheme } from './utils/soundManager.ts';
+import { imageManager, ALL_THEMES as ALL_IMAGE_THEMES, ThemeName as ImageTheme } from './utils/imageManager.ts';
+import { ttsManager } from './utils/ttsManager.ts'; // Import TTS Manager
+import { hapticManager } from './utils/hapticUtils.ts';
+import { getCacheBustedUrl } from './utils/cardUtils.ts';
+import { generateStoryForGame } from './services/geminiService.ts';
 
 const getThemesForLevel = (level: number): string[] => {
   const themes: string[] = ['common', 'western'];

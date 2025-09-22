@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import CardComponent from './CardComponent'; // Changed to default import
-import { CardContext, CardData, ActiveGameBannerState, PlayerDetails } from '../types';
+import CardComponent from './CardComponent.tsx'; // Changed to default import
+import { CardContext, CardData, ActiveGameBannerState, PlayerDetails } from '../types.ts';
 
 const illnessNames = [
   'Dysentery', 'Malaria', 'Scarlet Fever', 'Snake Bite', 'Ekiri', 'Okori Fever', 'Red Blossom Plague', 'Mamushi Venom', 'Sleeping Sickness', 'Mamba Venom', 'The Bloody Flux', 'The Ague', 'Crimson Scourge', "Beast's Bite"

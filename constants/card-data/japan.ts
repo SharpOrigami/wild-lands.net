@@ -1,4 +1,4 @@
-import { CardData } from '../../types';
+import { CardData } from '../../types.ts';
 
 export const JAPAN_CARDS: { [id: string]: CardData } = {
     // --- Feudal Japan NG+10 Card Variants ---

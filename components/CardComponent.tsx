@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { CardData, CardContext, PlayerDetails, Character } from '../types';
-import { getCardValues, isFirearm, getAttackPowerBreakdown, isBow } from '../utils/cardUtils';
-import { CARD_ILLUSTRATIONS } from '../assets/card-illustrations';
-import { soundManager } from '../utils/soundManager';
-import { imageManager } from '../utils/imageManager';
-import { getThemeSuffix } from '../utils/themeUtils';
+import { CardData, CardContext, PlayerDetails, Character } from '../types.ts';
+import { getCardValues, isFirearm, getAttackPowerBreakdown, isBow } from '../utils/cardUtils.ts';
+import { CARD_ILLUSTRATIONS } from '../assets/card-illustrations/index.ts';
+import { soundManager } from '../utils/soundManager.ts';
+import { imageManager } from '../utils/imageManager.ts';
+import { getThemeSuffix } from '../utils/themeUtils.ts';
 
 interface CardComponentProps {
   card: CardData | Character | null;

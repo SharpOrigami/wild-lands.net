@@ -1,7 +1,8 @@
+
 import React, { useEffect, useRef } from 'react';
-import { LogEntry } from '../types';
-import { MAX_LOG_ENTRIES } from '../constants';
-import { ttsManager } from '../utils/ttsManager';
+import { LogEntry } from '../types.ts';
+import { MAX_LOG_ENTRIES } from '../constants.ts';
+import { ttsManager } from '../utils/ttsManager.ts';
 
 interface GameLogProps {
   logEntries: LogEntry[];

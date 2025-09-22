@@ -1,10 +1,11 @@
-import { PlayerDetails, CardData, Theme } from '../types';
-import { getThemeName } from './themeUtils';
-import { traitLogTemplates } from './logs/personalityLogTemplates';
-import { characterLogTemplates } from './logs/characterLogTemplates';
-import { logTemplates } from './logs/generalLogTemplates';
-import { bossLogTemplates } from './logs/bossLogTemplates';
-import { characterMotivationLogTemplates } from './logs/characterMotivationLogTemplates';
+
+import { PlayerDetails, CardData, Theme } from '../types.ts';
+import { getThemeName } from './themeUtils.ts';
+import { traitLogTemplates } from './logs/personalityLogTemplates.ts';
+import { characterLogTemplates } from './logs/characterLogTemplates.ts';
+import { logTemplates } from './logs/generalLogTemplates.ts';
+import { bossLogTemplates } from './logs/bossLogTemplates.ts';
+import { characterMotivationLogTemplates } from './logs/characterMotivationLogTemplates.ts';
 
 export interface LogParams {
   playerName?: string;

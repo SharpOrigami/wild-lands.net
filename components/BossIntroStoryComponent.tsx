@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { ttsManager } from '../utils/ttsManager';
+import { ttsManager } from '../utils/ttsManager.ts';
 
 interface BossIntroStoryProps {
   isLoading: boolean;

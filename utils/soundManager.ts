@@ -1,6 +1,7 @@
-import { getCacheBustedUrl } from './cardUtils';
-import * as allSounds from '../assets/sounds';
-import { hapticManager } from './hapticUtils';
+
+import { getCacheBustedUrl } from './cardUtils.ts';
+import * as allSounds from '../assets/sounds/index.ts';
+import { hapticManager } from './hapticUtils.ts';
 
 const SFX_POOL_SIZE = 12;
 

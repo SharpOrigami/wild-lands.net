@@ -1,10 +1,11 @@
-import { CardData } from '../../types';
-import { OBJECTIVE_CARDS } from './objectives';
-import { WESTERN_CARDS } from './western';
-import { JAPAN_CARDS } from './japan';
-import { AFRICA_CARDS } from './africa';
-import { HORROR_CARDS } from './horror';
-import { CYBERPUNK_CARDS } from './cyberpunk';
+
+import { CardData } from '../../types.ts';
+import { OBJECTIVE_CARDS } from './objectives.ts';
+import { WESTERN_CARDS } from './western.ts';
+import { JAPAN_CARDS } from './japan.ts';
+import { AFRICA_CARDS } from './africa.ts';
+import { HORROR_CARDS } from './horror.ts';
+import { CYBERPUNK_CARDS } from './cyberpunk.ts';
 
 export const ALL_CARDS_DATA_MAP: { [id: string]: CardData } = {
   ...OBJECTIVE_CARDS,

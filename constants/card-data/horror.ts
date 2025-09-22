@@ -1,4 +1,4 @@
-import { CardData } from '../../types';
+import { CardData } from '../../types.ts';
 
 export const HORROR_CARDS: { [id: string]: CardData } = {
     // --- 1700s Supernatural Horror NG+30 Card Variants ---
