@@ -765,6 +765,55 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
       "The street always wins. {enemyName} proved too much for {playerName}.",
     ],
   },
+  newDay: {
+    western: [
+      "Day {dayNumber}: The sun rises, casting long shadows across the plains.",
+      "The morning brings a new set of challenges. Day {dayNumber}.",
+      "Day {dayNumber}: A new dawn, a new day of survival.",
+    ],
+    japan: [
+        "Day {dayNumber}: The morning mist lifts, revealing the path ahead.",
+        "The sun rises over the mountains. Day {dayNumber}.",
+        "Day {dayNumber}: A new day for the wandering samurai.",
+    ],
+    safari: [
+        "Day {dayNumber}: The savanna awakens with the morning sun.",
+        "The sounds of the bush greet the new day. Day {dayNumber}.",
+        "Day {dayNumber}: The hunt continues under the African sun.",
+    ],
+    horror: [
+        "Day {dayNumber}: Dawn breaks, but the shadows linger.",
+        "The gray morning light offers little comfort. Day {dayNumber}.",
+        "Day {dayNumber}: Another day survived in this cursed land.",
+    ],
+    cyberpunk: [
+        "Day {dayNumber}: The smog-filtered sunlight breaks through the high-rises.",
+        "Morning in the neon city. Day {dayNumber}.",
+        "Day {dayNumber}: A new cycle. Time to make some creds.",
+    ],
+  },
+  newDayWithIllnessWorsened: {
+    western: [
+      "Day {dayNumber}: A restless night. The {illnessName} has worsened.",
+      "The fevered dawn of Day {dayNumber} arrives. The {illnessName} tightens its grip.",
+    ],
+    japan: [
+      "Day {dayNumber}: The body is weak, the spirit tested. The {illnessName} lingers.",
+      "Another sunrise, another battle against the {illnessName}. Day {dayNumber}.",
+    ],
+    safari: [
+      "Day {dayNumber}: The oppressive heat worsens the {illnessName}.",
+      "A difficult night passes. The {illnessName} persists on Day {dayNumber}.",
+    ],
+    horror: [
+      "Day {dayNumber}: The malady deepens with the morning gloom. The {illnessName} festers.",
+      "Sleep brought no peace. The {illnessName} has taken a greater hold. Day {dayNumber}.",
+    ],
+    cyberpunk: [
+      "Day {dayNumber}: System diagnostics report worsening condition: {illnessName}.",
+      "Reboot cycle complete. Warning: {illnessName} corruption has increased. Day {dayNumber}.",
+    ],
+  },
   objectiveVoided: {
     western: ["The terms of the contract were clear. By letting the target go, the objective '{objectiveName}' is now void."]
   },
