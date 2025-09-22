@@ -384,6 +384,12 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
       "A glint of gold! The {itemName} pays off, providing {goldAmount} Gold.",
     ],
   },
+  goldFoundWalking: {
+    western: [
+      "{playerName} finds {goldAmount} Gold while walking the trail.",
+      "The journey itself is profitable! {playerName} finds {goldAmount} Gold.",
+    ]
+  },
   goldStolen: {
     western: [
       "The {eventName} deftly relieves {playerName} of {stolenAmount} Gold!",

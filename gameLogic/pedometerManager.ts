@@ -5,6 +5,7 @@ import { getRandomLogVariation } from '../utils/logUtils.ts';
 import { shuffleArray, getScaledCard } from '../utils/cardUtils.ts';
 // FIX: Import REQUIRED_ACCURACY_METERS from constants where it is now defined. - This comment is obsolete.
 import { PLAYER_ID, REQUIRED_ACCURACY_METERS } from '../constants.ts';
+import { getThemeName } from '../utils/themeUtils.ts';
 
 // --- Pedometer Constants ---
 export const METERS_TO_FEET = 3.28084;
@@ -103,6 +104,7 @@ export function createPedometerManager({
                     const stepsPerGold = hasFootwear ? STEPS_PER_GOLD / 2 : STEPS_PER_GOLD;
                     const stepsPerHealth = hasFootwear ? STEPS_PER_HEALTH / 2 : STEPS_PER_HEALTH;
                     const stepsPerCardDraw = hasFootwear ? STEPS_PER_CARD_DRAW / 2 : STEPS_PER_CARD_DRAW;
+                    const theme = getThemeName(modPlayer.ngPlusLevel);
 
                     // Rewards
                     const goldMilestones = Math.floor(newTotalSteps / stepsPerGold) - Math.floor(oldTotalSteps / stepsPerGold);
@@ -114,7 +116,7 @@ export function createPedometerManager({
                     if (goldGained > 0) {
                         modPlayer.gold += goldGained;
                         modPlayer.runStats.gold_earned += goldGained;
-                        _log(getRandomLogVariation('goldFound', { goldAmount: goldGained, sourceName: "walking" }), 'gold');
+                        _log(getRandomLogVariation('goldFoundWalking', { playerName: modPlayer.name, goldAmount: goldGained }, theme, modPlayer), 'gold');
                         triggerGoldFlash(PLAYER_ID);
                     }
                     const healthGained = Math.floor(newTotalSteps / stepsPerHealth) - Math.floor(oldTotalSteps / stepsPerHealth);
@@ -133,7 +135,7 @@ export function createPedometerManager({
                         }
                         if(drawnCount > 0) {
                             modPlayer.playerDeck = tempDeck; modPlayer.playerDiscard = tempDiscard; modPlayer.hand = tempHand; modPlayer.isUnsortedDraw = true;
-                            _log(getRandomLogVariation('cardsDrawn', { cardsDrawn: drawnCount }), 'info');
+                            _log(getRandomLogVariation('cardsDrawn', { cardsDrawn: drawnCount }, theme, modPlayer), 'info');
                         }
                     }
                 }

@@ -256,7 +256,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
         } else if (card.effect.type === 'gold' && card.effect.amount) {
             modPlayer.gold += card.effect.amount;
             modPlayer.runStats.gold_earned += card.effect.amount;
-            _log(getRandomLogVariation('goldFound', { goldAmount: card.effect.amount, sourceName: card.name }, theme, modPlayer, card), 'action');
+            _log(getRandomLogVariation('goldFoundFromItem', { itemName: card.name, goldAmount: card.effect.amount }, theme, modPlayer, card), 'action');
             triggerGoldFlash(PLAYER_ID);
         } else if (card.effect.type === 'draw') {
             const tonicCardToDiscardLater = getBaseCardByIdentifier(card);
