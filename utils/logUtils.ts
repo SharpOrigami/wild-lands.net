@@ -1,3 +1,4 @@
+
 import { PlayerDetails, CardData, Theme } from '../types.ts';
 import { getThemeName } from './themeUtils.ts';
 
@@ -312,547 +313,176 @@ const characterLogTemplates: {
 const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
   itemBought: {
     western: [
-      "You barter for a new {itemName}, parting with {cost} Gold.",
+      "{playerName} barters for a new {itemName}, parting with {cost} Gold.",
       "The {itemName} changes hands for {cost} Gold. A fine purchase.",
-      "You part with {cost} Gold for a much-needed {itemName}.",
+      "{playerName} parts with {cost} Gold for a much-needed {itemName}.",
       "A deal is struck. The {itemName} is yours for {cost} Gold.",
-    ],
-    japan: [
-        "The merchant sells you a {itemName} for {cost} Mon.",
-        "For {cost} Mon, the {itemName} is now yours.",
-        "You pay the merchant {cost} Mon for the {itemName}.",
-        "A shrewd trade. You acquire the {itemName} for {cost} Mon.",
-    ],
-    safari: [
-        "The quartermaster provides a {itemName} for {cost} Shillings.",
-        "For {cost} Shillings, a {itemName} is added to your supplies.",
-        "You pay the outfitter {cost} Shillings for a new {itemName}.",
-        "A necessary expense. You purchase a {itemName} for {cost} Shillings.",
-    ],
-    horror: [
-        "You give the shrouded figure {cost} Silver for the {itemName}.",
-        "For {cost} Silver, the strange {itemName} is taken from the peddler's cart.",
-        "A grim transaction. The {itemName} costs you {cost} Silver.",
-        "Necessity demands it. You buy a {itemName} for {cost} Silver.",
-    ],
-    cyberpunk: [
-        "Transaction complete. {cost} Creds transferred for one {itemName}.",
-        "You slot a cred-chip. The fixer slides over the {itemName}. Cost: {cost} Creds.",
-        "The vendor drone dispenses a {itemName}. Your account is lighter by {cost} Creds.",
-        "Good hardware ain't cheap. You pay {cost} Creds for the {itemName}.",
     ],
   },
   itemSold: {
     western: [
-      "You lighten your load, selling the {itemName} for {sellAmount} Gold.",
+      "{playerName} lightens their load, selling the {itemName} for {sellAmount} Gold.",
       "A savvy buyer takes that {itemName} off your hands for {sellAmount} Gold.",
       "A good trade! The {itemName} sold for {sellAmount} cold hard cash.",
-      "You offload the {itemName} for a tidy sum of {sellAmount} Gold.",
-      "You haggle with a merchant and get {sellAmount} Gold for the {itemName}.",
-      "Another man's trash... The {itemName} is sold for {sellAmount} Gold.",
-      "The merchant looks over the {itemName}. '{sellAmount} Gold,' he grunts. Deal.",
-      "You get {sellAmount} Gold for the {itemName}. Not a bad piece of business.",
-      "The sale of the {itemName} nets you {sellAmount} Gold.",
-    ],
-    japan: [
-        "You sell the {itemName}, earning {sellAmount} Mon for the road ahead.",
-        "The merchant inspects the {itemName} and offers you {sellAmount} Mon.",
-        "A quick sale. The {itemName} fetches {sellAmount} Mon.",
-        "The traveling merchant is pleased with the {itemName} and pays {sellAmount} Mon.",
-        "You trade the {itemName} for {sellAmount} Mon. A fair price.",
-    ],
-    safari: [
-        "You sell the {itemName} to the camp outfitter for {sellAmount} Shillings.",
-        "The safari lead barters for the {itemName}, giving you {sellAmount} Shillings.",
-        "Extra gear sold. The {itemName} brings in {sellAmount} Shillings.",
-        "The quartermaster takes the {itemName} for the expedition's stores, paying {sellAmount} Shillings.",
-        "You find a buyer for the {itemName}, earning {sellAmount} Shillings.",
-    ],
-    horror: [
-        "You sell the {itemName} to a collector of strange things for {sellAmount} Silver.",
-        "The old crone in the village offers you {sellAmount} Silver for the {itemName}.",
-        "A hooded figure in a dark alley pays {sellAmount} Silver for the {itemName}, no questions asked.",
-        "The village peddler eyes the {itemName} strangely, but pays the {sellAmount} Silver you ask.",
-    ],
-    cyberpunk: [
-        "You unload the {itemName} at a pawn shop for {sellAmount} Creds.",
-        "The fixer fences the {itemName}, kicking {sellAmount} Creds back to you.",
-        "Data-slug uploaded, creds transferred. The {itemName} is sold for {sellAmount} Creds.",
-        "The item is offloaded at a street market for {sellAmount} Creds.",
-        "A quick transaction on the shadow net. {itemName} sold for {sellAmount} Creds.",
     ],
   },
   itemEquipped: {
     western: [
-      "You equip the {itemName}, ready for what's next.",
+      "{playerName} equips the {itemName}, ready for what's next.",
       "Gearing up. The {itemName} is now ready.",
       "The {itemName} is readied for the trail ahead.",
-    ],
-    japan: [
-        "You don the {itemName}, ready for what lies ahead.",
-        "The {itemName} is readied.",
-        "You are now properly equipped with the {itemName}.",
-    ],
-    safari: [
-        "You equip the {itemName}. Ready for the hunt.",
-        "The {itemName} is prepared.",
-        "Ready for anything. The {itemName} is now equipped.",
-    ],
-    horror: [
-        "You equip the {itemName}, a small comfort against the darkness.",
-        "The {itemName} is readied against the encroaching dread.",
-        "A moment of preparation. You equip the {itemName}.",
-    ],
-    cyberpunk: [
-        "You integrate the {itemName} into your loadout.",
-        "System check... {itemName} online and equipped.",
-        "The {itemName} is slotted into place. You're ready for the run.",
     ],
   },
   itemTaken: {
     western: [
-      "You pick up the {itemName} and add it to your gear.",
+      "{playerName} picks up the {itemName} and adds it to their gear.",
       "The {itemName} is yours now. It goes into your discard pile.",
-      "You take the {itemName}. A useful find.",
-    ],
-    japan: [
-      "You take the {itemName}. It may prove useful on your journey.",
-      "The {itemName} is collected and added to your belongings.",
-      "A fortunate find. You take the {itemName}.",
-    ],
-    safari: [
-      "You add the {itemName} to your kit. An excellent find.",
-      "The {itemName} is recovered from the trail.",
-      "A useful piece of gear. You take the {itemName}.",
-    ],
-    horror: [
-      "With a shudder, you take the {itemName}. Who knows what foulness clings to it.",
-      "You snatch the {itemName} from the ground. Every little bit helps.",
-      "The {itemName} is taken. You hope it is not cursed.",
-    ],
-    cyberpunk: [
-      "Salvage acquired. {itemName} added to your inventory.",
-      "{itemName} integrated into your loadout. A good find on the street.",
-      "You jack the {itemName}. It's yours now.",
+      "{playerName} takes the {itemName}. A useful find.",
     ],
   },
   storeRestock: { 
-    western: ["You pay the storekeep {cost} Gold to clear the shelves and put out new stock."],
-    japan: ["You pay the merchant {cost} Mon to reveal new wares from his cart."],
-    safari: ["You pay the quartermaster {cost} Shillings to bring out a new crate of supplies."],
-    horror: ["You pay the shrouded figure {cost} Silver to rearrange his grim collection."],
-    cyberpunk: ["You pay {cost} Creds to refresh the vendor's inventory on the datascreen."],
+    western: ["{playerName} pays the storekeep {cost} Gold to clear the shelves and put out new stock."],
   },
   eventRevealObjective: {
     western: ["A new contract arrives for {playerName}: '{objectiveName}'. The request is clear: {objective_description}"],
-    japan: ["A decree from a local daimyo has been posted: '{objectiveName}'. {playerName} must adhere to the following: {objective_description}"],
-    safari: ["The safari's benefactor has a special request: '{objectiveName}'. The objective: {objective_description}"],
-    horror: ["A desperate plea reaches {playerName}: '{objectiveName}'. The strange condition is: {objective_description}"],
-    cyberpunk: ["A new bounty hits the net: '{objectiveName}'. The client's special condition is: {objective_description}"],
   },
   eventRevealThreatLow: {
     western: [
       "A {enemyName} shuffles into view. It looks hostile.",
-      "A {enemyName} wanders onto the path, its eyes fixed on you.",
+      "A {enemyName} wanders onto the path, its eyes fixed on {playerName}.",
       "The rustle in the bushes reveals a {enemyName}. It doesn't look friendly.",
-    ],
-    japan: [
-      "A lesser {enemyName} blocks the path. It eyes you with malice.",
-      "An lesser {enemyName} appears. Its intentions are clearly hostile.",
-    ],
-    safari: [
-      "A {enemyName} is spotted nearby. It watches you with predatory intent.",
-      "Movement in the tall grass reveals a {enemyName}. It has not fled. Best to keep your distance.",
-    ],
-    horror: [
-      "A wretched {enemyName} emerges from the gloom. A lesser horror, but still a threat.",
-      "From the shadows, a lowly {enemyName} lurches forth.",
-    ],
-    cyberpunk: [
-      "A low-level {enemyName} appears, its optical sensors glowing red.",
-      "A rogue {enemyName} unit whirs into view. Hostile intent detected.",
     ],
   },
   eventRevealThreatMid: {
     western: [
       "Trouble's brewin'... a {enemyName} rears its ugly head on the trail.",
-      "The sound of trouble... a {enemyName} is blocking your way.",
-    ],
-    japan: [
-      "A formidable {enemyName} appears! Caution is advised.",
-      "A worthy opponent! A {enemyName} challenges you!",
-    ],
-    safari: [
-      "Danger! A {enemyName} has been provoked and now stands in your way.",
-      "You've stumbled into the territory of a {enemyName}. It's not pleased.",
-    ],
-    horror: [
-      "A greater terror, a {enemyName}, now stalks from the shadows.",
-      "The air grows heavy. A menacing {enemyName} materializes.",
-    ],
-    cyberpunk: [
-      "CorpSec is escalating. A {enemyName} unit has been deployed to your location.",
-      "Hostile detected. A {enemyName} unit moves to intercept.",
+      "The sound of trouble... a {enemyName} is blocking your way, {playerName}.",
     ],
   },
   eventRevealThreatHigh: {
     western: [
-      "Hold your horses! An unwelcome visitor: the notorious {enemyName} appears!",
-      "This is the big one! The legendary {enemyName} stands before you!",
-    ],
-    japan: [
-      "A great challenge appears! The legendary {enemyName} stands before you!",
-      "Destiny awaits! The great {enemyName} has revealed itself!",
-    ],
-    safari: [
-      "The ground trembles... it's the legendary {enemyName}!",
-      "The hunt of a lifetime! The great {enemyName} is here!",
-    ],
-    horror: [
-      "The air grows cold. The dreaded {enemyName} has found you!",
-      "The source of the dread... The terrible {enemyName} has come for you!",
-    ],
-    cyberpunk: [
-      "Threat level critical! A high-level {enemyName} is closing on your position!",
-      "Alert! Prime-target {enemyName} is on your six! This is gonna be messy.",
+      "Hold your horses, {playerName}! An unwelcome visitor: the notorious {enemyName} appears!",
+      "This is the big one! The legendary {enemyName} stands before {playerName}!",
     ],
   },
   eventRevealEnvironmental: {
     western: [
       "The sky darkens ominously... a {eventName} is upon you!",
-      "The very land turns against you! A {eventName} strikes!",
-      "Look out! A {eventName}!",
-    ],
-    japan: [
-        "The kami are displeased! A {eventName} descends!",
-        "The earth groans in anger! A {eventName}!",
-        "Nature's fury is unleashed as a {eventName} strikes!",
-    ],
-    safari: [
-        "The savanna trembles! A {eventName} is imminent!",
-        "The sky turns a sickly yellow... a {eventName} approaches!",
-        "Danger from the elements! A {eventName}!",
-    ],
-    horror: [
-        "The world itself seems to bleed... a {eventName} begins!",
-        "The laws of nature are broken! A {eventName} occurs!",
-        "The very air crackles with malevolence! A {eventName}!",
-    ],
-    cyberpunk: [
-        "System warning: environmental hazard detected! A {eventName} is imminent!",
-        "The city's infrastructure fails! A {eventName} is happening!",
-        "Atmospheric anomaly detected: {eventName}!",
+      "The very land turns against {playerName}! A {eventName} strikes!",
+      "Look out, {playerName}! A {eventName}!",
     ],
   },
   threatDefeatedLow: {
-    western: ["You dealt with the {enemyName}. Just another day on the frontier."],
-    japan: ["You dispatched the {enemyName} with a single, elegant strike."],
-    safari: ["You handle the {enemyName} with practiced ease. The safari continues."],
-    horror: ["The lesser creature, {enemyName}, is sent back to the abyss from whence it came."],
-    cyberpunk: ["You zeroed the {enemyName}. Another piece of scrap for the junk heaps."],
+    western: ["{playerName} dealt with the {enemyName}. Just another day on the frontier."],
   },
   threatDefeatedMid: {
-    western: ["Another one bites the dust. You've sent the {enemyName} packing."],
-    japan: ["The {enemyName} fought well, but fell to your superior skill."],
-    safari: ["A fine kill! You have successfully hunted the {enemyName}."],
-    horror: ["With grim determination, you put an end to the {enemyName}."],
-    cyberpunk: ["The {enemyName} has been decommissioned. Permanently."],
+    western: ["Another one bites the dust. {playerName} sent the {enemyName} packing."],
   },
   threatDefeatedHigh: {
-    western: ["The {enemyName} met its match today. The trail's a bit safer, thanks to you."],
-    japan: ["A mighty blow fells the great {enemyName}! Your legend grows!"],
-    safari: ["A magnificent trophy! You have brought down the powerful {enemyName}!"],
-    horror: ["A great evil is vanquished! You have defeated the terrible {enemyName}!"],
-    cyberpunk: ["Target neutralized. The high-threat {enemyName} has been dismantled."],
+    western: ["The {enemyName} met its match today. The trail's a bit safer, thanks to {playerName}."],
   },
   laudanumHeal: {
     western: [
       "The {itemName} does the trick. Pain fades as {healAmount} HP is restored. Health: {currentHP}/{maxHP}.",
       "A swig of {itemName} knits the wounds, recovering {healAmount} HP. Now at {currentHP}/{maxHP}.",
-      "The world grows hazy, but the pain recedes. Healed for {healAmount} health.",
-      "A blessed numbness washes over you. The {itemName} restores {healAmount} HP.",
-    ],
-    japan: [
-      "The {itemName} brings a welcome calm, restoring {healAmount} HP. Your ki feels stronger.",
-      "The poppy's kiss eases the pain, restoring {healAmount} HP."
-    ],
-    safari: [
-      "A dose of {itemName} dulls the ache, recovering {healAmount} HP.",
-      "The potent medicine works quickly, patching you up for {healAmount} HP."
-    ],
-    horror: [
-      "The {itemName} offers a moment of relief from the torment, healing for {healAmount} HP.",
-      "A blessed respite. The {itemName} closes the wounds, restoring {healAmount} HP."
-    ],
-    cyberpunk: [
-      "The {itemName} floods your system with painkillers, repairing bioware for {healAmount} HP.",
-      "Nanites go to work, spurred by the {itemName}. Recovered {healAmount} HP."
     ],
   },
   laudanumNoHeal: {
     western: [
       "A swig of {itemName} is taken. The world goes fuzzy, but there was no pain to dull.",
       "Already feelin' fit as a fiddle, but the {itemName} is downed anyway. The pleasant haze is its own reward.",
-      "The {itemName} offers a moment of peace, a welcome respite even without wounds to mend.",
-      "With no wounds to mend, you take the {itemName} anyway. Best be careful... this could become a habit.",
-      "A preemptive dose of {itemName}. The world softens, a dangerous comfort.",
-      "You're not hurt, but the call of the {itemName} is strong. You take a sip to steady your nerves.",
-    ],
-    japan: [
-      "The {itemName} offers a dreamy haze, a brief escape from the world.",
-      "With your spirit already whole, you partake in the {itemName}. The world softens at the edges.",
-      "The poppy's comfort is sought not for pain, but for a moment of tranquility.",
-      "Though your body is whole, you drink the {itemName}. One must be wary of such comforts.",
-      "The poppy's kiss is taken not for pain, but for the quiet it brings to a troubled mind. A risky path.",
-    ],
-    safari: [
-      "A preventative dose of {itemName}. A strange calm settles in.",
-      "With no injuries to treat, the {itemName} is taken nonetheless. The strain of the expedition eases for a moment.",
-      "The medicine chest is opened for the {itemName}, though you are hale and hearty. The psychological relief is palpable.",
-      "The strain of the hunt is a wound of its own. You take the {itemName} to ease the mind, not the body.",
-      "A dangerous luxury. With no injuries, you use the {itemName} to escape the oppressive heat for a moment.",
-    ],
-    horror: [
-      "Already whole, the {itemName} is consumed. A dangerous habit begins...",
-      "Physical horrors have not taken their toll, yet solace is sought in the {itemName}. The mental scars remain.",
-      "To dull the terror, not the pain, the {itemName} is used. The world recedes to a manageable distance.",
-      "It's not the body that needs mending. You take the {itemName} to quiet the horrors in your mind. A slippery slope.",
-      "Physical wounds are the least of your worries. The {itemName} offers a brief, welcome numbness.",
-    ],
-    cyberpunk: [
-      "The {itemName} brings a pleasant system buzz, but no repairs were needed.",
-      "System integrity at 100%, but the {itemName} is used anyway. Sometimes you just need to take the edge off the chrome.",
-      "The stim is used not for repairs, but for the quiet it brings to a mind overloaded with data-static.",
-      "System integrity is fine, but the mind is frayed. You use the {itemName} to mute the static. Careful not to get addicted.",
-      "Sometimes, you just need to disconnect. The {itemName} is used, though no repairs were necessary.",
     ],
   },
   playerVictoryFinalDay: {
     western: [
       "{playerName} takes one last look at the setting sun, the long trail finally at its end.",
       "The dust settles. {playerName} has seen the journey through, a legend forged in grit and gunpowder.",
-      "With the final threat dealt with, {playerName} makes camp one last time, a sense of peace settling over the weary frontier.",
-      "The prairie wind whispers a new name tonight: {playerName}. The story of their journey is complete.",
-      "A quiet satisfaction. {playerName} breathes in the cool night air, the trials of the wild lands behind them.",
-      "The final chapter is written. {playerName} has faced the worst the frontier could throw at them, and won.",
-      "One last campfire under the stars. {playerName} has earned their rest, their victory echoing across the plains.",
-      "The journey's end. {playerName} has stared into the heart of the wild lands and emerged victorious.",
-    ],
-    japan: [
-        "The moon rises over a peaceful landscape. {playerName}'s long journey has reached its conclusion.",
-        "The final demon is exorcised. {playerName}'s tale will be told in kabuki for generations to come.",
-        "{playerName} cleans their blade one last time, the reflection showing a warrior who has found victory.",
-        "Silence falls upon the province. The story of the wandering warrior, {playerName}, is now a legend.",
-        "With a final bow to the spirits of the land, {playerName} concludes their arduous pilgrimage.",
-        "The ink dries on the scroll that tells of {playerName}'s triumph over the great evil.",
-        "{playerName} watches the cherry blossoms fall, a symbol of the beautiful, fleeting nature of their victorious journey.",
-        "The path ends here. {playerName} has walked the warrior's road to its glorious end.",
-    ],
-    safari: [
-        "The savanna grows quiet as night falls. {playerName}'s great hunt is finally over.",
-        "The last entry is made in the expedition log. {playerName} has conquered the continent's greatest challenge.",
-        "Under the vast African sky, {playerName} rests, the thrill of the final victory coursing through them.",
-        "The drums in the distance beat a new rhythm, one of triumph for the great hunter, {playerName}.",
-        "The smoke from the campfire curls into the starry night. {playerName}'s safari has reached a successful, legendary end.",
-        "The whispers on the wind have changed from warnings to praise. {playerName} is victorious.",
-        "{playerName} listens to the sounds of the bush, no longer a threat, but a chorus to their victory.",
-        "The final trophy is claimed. {playerName}'s legendary expedition is complete.",
-    ],
-    horror: [
-        "Dawn breaks, the first true dawn in what feels like an eternity. {playerName} has survived the night.",
-        "The curse is broken. The long, horrifying road has ended, and {playerName} is finally free.",
-        "With the great evil vanquished, {playerName} finds a place to rest, the oppressive darkness finally lifting.",
-        "The whispers in the dark have fallen silent. {playerName}'s name will be a ward against evil for years to come.",
-        "A moment of blessed silence. {playerName} watches the sun rise, a survivor of the unspeakable.",
-        "The final page of the grimoire is burned. {playerName}'s harrowing tale ends not in madness, but in triumph.",
-        "{playerName} lays down their arms, the weight of the hunt finally lifted from their weary shoulders.",
-        "The nightmare is over. {playerName} has faced the abyss and emerged, forever changed but victorious.",
-    ],
-    cyberpunk: [
-        "System shutdown sequence complete. {playerName}'s final run has come to a successful conclusion.",
-        "The last of the hostile code has been purged. {playerName}'s legend is now hardcoded into the street's memory.",
-        "With the net's greatest threat zeroed, {playerName} jacks out one last time, the silence of the real world a welcome relief.",
-        "The data packets settle. The story of the runner, {playerName}, is uploaded to the archives of legends.",
-        "Mission accomplished. {playerName} watches the neon rain fall, the adrenaline of the final encounter fading to a quiet hum.",
-        "The final bounty is collected. {playerName}'s rep is solidified; they are the best there is.",
-        "{playerName} powers down their rig, the ghost in the machine finally laid to rest.",
-        "The run is over. {playerName} has stared into the digital abyss and uploaded a victory message.",
     ],
   },
   playerAttack: {
     western: [
       "{playerName} attacks {enemyName} with {itemName} for {attackPower} damage.",
       "{playerName} unleashes hell on {enemyName} with the {itemName}, dealing {attackPower} damage.",
-      "With a roar, {playerName} strikes the {enemyName} with their {itemName} for {attackPower} damage.",
-      "The {itemName} finds its mark! {enemyName} takes {attackPower} damage.",
-      "{playerName}'s attack with the {itemName} connects, inflicting {attackPower} damage on {enemyName}.",
-      "A quick draw and a flash of steel! {attackPower} damage to {enemyName}.",
-      "The air cracks with the sound of the {itemName}, dealing {attackPower} damage.",
-      "{playerName} lands a solid blow on {enemyName} for {attackPower} damage.",
-    ],
-    japan: [
-      "{playerName} strikes with the focus of a master, dealing {attackPower} damage to {enemyName} with the {itemName}.",
-      "A swift and deadly blow! The {itemName} cuts into {enemyName} for {attackPower} damage.",
-      "With a kiai, {playerName}'s {itemName} lands true, inflicting {attackPower} damage upon {enemyName}.",
-    ],
-    safari: [
-      "{playerName} takes aim and fires! The {itemName} hits {enemyName} for {attackPower} damage.",
-      "A well-placed shot! {playerName}'s {itemName} strikes {enemyName} for {attackPower} damage.",
-      "The hunter strikes! The {itemName} connects with {enemyName}, dealing {attackPower} damage.",
-    ],
-    horror: [
-      "{playerName} fights back the darkness, striking {enemyName} with the {itemName} for {attackPower} damage.",
-      "With grim determination, {playerName}'s {itemName} bites into the creature for {attackPower} damage.",
-      "The {itemName} glows with righteous fury, inflicting {attackPower} damage on the wretched {enemyName}.",
-    ],
-    cyberpunk: [
-      "{playerName} executes combat protocol, hitting {enemyName} with the {itemName} for {attackPower} damage.",
-      "Target locked. {playerName}'s {itemName} delivers {attackPower} damage to {enemyName}.",
-      "Lethal force authorized. The {itemName} impacts {enemyName}, causing {attackPower} damage.",
     ],
   },
   playerHeal: { 
     western: [
-      "You patch yourself up with {sourceName}, restoring {healAmount} HP. Now at {currentHP}/{maxHP}.",
+      "{playerName} patches themself up with {sourceName}, restoring {healAmount} HP. Now at {currentHP}/{maxHP}.",
       "Using the {sourceName} restores {healAmount} HP. Back in the fight at {currentHP}/{maxHP}.",
-      "The {sourceName} restores {healAmount} HP. Your health is now {currentHP}/{maxHP}.",
-      "A moment's respite. The {sourceName} mends your wounds, restoring {healAmount} HP. ({currentHP}/{maxHP})",
-      "That's better. {sourceName} patches you up for {healAmount} HP. Current health: {currentHP}/{maxHP}.",
-      "A welcome relief. You use {sourceName} and regain {healAmount} health.",
-      "The {sourceName} works its magic, healing you for {healAmount} HP.",
-    ],
-    japan: [
-      "The {sourceName} restores your ki, healing {healAmount} HP. Your spirit is now {currentHP}/{maxHP}.",
-      "A moment of healing. You use the {sourceName} to recover {healAmount} HP. ({currentHP}/{maxHP})",
-    ],
-    safari: [
-      "The expedition's supplies come in handy. {sourceName} restores {healAmount} HP. ({currentHP}/{maxHP})",
-      "You tend to your injuries with {sourceName}, recovering {healAmount} HP. Now at {currentHP}/{maxHP}.",
-    ],
-    horror: [
-      "A brief reprieve from the suffering. {sourceName} restores {healAmount} HP. ({currentHP}/{maxHP})",
-      "The blessed {sourceName} closes your wounds, healing {healAmount} HP. Now at {currentHP}/{maxHP}.",
-    ],
-    cyberpunk: [
-      "Nanites get to work. {sourceName} repairs {healAmount} damage. System integrity: {currentHP}/{maxHP}.",
-      "Patching the chrome. {sourceName} restores {healAmount} HP. Now at {currentHP}/{maxHP}.",
     ],
   },
   playerDefeat: { 
     western: [
       "{playerName} was defeated by {enemyName}. The frontier claims another soul.",
       "The journey ends here for {playerName}, bested by {enemyName}.",
-      "{enemyName} proved too much for {playerName}. Their story fades into the dust.",
-    ],
-    japan: [
-      "{playerName} has fallen to {enemyName}. A warrior's journey ends in shadow.",
-      "Defeated by {enemyName}, {playerName}'s tale becomes a cautionary one whispered in dojos.",
-      "The blade of {enemyName} was too swift. {playerName}'s journey is over.",
-    ],
-    safari: [
-      "{playerName} was bested by {enemyName}. The savanna is unforgiving.",
-      "The great hunt ends in failure. {playerName} has fallen to {enemyName}.",
-      "{enemyName} proved to be the apex predator. {playerName}'s expedition is over.",
-    ],
-    horror: [
-      "{playerName} has been consumed by the darkness. The {enemyName} claims another victim.",
-      "The nightmare triumphs. {playerName} is lost to the horrors of this land, defeated by {enemyName}.",
-      "Defeated by {enemyName}, {playerName}'s screams now echo in this cursed place.",
-    ],
-    cyberpunk: [
-      "{playerName} has been flatlined by {enemyName}. Another ghost in the machine.",
-      "System shutdown. {playerName}'s run has been terminated by {enemyName}.",
-      "The street always wins. {enemyName} proved too much for {playerName}.",
     ],
   },
   newDay: {
     western: [
-      "Day {dayNumber}: The sun rises, casting long shadows across the plains.",
-      "The morning brings a new set of challenges. Day {dayNumber}.",
-      "Day {dayNumber}: A new dawn, a new day of survival.",
-    ],
-    japan: [
-        "Day {dayNumber}: The morning mist lifts, revealing the path ahead.",
-        "The sun rises over the mountains. Day {dayNumber}.",
-        "Day {dayNumber}: A new day for the wandering samurai.",
-    ],
-    safari: [
-        "Day {dayNumber}: The savanna awakens with the morning sun.",
-        "The sounds of the bush greet the new day. Day {dayNumber}.",
-        "Day {dayNumber}: The hunt continues under the African sun.",
-    ],
-    horror: [
-        "Day {dayNumber}: Dawn breaks, but the shadows linger.",
-        "The gray morning light offers little comfort. Day {dayNumber}.",
-        "Day {dayNumber}: Another day survived in this cursed land.",
-    ],
-    cyberpunk: [
-        "Day {dayNumber}: The smog-filtered sunlight breaks through the high-rises.",
-        "Morning in the neon city. Day {dayNumber}.",
-        "Day {dayNumber}: A new cycle. Time to make some creds.",
+      "Day {dayNumber}: The sun rises, casting long shadows across the plains for {playerName}.",
+      "The morning brings a new set of challenges for {playerName}. Day {dayNumber}.",
+      "Day {dayNumber}: A new dawn, a new day of survival for {playerName}.",
     ],
   },
   newDayWithIllnessWorsened: {
     western: [
-      "Day {dayNumber}: A restless night. The {illnessName} has worsened.",
-      "The fevered dawn of Day {dayNumber} arrives. The {illnessName} tightens its grip.",
-    ],
-    japan: [
-      "Day {dayNumber}: The body is weak, the spirit tested. The {illnessName} lingers.",
-      "Another sunrise, another battle against the {illnessName}. Day {dayNumber}.",
-    ],
-    safari: [
-      "Day {dayNumber}: The oppressive heat worsens the {illnessName}.",
-      "A difficult night passes. The {illnessName} persists on Day {dayNumber}.",
-    ],
-    horror: [
-      "Day {dayNumber}: The malady deepens with the morning gloom. The {illnessName} festers.",
-      "Sleep brought no peace. The {illnessName} has taken a greater hold. Day {dayNumber}.",
-    ],
-    cyberpunk: [
-      "Day {dayNumber}: System diagnostics report worsening condition: {illnessName}.",
-      "Reboot cycle complete. Warning: {illnessName} corruption has increased. Day {dayNumber}.",
+      "Day {dayNumber}: A restless night for {playerName}. The {illnessName} has worsened.",
+      "The fevered dawn of Day {dayNumber} arrives. The {illnessName} tightens its grip on {playerName}.",
     ],
   },
   objectiveVoided: {
-    western: ["The terms of the contract were clear. By letting the target go, the objective '{objectiveName}' is now void."]
+    western: ["The terms of the contract were clear. By letting the target go, the objective '{objectiveName}' is now void."],
   },
    playerDeckFinalized: { western: [
-    "Your kit is packed and ready for the trail. Health: {currentHP}/{maxHP}.",
-    "Ready to ride! The journey begins with {currentHP}/{maxHP} HP.",
-    "The hand's been dealt. You start with {currentHP}/{maxHP} HP.",
+    "{playerName}'s kit is packed and ready for the trail. Health: {currentHP}/{maxHP}.",
+    "Ready to ride! {playerName} begins the journey with {currentHP}/{maxHP} HP.",
+    "The hand's been dealt. {playerName} starts with {currentHP}/{maxHP} HP.",
   ]},
   playerCuresIllness: { western: [
     "{playerName} shook off the {eventName} with {itemName}.",
     "That {itemName} worked wonders! {playerName} is cured of {eventName}.",
-    "{playerName} fought off the {eventName} with a little help from {itemName}. Back to full strength!",
   ]},
   playerRecoversMaxHealth: { western: [
-    "Vitality returning. Max health is now {newMaxHealth}.",
-    "Strength flows back. Max HP increased to {newMaxHealth}.",
-    "Growing stronger. Max health reaches {newMaxHealth}.",
+    "Vitality returning. {playerName}'s max health is now {newMaxHealth}.",
+    "Strength flows back. {playerName}'s max HP increased to {newMaxHealth}.",
   ]},
   animalWandersOff: { western: [
-    "{enemyName} moseys on, uninterested in a tussle.",
-    "{enemyName} decides you ain't worth the bother and wanders off.",
-    "With a final glance, {enemyName} disappears into the brush.",
+    "{enemyName} moseys on, uninterested in a tussle with {playerName}.",
+    "{enemyName} decides {playerName} ain't worth the bother and wanders off.",
   ]},
   mountainSicknessDrawReduction: { western: [
-    "The thin air takes its toll. You draw {reducedAmount} fewer cards due to Mountain Sickness.",
-    "Gasping in the high altitude, you draw {reducedAmount} less cards.",
-    "Your head pounds from Mountain Sickness. You draw {reducedAmount} fewer cards.",
+    "The thin air takes its toll on {playerName}. You draw {reducedAmount} fewer cards due to Mountain Sickness.",
+    "Gasping in the high altitude, {playerName} draws {reducedAmount} less cards.",
   ]},
   illnessTemporaryCure: { western: [
     "{playerName} is no longer suffering from {illnessName}.",
     "The bout of {illnessName} has passed. {playerName} feels much better.",
-    "{playerName} shook off the effects of {illnessName}.",
   ]},
-  threatDefeated: { // Added a generic threatDefeated for personality logs to hook into
-    western: ["The {enemyName} has been defeated."],
+  threatDefeated: { 
+    western: ["The {enemyName} has been defeated by {playerName}."],
   },
-  eventRevealThreat: { // A generic reveal for personality hook
-    western: ["A {enemyName} appears!"],
-  }
+  eventRevealThreat: { 
+    western: ["A {enemyName} appears before {playerName}!"],
+  },
+  playerDamage: {
+    western: [
+        "{sourceName} hits {playerName} for {damageAmount} damage. Health: {currentHP}/{maxHP}.",
+        "{playerName} takes {damageAmount} damage from {sourceName}. Now at {currentHP}/{maxHP}.",
+    ],
+  },
+  enemyAttackImmediate: {
+    western: [
+        "The {enemyName} attacks {playerName} without warning!",
+        "Ambush! The {enemyName} strikes {playerName} immediately!",
+    ],
+  },
+  threatFlees: {
+    western: [
+        "The {enemyName} decides {playerName} is not worth the trouble and flees.",
+        "Seeing {playerName}, the {enemyName} thinks better of it and disappears into the brush.",
+    ],
+  },
+  // Add other generic templates here...
 };
 
 const bossLogTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
@@ -860,120 +490,30 @@ const bossLogTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     western: [
       "{playerName} goes for broke, attacking {enemyName} with {itemName} for {attackPower} damage!",
       "With grim determination, {playerName} unleashes a devastating blow with the {itemName}, dealing {attackPower} damage to the legendary {enemyName}!",
-      "The final showdown! {playerName} strikes the {enemyName} for {attackPower} damage!",
-    ],
-    japan: [
-        "With the focus of a true master, {playerName} strikes {enemyName} with {itemName} for {attackPower} damage!",
-        "A final, decisive blow! The {itemName} connects with {enemyName}, dealing {attackPower} damage!",
-        "The duel of fates! {playerName}'s {itemName} finds its mark for {attackPower} damage!",
-    ],
-    safari: [
-        "The hunt reaches its climax! {playerName} attacks {enemyName} with {itemName} for {attackPower} damage!",
-        "The shot of a lifetime! {playerName}'s {itemName} hits the legendary {enemyName} for {attackPower} damage!",
-        "No holding back! {playerName} strikes {enemyName} for {attackPower} damage!",
-    ],
-    horror: [
-        "Against the abyss, {playerName} fights back, striking {enemyName} with {itemName} for {attackPower} damage!",
-        "With a defiant scream, {playerName}'s {itemName} tears into the great evil, dealing {attackPower} damage!",
-        "The final confrontation! {playerName} strikes the dreaded {enemyName} for {attackPower} damage!",
-    ],
-    cyberpunk: [
-        "Overriding all limiters, {playerName} attacks {enemyName} with {itemName} for {attackPower} damage!",
-        "Lethal force authorized! {playerName}'s {itemName} slams into {enemyName}'s chassis for {attackPower} damage!",
-        "The final program is executed! {playerName}'s attack deals {attackPower} damage to {enemyName}!",
     ],
   },
   playerDamage: {
     western: [
-      "The legendary {sourceName} lands a crushing blow! You take {damageAmount} damage. Health: {currentHP}/{maxHP}.",
-      "A brutal attack from {sourceName}! You're wounded for {damageAmount} damage. This is the final fight! Now at {currentHP}/{maxHP}.",
-      "You take {damageAmount} damage from {sourceName}'s signature attack! Health: {currentHP}/{maxHP}.",
-    ],
-    japan: [
-        "The great {sourceName} lands a masterstroke! You take {damageAmount} damage. Health: {currentHP}/{maxHP}.",
-        "A devastating blow from {sourceName}! You take {damageAmount} damage. Your ki wavers! Now at {currentHP}/{maxHP}.",
-        "You are struck for {damageAmount} by the legendary {sourceName}! Health: {currentHP}/{maxHP}.",
-    ],
-    safari: [
-        "The great beast {sourceName} charges! You take {damageAmount} damage. Health: {currentHP}/{maxHP}.",
-        "A brutal mauling from {sourceName}! You are wounded for {damageAmount} damage! Now at {currentHP}/{maxHP}.",
-        "You take {damageAmount} damage from the apex predator {sourceName}! Health: {currentHP}/{maxHP}.",
-    ],
-    horror: [
-        "The great evil {sourceName} inflicts a grievous wound! You take {damageAmount} damage. Health: {currentHP}/{maxHP}.",
-        "A soul-shattering blow from {sourceName}! You take {damageAmount} damage as your sanity frays! Now at {currentHP}/{maxHP}.",
-        "You take {damageAmount} damage from the unspeakable {sourceName}! Health: {currentHP}/{maxHP}.",
-    ],
-    cyberpunk: [
-        "The prime target {sourceName} lands a critical hit! You take {damageAmount} damage. System integrity: {currentHP}/{maxHP}.",
-        "A devastating system shock from {sourceName}! You take {damageAmount} damage! Now at {currentHP}/{maxHP}.",
-        "You take {damageAmount} damage from {sourceName}'s main weapon! System integrity: {currentHP}/{maxHP}.",
+      "The legendary {sourceName} lands a crushing blow on {playerName}! You take {damageAmount} damage. Health: {currentHP}/{maxHP}.",
+      "A brutal attack from {sourceName}! {playerName} is wounded for {damageAmount} damage. This is the final fight! Now at {currentHP}/{maxHP}.",
     ],
   },
   playerHeal: {
     western: [
-      "No time to rest, but you must! You use {sourceName}, restoring {healAmount} HP. Now at {currentHP}/{maxHP}.",
-      "Buying a precious moment, the {sourceName} restores {healAmount} HP. The fight rages on at {currentHP}/{maxHP}.",
-    ],
-    japan: [
-        "A moment of focus amidst the chaos! You use {sourceName} to restore {healAmount} HP. Now at {currentHP}/{maxHP}.",
-        "Gathering your ki, the {sourceName} restores {healAmount} HP. The final duel continues at {currentHP}/{maxHP}.",
-    ],
-    safari: [
-        "A moment to regroup! You use {sourceName} to restore {healAmount} HP. Now at {currentHP}/{maxHP}.",
-        "Using your last reserves, the {sourceName} restores {healAmount} HP. The great hunt is not over yet. Now at {currentHP}/{maxHP}.",
-    ],
-    horror: [
-        "A prayer in the dark! You use {sourceName} to restore {healAmount} HP. Now at {currentHP}/{maxHP}.",
-        "Finding a sliver of hope, the {sourceName} restores {healAmount} HP. The nightmare continues at {currentHP}/{maxHP}.",
-    ],
-    cyberpunk: [
-        "Emergency repairs! You use {sourceName} to restore {healAmount} HP. System integrity at {currentHP}/{maxHP}.",
-        "Re-routing power, the {sourceName} restores {healAmount} HP. The final run continues at {currentHP}/{maxHP}.",
+      "No time to rest, but {playerName} must! You use {sourceName}, restoring {healAmount} HP. Now at {currentHP}/{maxHP}.",
+      "Buying a precious moment, the {sourceName} restores {healAmount} HP for {playerName}. The fight rages on at {currentHP}/{maxHP}.",
     ],
   },
   trapCaught: {
     western: [
-      "In an unbelievable turn of events, the legendary {enemyName} stumbles right into the {trapName}!",
-      "The ultimate prize! The {trapName} holds fast, ensnaring the great {enemyName}!",
-    ],
-    japan: [
-        "A stroke of genius! The great {enemyName} is caught in the {trapName}!",
-        "Even the mighty {enemyName} could not foresee the cunning {trapName}!",
-    ],
-    safari: [
-        "The perfect ambush! The legendary {enemyName} is caught in the {trapName}!",
-        "The hunter becomes the hunted! The {trapName} catches the great {enemyName}!",
-    ],
-    horror: [
-        "A desperate gambit pays off! The dreaded {enemyName} is ensnared in the {trapName}!",
-        "Even nightmares can be trapped! The {trapName} holds the terrible {enemyName} fast!",
-    ],
-    cyberpunk: [
-        "The ghost is in the machine! The prime target {enemyName} is caught in the {trapName}!",
-        "A perfect exploit! The {trapName} ensnares the high-threat {enemyName}!",
+      "In an unbelievable turn of events, the legendary {enemyName} stumbles right into {playerName}'s {trapName}!",
+      "The ultimate prize! The {trapName} holds fast, ensnaring the great {enemyName} for {playerName}!",
     ],
   },
   trapBroken: {
     western: [
       "The mighty {enemyName} shrugs off the {trapName}, shattering it but taking {damageAmount} damage in the process!",
-      "With a contemptuous roar, {enemyName} demolishes the {trapName}, but not before taking {damageAmount} damage!",
-    ],
-    japan: [
-        "With a furious kiai, {enemyName} smashes the {trapName}, but suffers {damageAmount} damage!",
-        "The {trapName} is no match for the might of {enemyName}, but it leaves a mark: {damageAmount} damage!",
-    ],
-    safari: [
-        "With a mighty roar, {enemyName} breaks free of the {trapName}, taking {damageAmount} damage!",
-        "The {trapName} splinters under the sheer power of {enemyName}, but not before dealing {damageAmount} damage!",
-    ],
-    horror: [
-        "With an unholy shriek, {enemyName} tears apart the {trapName}, taking {damageAmount} damage!",
-        "The {trapName} cannot hold such evil, but it inflicts {damageAmount} damage as it breaks!",
-    ],
-    cyberpunk: [
-        "With a surge of power, {enemyName} overloads the {trapName}, but takes {damageAmount} system damage!",
-        "The {trapName} is bypassed, but the feedback loop deals {damageAmount} damage to {enemyName}!",
+      "With a contemptuous roar, {enemyName} demolishes {playerName}'s {trapName}, but not before taking {damageAmount} damage!",
     ],
   },
 };
@@ -992,7 +532,7 @@ export interface LogParams {
   playerName?: string;
   characterName?: string;
   itemName?: string;
-  sourceName?: string; // For damage source, heal source etc.
+  sourceName?: string; 
   eventName?: string;
   healAmount?: number | string;
   damageAmount?: number | string;
@@ -1013,7 +553,7 @@ export interface LogParams {
   newMaxHealth?: number | string;
   reducedAmount?: number | string;
   objective_description?: string;
-  objectiveName?: string; // Added for the new objective voided log
+  objectiveName?: string; 
   attackPower?: number | string;
   [key: string]: any;
 }
@@ -1026,6 +566,11 @@ export function getRandomLogVariation(
   card?: CardData,
   isBossFight?: boolean
 ): string {
+  
+  if (player && (params.playerName === '' || params.playerName === null || params.playerName === undefined)) {
+    params.playerName = player.name;
+  }
+  
   if (params.playerName === '' || params.playerName === null || params.playerName === undefined) {
     if (theme === 'japan') params.playerName = 'The Ronin';
     else if (theme === 'safari') params.playerName = 'The Hunter';
@@ -1059,7 +604,6 @@ export function getRandomLogVariation(
     }
   }
   
-  // Gather generic messages first
   let categoryTemplates;
   if (isBossFight) {
     categoryTemplates = bossLogTemplates[category] || logTemplates[category];
@@ -1069,20 +613,13 @@ export function getRandomLogVariation(
   const genericMessages = (categoryTemplates && (categoryTemplates[theme] || categoryTemplates['western'])) || [];
   
   let finalMessagePool: string[] = [];
-  const useGenericOverride = Math.random() < 0.5; // 50% chance to use generic logs
+  const useGenericOverride = Math.random() < 0.5;
 
-  // Decide which pool to use for the final message selection.
   if (validPersonalityMessages.length > 0 && !useGenericOverride) {
-      // Default case: Personality messages exist and we're not overriding.
       finalMessagePool = validPersonalityMessages;
   } else if (genericMessages.length > 0) {
-      // Use generic messages if:
-      // 1. The 25% override triggered.
-      // 2. There were no personality messages to begin with.
       finalMessagePool = genericMessages;
   } else {
-      // Fallback: We wanted to use generic messages (either by override or default)
-      // but none were found. If personality messages exist, use them instead of failing.
       finalMessagePool = validPersonalityMessages;
   }
 
