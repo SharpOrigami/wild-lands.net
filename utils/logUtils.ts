@@ -1,4 +1,3 @@
-
 import { PlayerDetails, CardData, Theme } from '../types.ts';
 import { getThemeName } from './themeUtils.ts';
 
@@ -482,7 +481,91 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
         "Seeing {playerName}, the {enemyName} thinks better of it and disappears into the brush.",
     ],
   },
-  // Add other generic templates here...
+  illnessContracts: {
+    western: [
+      "{playerName} has contracted {illnessName}!",
+      "A feverish sweat breaks out on {playerName}'s brow. It's {illnessName}.",
+      "An unfortunate diagnosis: {playerName} now has {illnessName}.",
+    ]
+  },
+  illnessContractsAndEndsTurn: {
+    western: [
+      "A wave of sickness washes over {playerName} as the {illnessName} takes hold. The day's journey ends abruptly.",
+      "The {illnessName} hits {playerName} hard, forcing an early end to the day.",
+    ]
+  },
+  illnessCured: {
+    western: [
+      "The active threat of {eventName} is resolved with a dose of {itemName}.",
+      "{itemName} proves effective against the lingering {eventName}.",
+    ]
+  },
+  rockslideDiscardEquipped: {
+    western: [
+      "Caught in the {eventName}, {playerName} loses their footing and their gear! Lost: {discardedItemNames}.",
+      "The {eventName} tears through the camp, sweeping away {discardedItemNames}!",
+    ]
+  },
+  rockslideIronWillSave: {
+    western: [
+      "A torrent of rock and debris! {playerName} stands firm against the {eventName}, saving their gear!",
+      "With an iron will, {playerName} holds their ground and their gear through the {eventName}!",
+    ]
+  },
+  goldStolen: {
+    western: [
+      "The {eventName} deftly relieves {playerName} of {stolenAmount} Gold!",
+      "A quick hand and a flash of steel! The {eventName} makes off with {stolenAmount} Gold from {playerName}.",
+    ]
+  },
+  noGoldToSteal: {
+    western: [
+      "The {eventName} tries to rob {playerName}, but finds only empty pockets.",
+      "'Your money or your life!' the {eventName} demands. {playerName} has no money to give.",
+    ]
+  },
+  hatSaved: {
+    western: [
+      "A close call! {playerName}'s {itemName} absorbs the blow from {sourceName}, but is destroyed in the process.",
+      "That could have been nasty! The {itemName} takes the full force of the attack from {sourceName} and is ruined.",
+    ]
+  },
+  itemStored: {
+    western: [
+      "{playerName} stores the {itemName} away safely in their satchel.",
+      "The {itemName} is tucked into the satchel for later.",
+    ]
+  },
+  itemDiscarded: {
+    western: [
+      "{playerName} discards the {itemName}, lightening their load.",
+      "No longer needed, the {itemName} is left behind.",
+    ]
+  },
+  trapCaught: {
+    western: [
+      "Success! The {trapName} snaps shut on the unsuspecting {enemyName}!",
+      "Got 'em! The {enemyName} is caught fast in the {trapName}.",
+    ]
+  },
+  trapBroken: {
+    western: [
+      "The powerful {enemyName} breaks free from the {trapName}, taking {damageAmount} damage in the process!",
+      "With a roar, the {enemyName} smashes the {trapName}, but not before taking {damageAmount} damage.",
+    ]
+  },
+  trapHumanBrokeNoDamage: {
+    western: [
+      "The wily {enemyName} spots the {trapName} at the last second and disables it.",
+      "'Not today,' mutters the {enemyName}, carefully disarming the {trapName}.",
+    ]
+  },
+  bossDeEscalated: {
+    western: [
+      "'This fight is beneath me,' says {enemyName}. The boss pays you {goldAmount} Gold to look the other way!",
+      "Seeing a worthy adversary, {enemyName} offers a tribute of {goldAmount} Gold to end things peacefully. You accept.",
+    ]
+  },
 };
 
 const bossLogTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
