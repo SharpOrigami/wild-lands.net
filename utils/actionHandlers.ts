@@ -1,3 +1,4 @@
+
 import { GameState, PlayerDetails, LogEntry, CardData, CardContext, ActiveGameBannerState, RunStats } from '../types.ts';
 import { getRandomLogVariation } from './logUtils.ts';
 import { calculateHealAmount, calculateAttackPower, isFirearm, getScaledCard, createTrophyOrBountyCard, getCardCategory, shuffleArray, isBow } from './cardUtils.ts';
@@ -43,6 +44,7 @@ export const handleShowModal = ({ player, gameState, payload, helpers }: ActionH
             // If text is provided, we are showing the final story.
             gameUpdates.isLoadingStory = false;
             gameUpdates.modals = { ...gameState.modals, story: { isOpen: true, title, text, confirmCallback } };
+            gameUpdates.storyGenerated = true;
         }
     } else if (modalType === 'ngPlusReward') {
         gameUpdates.modals = { ...gameState.modals, ngPlusReward: { isOpen: true, title, text, choices } };

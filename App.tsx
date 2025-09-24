@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameState } from './hooks/useGameState.ts';
 import LandingScreen from './screens/LandingScreen.tsx';
@@ -211,8 +210,9 @@ const App: React.FC = () => {
   const [isBackgroundLoading, setIsBackgroundLoading] = useState(false);
   const [isManualPreloading, setIsManualPreloading] = useState(false);
   const [manualPreloadProgress, setManualPreloadProgress] = useState(0);
-  const storyGenerationAttemptedRef = useRef(false);
   const [ngPlusButtonsVisible, setNgPlusButtonsVisible] = useState(false);
+
+  const storyGenerationInProgress = useRef(false);
 
   const toggleTTSModal = () => {
     soundManager.playSound('ui_button_click');
@@ -412,18 +412,27 @@ const App: React.FC = () => {
   }, [gameState?.status, gameState?.activeEvent?.id, gameState?.aiBoss?.id, isAssetsInitialized, gameState?.ngPlusLevel]);
   
   useEffect(() => {
-    // Post-game story sequence
-    if (gameState?.status === 'finished' && !storyGenerationAttemptedRef.current) {
+    if (gameState?.status !== 'finished') {
+        storyGenerationInProgress.current = false;
+    }
+  }, [gameState?.status]);
+
+  useEffect(() => {
+    if (gameState?.status === 'finished' && !gameState.storyGenerated && !storyGenerationInProgress.current) {
+        storyGenerationInProgress.current = true;
+        
         const player = gameState.playerDetails[PLAYER_ID];
-        if (!player) return;
-        storyGenerationAttemptedRef.current = true;
+        if (!player) {
+            storyGenerationInProgress.current = false;
+            return;
+        }
         
         const showEndGameModal = async () => {
             const isVictory = player.health > 0;
             const title = isVictory ? 'A Legend is Born' : 'The End of the Trail';
             let text = '';
             
-            handleCardAction('SHOW_MODAL', { modalType: 'story', title: '', text: '' }); // to set isLoadingStory
+            handleCardAction('SHOW_MODAL', { modalType: 'story', title: '', text: '' });
             
             try {
                 text = await generateStoryForGame(gameState);
@@ -433,13 +442,12 @@ const App: React.FC = () => {
                     ? 'Your tale is written in deeds, not words.' 
                     : (gameState.winReason || 'Your journey has ended.');
             }
-
+ 
             handleCardAction('SHOW_MODAL', { modalType: 'story', title, text });
         };
         showEndGameModal();
     }
-   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState?.status, gameState?.playerDetails[PLAYER_ID]?.health]);
+  }, [gameState, handleCardAction]);
 
 
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
@@ -631,7 +639,7 @@ const App: React.FC = () => {
           playerDetails={playerDetails}
           onSelectCharacter={selectCharacter}
           onConfirmName={confirmName}
-          onStartGame={startGame} 
+          onStartGame={startGame}
           ngPlusLevel={gameState.ngPlusLevel}
           isLoadingBossIntro={gameState.isLoadingBossIntro || false}
           onSetPersonality={setPersonality}

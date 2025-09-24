@@ -3,13 +3,13 @@ import { Character, CardContext, PlayerDetails } from '../types.ts';
 import { CHARACTERS_LIST, CURRENT_CARDS_DATA, INITIAL_PLAYER_STATE_TEMPLATE, PERSONALITY_TRAITS } from '../constants.ts';
 import CardComponent from '../components/CardComponent.tsx'; // Changed to default import
 import { soundManager } from '../utils/soundManager.ts';
-import { CHEAT_CODES, CHEAT_ADD_GOLD_AMOUNT } from '../utils/cheatCodes.ts';
+import { CHEAT_CODES, CHEAT_ADD_GOLD_AMOUNT, POP_CULTURE_CHEATS, PopCultureCheatEffect } from '../utils/cheatCodes.ts';
 
 interface SetupScreenProps {
   playerDetails: PlayerDetails;
   onSelectCharacter: (character: Character) => void;
   onConfirmName: (name: string) => void;
-  onStartGame: (name: string, character: Character) => void; // Modified signature
+  onStartGame: (name: string, character: Character, cheatEffects?: PopCultureCheatEffect) => void;
   ngPlusLevel: number;
   isLoadingBossIntro: boolean;
   onSetPersonality: (traits: { archetype?: string; temperament?: string; motivation?: string; }) => void;
@@ -71,12 +71,20 @@ const SetupScreen: React.FC<SetupScreenProps> = ({
 
 
   const handleStartGameClick = () => {
-    if (isLoadingBossIntro) return; 
+    if (isLoadingBossIntro) return;
     soundManager.playSound('ui_button_click');
-    if (nameInput.trim() && selectedCharacter) {
-      onConfirmName(nameInput.trim()); 
-      onStartGame(nameInput.trim(), selectedCharacter); 
-    } else if (!nameInput.trim()) {
+    const trimmedName = nameInput.trim();
+
+    if (trimmedName && selectedCharacter) {
+      // Check for pop culture cheats that require a specific name and character
+      const cheat = POP_CULTURE_CHEATS.find(c =>
+        c.name.toLowerCase() === trimmedName.toLowerCase() &&
+        c.requiredCharacterId === selectedCharacter.id
+      );
+
+      onConfirmName(trimmedName);
+      onStartGame(trimmedName, selectedCharacter, cheat?.effects);
+    } else if (!trimmedName) {
       alert("Please enter a name for your character.");
     } else if (!selectedCharacter) {
       alert("Please select a character.");

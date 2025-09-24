@@ -1,5 +1,6 @@
 import { PlayerDetails, CardData, Theme } from '../types.ts';
 import { getThemeName } from './themeUtils.ts';
+import { POP_CULTURE_CHEATS } from '../utils/cheatCodes.ts';
 
 const traitLogTemplates: {
   trigger: string;
@@ -344,6 +345,20 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     safari: ["A sudden charge! The {enemyName} attacks {playerName}!", "Out of the tall grass! The {enemyName} strikes {playerName}!"],
     horror: ["A screech in the darkness! The {enemyName} lunges at {playerName}!", "A shape of nightmare! The {enemyName} attacks {playerName} from the gloom!"],
     cyberpunk: ["Hostile engagement! The {enemyName} unit opens fire on {playerName}!", "Ambush protocol initiated! The {enemyName} targets {playerName}!"],
+  },
+  trapSet: {
+    western: ["{playerName} sets a {trapName}, eyes scanning the horizon.", "The {trapName} is set. Now, to wait.", "'Something's bound to wander into this.' The {trapName} is ready."],
+    japan: ["{playerName} sets a {trapName}, its mechanisms hidden in the tall grass.", "The {trapName} is set. A silent threat awaits.", "'A simple but effective tool.' The {trapName} is placed with care."],
+    safari: ["{playerName} sets a {trapName}, camouflaging it with dirt and leaves.", "The {trapName} is set. The savanna will provide.", "'This should do the trick.' The {trapName} is ready for its quarry."],
+    horror: ["{playerName} sets a {trapName}, its iron jaws hungry for flesh.", "The {trapName} is set, a grim necessity in these cursed lands.", "'May this hold back the darkness, if only for a moment.' The {trapName} is armed."],
+    cyberpunk: ["{playerName} deploys a {trapName}, its sensors glowing faintly.", "The {trapName} is armed. Now, to wait for a target.", "'Another tool in the arsenal.' The {trapName} is primed and ready."],
+  },
+  enemyAttackEndOfDay: {
+    western: ["As darkness falls, the {enemyName} strikes at {playerName}!", "Under the cover of night, the {enemyName} ambushes {playerName}!"],
+    japan: ["In the twilight, the {enemyName} sees an opportunity and attacks {playerName}!", "The shadows grow long, and the {enemyName} strikes at {playerName}!"],
+    safari: ["As the sun dips below the horizon, the {enemyName} attacks {playerName}!", "The sounds of the savanna fall silent as the {enemyName} ambushes {playerName}!"],
+    horror: ["In the deepening gloom, the {enemyName} lunges at {playerName}!", "The witching hour approaches, and the {enemyName} attacks {playerName}!"],
+    cyberpunk: ["As the neon lights flicker, the {enemyName} unit engages {playerName}!", "Under the cover of the smog-filled night, the {enemyName} ambushes {playerName}!"],
   },
   eventRevealEnvironmental: {
     western: ["The sky darkens ominously... a {eventName} is upon you!", "The very land turns against {playerName}! A {eventName} strikes!", "Look out, {playerName}! A {eventName}!"],
@@ -779,6 +794,31 @@ export function getRandomLogVariation(
     else if (theme === 'horror') params.playerName = 'The Survivor';
     else if (theme === 'cyberpunk') params.playerName = 'The Operator';
     else params.playerName = 'The Pioneer';
+  }
+
+  // --- Pop Culture Catchphrase Logic ---
+  if (player?.name && player.character) {
+    const lowerCasePlayerName = player.name.toLowerCase();
+    const activeCheat = POP_CULTURE_CHEATS.find(
+      c => c.name.toLowerCase() === lowerCasePlayerName && c.requiredCharacterId === player.character?.id
+    );
+
+    if (activeCheat?.effects.catchphrases) {
+      const phrasesForCategory = activeCheat.effects.catchphrases[category as keyof typeof activeCheat.effects.catchphrases];
+      
+      // Use catchphrase with a high probability
+      if (phrasesForCategory && phrasesForCategory.length > 0 && Math.random() < 0.8) { // 80% chance
+        let template = phrasesForCategory[Math.floor(Math.random() * phrasesForCategory.length)];
+        
+        for (const key in params) {
+          if (Object.prototype.hasOwnProperty.call(params, key)) {
+            const value = params[key] !== undefined && params[key] !== null ? String(params[key]) : '';
+            template = template.replace(new RegExp(`{${key}}`, 'g'), value);
+          }
+        }
+        return template; // Return early with the catchphrase
+      }
+    }
   }
 
   const validPersonalityMessages: string[] = [];
