@@ -200,6 +200,7 @@ const App: React.FC = () => {
     proceedToFinishedState,
     handleCheatIncreaseDifficulty,
     handleCheatAddMaxHealth,
+    startNextLevelRemix,
   } = useGameState();
   
   const [tutorialState, setTutorialState] = useState({ active: false, step: 0 });
@@ -421,13 +422,20 @@ const App: React.FC = () => {
     if (gameState?.status === 'finished' && !gameState.storyGenerated && !storyGenerationInProgress.current) {
         storyGenerationInProgress.current = true;
         
-        const player = gameState.playerDetails[PLAYER_ID];
-        if (!player) {
-            storyGenerationInProgress.current = false;
-            return;
+        // Start pre-generating assets for the next level in the background on victory
+        if (gameState.playerDetails[PLAYER_ID]?.health > 0) {
+            startNextLevelRemix();
         }
+
+        const storyPromise = generateStoryForGame(gameState);
         
         const showEndGameModal = async () => {
+            const player = gameState.playerDetails[PLAYER_ID];
+            if (!player) {
+                storyGenerationInProgress.current = false;
+                return;
+            }
+            
             const isVictory = player.health > 0;
             const title = isVictory ? 'A Legend is Born' : 'The End of the Trail';
             let text = '';
@@ -435,7 +443,7 @@ const App: React.FC = () => {
             handleCardAction('SHOW_MODAL', { modalType: 'story', title: '', text: '' });
             
             try {
-                text = await generateStoryForGame(gameState);
+                text = await storyPromise;
             } catch(error) {
                 console.error(`Failed to generate story: ${error}`);
                 text = isVictory 
@@ -447,7 +455,7 @@ const App: React.FC = () => {
         };
         showEndGameModal();
     }
-  }, [gameState, handleCardAction]);
+  }, [gameState, handleCardAction, startNextLevelRemix]);
 
 
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);

@@ -51,7 +51,7 @@ const ModalComponent: React.FC<ModalProps> = ({
         }
     };
 
-    if (isOpen && isStoryModal) {
+    if (isOpen && isStoryModal && textToNarrate) {
         if (isNarrating) {
             // If the modal was just opened, delay the speech to allow for animations.
             // If narration is turned on while the modal is already open, speak with a shorter delay.

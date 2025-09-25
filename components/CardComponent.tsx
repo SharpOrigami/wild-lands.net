@@ -132,7 +132,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
   const card = cardOrChar as CardData; // Type assertion for regular cards
   const isObjectiveCard = !isCharacterCard && card.type === 'Event' && card.subType === 'objective';
   
-  let illustrationUrl: string | undefined = CARD_ILLUSTRATIONS[cardOrChar.id];
+  let illustrationUrl: string | undefined = CARD_ILLUSTRATIONS[card.illustrationId || cardOrChar.id];
   if (!illustrationUrl && !isCharacterCard && card.type) {
       if (card.id.startsWith('remixed_')) {
           illustrationUrl = getRemixedIllustrationUrl(card.id);

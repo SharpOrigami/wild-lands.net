@@ -312,7 +312,7 @@ const characterLogTemplates: {
 
 const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
   animalWandersOff: {
-    western: ["{enemyName} moseys on, uninterested in a tussle with {playerName}.", "{enemyName} decides {playerName} ain't worth the bother and wanders off."],
+    western: ["{enemyName} moseys on, uninterested in a tussle with {playerName}.", "{enemyName} decides {playerName} ain't worth the bother and wanders off.", "The beast gives {playerName} a final, contemptuous look before melting back into the wilderness."],
     japan: ["{enemyName} returns to the spirit world, its business with {playerName} unfinished.", "{enemyName} fades into the bamboo forest, deciding {playerName} is not worth the effort."],
     safari: ["{enemyName} melts back into the savanna, losing interest in {playerName}.", "The {enemyName} gives a final snort and moves on, the hunt is off."],
     horror: ["The {enemyName} slinks back into the shadows, its unnatural hunger momentarily sated by something unseen.", "A chilling whisper on the wind, and the {enemyName} is gone, as if it were never there."],
@@ -326,21 +326,21 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     cyberpunk: ["'Your combat data is... intriguing,' buzzes {enemyName}. The Rogue AI transfers {goldAmount} EuroCreds to your account. 'A retainer for future... collaborations.'"],
   },
   campfireDoused: {
-    western: ["The morning light extinguishes the campfire's last embers.", "The campfire has burned out, its protection gone with the night."],
+    western: ["The morning light extinguishes the campfire's last embers.", "The campfire has burned out, its protection gone with the night.", "Ashes to ashes. The fire has died, leaving the camp vulnerable once more."],
     japan: ["The embers of the takibi die, their protective spirit fading with the morning mist.", "The campfire has turned to ash, its warmth a memory against the coming day."],
     safari: ["The last of the campfire smoke drifts into the vast African sky.", "The fire is out, leaving only the scent of acacia smoke and the sounds of the waking savanna."],
     horror: ["The protective circle of the campfire fades to cold ash, leaving you exposed to the grey dawn.", "The fire is dead. The shadows press in once more."],
     cyberpunk: ["The portable heater's power cell is depleted, its comforting glow extinguished.", "The heat-coil sputters and dies, plunging the alley back into cold darkness."],
   },
   cardsDrawn: {
-    western: ["{playerName} draws {cardsDrawn} cards.", "The hand's been dealt. {playerName} draws {cardsDrawn} cards."],
+    western: ["{playerName} draws {cardsDrawn} cards.", "The hand's been dealt. {playerName} draws {cardsDrawn} cards.", "Time to see what fate has dealt. {playerName} draws {cardsDrawn} cards."],
     japan: ["{playerName} contemplates their next move, drawing {cardsDrawn} cards.", "Fate deals its hand. {playerName} draws {cardsDrawn} cards."],
     safari: ["The hunt requires new tools. {playerName} draws {cardsDrawn} cards.", "The tracker draws {cardsDrawn} cards, assessing their options."],
     horror: ["{playerName} steels their nerves and draws {cardsDrawn} cards from their grim pack.", "With a trembling hand, {playerName} draws {cardsDrawn} cards."],
     cyberpunk: ["Booting up new subroutines. {playerName} draws {cardsDrawn} cards.", "The interface refreshes. {playerName} slots {cardsDrawn} new programs."],
   },
   enemyAttackImmediate: {
-    western: ["The {enemyName} attacks {playerName} without warning!", "Ambush! The {enemyName} strikes {playerName} immediately!"],
+    western: ["The {enemyName} attacks {playerName} without warning!", "Ambush! The {enemyName} strikes {playerName} immediately!", "No time to react! The {enemyName} is on {playerName} in a flash!"],
     japan: ["Kurae! The {enemyName} strikes {playerName} with blinding speed!", "From the shadows, the {enemyName} ambushes {playerName}!"],
     safari: ["A sudden charge! The {enemyName} attacks {playerName}!", "Out of the tall grass! The {enemyName} strikes {playerName}!"],
     horror: ["A screech in the darkness! The {enemyName} lunges at {playerName}!", "A shape of nightmare! The {enemyName} attacks {playerName} from the gloom!"],
@@ -378,7 +378,7 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     western: ["A new contract arrives for {playerName}: '{objectiveName}'. The request is clear: {objective_description}"],
   },
   eventRevealThreat: {
-    western: ["A {enemyName} appears before {playerName}!"],
+    western: ["A {enemyName} appears before {playerName}!", "The air grows heavy... a {enemyName} has found {playerName}."],
     japan: ["A {enemyName} emerges from the mist before {playerName}!"],
     safari: ["A {enemyName} appears from the bush before {playerName}!"],
     horror: ["A {enemyName} lurches from the shadows before {playerName}!"],
@@ -413,7 +413,7 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     cyberpunk: ["{playerName}'s {itemName} yields {goldAmount} credits!", "Data transfer complete! The {itemName} pays off, providing {goldAmount} credits."],
   },
   goldFoundWalking: {
-    western: ["{playerName} finds {goldAmount} Gold while walking the trail.", "The journey itself is profitable! {playerName} finds {goldAmount} Gold."],
+    western: ["{playerName} finds {goldAmount} Gold while walking the trail.", "The journey itself is profitable! {playerName} finds {goldAmount} Gold.", "Fortune smiles! {playerName} stumbles upon {goldAmount} Gold on the path."],
     japan: ["{playerName} finds {goldAmount} mon on the road.", "The journey is profitable! {playerName} finds {goldAmount} mon."],
     safari: ["{playerName} finds {goldAmount} shillings on the path.", "The safari is profitable! {playerName} finds {goldAmount} shillings."],
     horror: ["{playerName} finds {goldAmount} silver pieces in the mud.", "The cursed road is profitable! {playerName} finds {goldAmount} silver pieces."],
@@ -462,7 +462,7 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     cyberpunk: ["{playerName}'s systems are no longer affected by {illnessName}.", "The {illnessName} has been purged. {playerName}'s systems are returning to normal."],
   },
   itemBought: {
-    western: ["{playerName} barters for a new {itemName}, parting with {cost} Gold.", "The {itemName} changes hands for {cost} Gold. A fine purchase.", "{playerName} parts with {cost} Gold for a much-needed {itemName}.", "A deal is struck. The {itemName} is yours for {cost} Gold."],
+    western: ["{playerName} barters for a new {itemName}, parting with {cost} Gold.", "The {itemName} changes hands for {cost} Gold. A fine purchase.", "{playerName} parts with {cost} Gold for a much-needed {itemName}.", "A deal is struck. The {itemName} is yours for {cost} Gold.", "This {itemName} will serve me well. A worthy purchase for {cost} Gold."],
     japan: ["{playerName} trades for a new {itemName}, parting with {cost} mon.", "The {itemName} changes hands for {cost} mon. A fine purchase.", "{playerName} parts with {cost} mon for a much-needed {itemName}.", "A deal is struck. The {itemName} is yours for {cost} mon."],
     safari: ["{playerName} barters for a new {itemName}, parting with {cost} shillings.", "The {itemName} changes hands for {cost} shillings. A fine purchase.", "{playerName} parts with {cost} shillings for a much-needed {itemName}.", "A deal is struck. The {itemName} is yours for {cost} shillings."],
     horror: ["{playerName} trades for a new {itemName}, parting with {cost} silver pieces.", "The {itemName} changes hands for {cost} silver pieces. A grim purchase.", "{playerName} parts with {cost} silver pieces for a much-needed {itemName}.", "A dark bargain is struck. The {itemName} is yours for {cost} silver pieces."],
@@ -476,7 +476,7 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     cyberpunk: ["{playerName} junks the {itemName}, freeing up memory.", "No longer needed, the {itemName} is deleted."],
   },
   itemEquipped: {
-    western: ["{playerName} equips the {itemName}, ready for what's next.", "Gearing up. The {itemName} is now ready.", "The {itemName} is readied for the trail ahead."],
+    western: ["{playerName} equips the {itemName}, ready for what's next.", "Gearing up. The {itemName} is now ready.", "The {itemName} is readied for the trail ahead.", "The {itemName} feels right. {playerName} equips it for the journey ahead."],
     japan: ["{playerName} dons the {itemName}, ready for what's next.", "Preparing for battle. The {itemName} is now ready.", "The {itemName} is readied for the journey ahead."],
     safari: ["{playerName} equips the {itemName}, ready for what's next.", "Gearing up. The {itemName} is now ready.", "The {itemName} is readied for the hunt ahead."],
     horror: ["{playerName} equips the {itemName}, ready for the horrors to come.", "Steeling themselves. The {itemName} is now ready.", "The {itemName} is readied for the darkness ahead."],
@@ -511,14 +511,14 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     cyberpunk: ["{playerName} picks up the {itemName} and adds it to their gear.", "The {itemName} is yours now. It goes into your discard pile.", "{playerName} takes the {itemName}. A useful find."],
   },
   laudanumHeal: {
-    western: ["The {itemName} does the trick. Pain fades as {healAmount} HP is restored. Health: {currentHP}/{maxHP}.", "A swig of {itemName} knits the wounds, recovering {healAmount} HP. Now at {currentHP}/{maxHP}."],
+    western: ["The {itemName} does the trick. Pain fades as {healAmount} HP is restored. Health: {currentHP}/{maxHP}.", "A swig of {itemName} knits the wounds, recovering {healAmount} HP. Now at {currentHP}/{maxHP}.", "The bitter tincture works its magic, dulling the pain. Healed {healAmount} HP.", "A blessed moment of relief as the {itemName} takes effect, restoring {healAmount} health.", "The world softens at the edges as the pain recedes. {healAmount} HP recovered.", "He closes his eyes, letting the medicine do its work. Recovers {healAmount} HP.", "A necessary remedy for a harsh land. The {itemName} restores {healAmount} health."],
     japan: ["The {itemName} does the trick. Pain fades as {healAmount} HP is restored. Health: {currentHP}/{maxHP}.", "A sip of {itemName} knits the wounds, recovering {healAmount} HP. Now at {currentHP}/{maxHP}."],
     safari: ["The {itemName} does the trick. Pain fades as {healAmount} HP is restored. Health: {currentHP}/{maxHP}.", "A dose of {itemName} knits the wounds, recovering {healAmount} HP. Now at {currentHP}/{maxHP}."],
     horror: ["The {itemName} does the trick. Pain fades as {healAmount} HP is restored. Health: {currentHP}/{maxHP}.", "A draught of {itemName} knits the wounds, recovering {healAmount} HP. Now at {currentHP}/{maxHP}."],
     cyberpunk: ["The {itemName} does the trick. Pain fades as {healAmount} HP is restored. Health: {currentHP}/{maxHP}.", "A dose of {itemName} knits the wounds, recovering {healAmount} HP. Now at {currentHP}/{maxHP}."],
   },
   laudanumNoHeal: {
-    western: ["A swig of {itemName} is taken. The world goes fuzzy, but there was no pain to dull.", "Already feelin' fit as a fiddle, but the {itemName} is downed anyway. The pleasant haze is its own reward."],
+    western: ["A swig of {itemName} is taken. The world goes fuzzy, but there was no pain to dull.", "Already feelin' fit as a fiddle, but the {itemName} is downed anyway. The pleasant haze is its own reward.", "The familiar warmth of the {itemName} spreads, a comfort taken not from need, but from habit.", "No wounds to mend, but a craving to satisfy. The {itemName} offers a fleeting, hollow peace.", "Another dose, chasing a quiet that's harder and harder to find. The world drifts away.", "He tells himself it's 'just in case', but the trembling in his hands tells a different story. The {itemName} is consumed.", "The line between medicine and poison blurs with every unnecessary drop. The {itemName} is taken again."],
     japan: ["A sip of {itemName} is taken. The world goes fuzzy, but there was no pain to dull.", "Already feelin' fit as a fiddle, but the {itemName} is downed anyway. The pleasant haze is its own reward."],
     safari: ["A dose of {itemName} is taken. The world goes fuzzy, but there was no pain to dull.", "Already feelin' fit as a fiddle, but the {itemName} is downed anyway. The pleasant haze is its own reward."],
     horror: ["A draught of {itemName} is taken. The world goes fuzzy, but there was no pain to dull.", "Already feelin' fit as a fiddle, but the {itemName} is downed anyway. The pleasant haze is its own reward."],
@@ -532,7 +532,7 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     cyberpunk: ["The dense data-smog takes its toll on {playerName}. You draw {reducedAmount} fewer cards due to system lag.", "Gasping in the smog, {playerName} draws {reducedAmount} less cards."],
   },
   newDay: {
-    western: ["Day {dayNumber}: The sun rises, casting long shadows across the plains for {playerName}.", "The morning brings a new set of challenges for {playerName}. Day {dayNumber}.", "Day {dayNumber}: A new dawn, a new day of survival for {playerName}."],
+    western: ["Day {dayNumber}: The sun rises, casting long shadows across the plains for {playerName}.", "The morning brings a new set of challenges for {playerName}. Day {dayNumber}.", "Day {dayNumber}: A new dawn, a new day of survival for {playerName}.", "The sun crests the horizon, bringing with it Day {dayNumber}."],
     japan: ["Day {dayNumber}: The sun rises over the rice paddies for {playerName}.", "The morning brings a new set of challenges for {playerName}. Day {dayNumber}.", "Day {dayNumber}: A new dawn, a new day of bushido for {playerName}."],
     safari: ["Day {dayNumber}: The sun rises over the savanna for {playerName}.", "The morning brings a new set of challenges for {playerName}. Day {dayNumber}.", "Day {dayNumber}: A new dawn, a new day of the hunt for {playerName}."],
     horror: ["Day {dayNumber}: The sun rises, a pale imitation of hope for {playerName}.", "The morning brings a new set of horrors for {playerName}. Day {dayNumber}.", "Day {dayNumber}: A new dawn, a new day of terror for {playerName}."],
@@ -556,7 +556,7 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     western: ["The terms of the contract were clear. By letting the target go, the objective '{objectiveName}' is now void."],
   },
   playerAttack: {
-    western: ["{playerName} attacks {enemyName} with {itemName} for {attackPower} damage.", "{playerName} unleashes hell on {enemyName} with the {itemName}, dealing {attackPower} damage."],
+    western: ["{playerName} attacks {enemyName} with {itemName} for {attackPower} damage.", "{playerName} unleashes hell on {enemyName} with the {itemName}, dealing {attackPower} damage.", "{playerName} presses the attack against {enemyName} with {itemName} for {attackPower} damage."],
     japan: ["{playerName} attacks {enemyName} with {itemName} for {attackPower} damage.", "{playerName} unleashes a flurry of blows on {enemyName} with the {itemName}, dealing {attackPower} damage."],
     safari: ["{playerName} attacks {enemyName} with {itemName} for {attackPower} damage.", "{playerName} unleashes a devastating attack on {enemyName} with the {itemName}, dealing {attackPower} damage."],
     horror: ["{playerName} attacks {enemyName} with {itemName} for {attackPower} damage.", "{playerName} unleashes a desperate attack on {enemyName} with the {itemName}, dealing {attackPower} damage."],
@@ -570,7 +570,7 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     cyberpunk: ["{playerName} purged the {eventName} with {itemName}.", "That {itemName} worked wonders! {playerName} is cured of {eventName}."],
   },
   playerDamage: {
-    western: ["{sourceName} hits {playerName} for {damageAmount} damage. Health: {currentHP}/{maxHP}.", "{playerName} takes {damageAmount} damage from {sourceName}. Now at {currentHP}/{maxHP}."],
+    western: ["{sourceName} hits {playerName} for {damageAmount} damage. Health: {currentHP}/{maxHP}.", "{playerName} takes {damageAmount} damage from {sourceName}. Now at {currentHP}/{maxHP}.", "A costly mistake. {playerName} suffers {damageAmount} damage from {sourceName}. Health is now {currentHP}/{maxHP}."],
     japan: ["{sourceName} hits {playerName} for {damageAmount} damage. Health: {currentHP}/{maxHP}.", "{playerName} takes {damageAmount} damage from {sourceName}. Now at {currentHP}/{maxHP}."],
     safari: ["{sourceName} hits {playerName} for {damageAmount} damage. Health: {currentHP}/{maxHP}.", "{playerName} takes {damageAmount} damage from {sourceName}. Now at {currentHP}/{maxHP}."],
     horror: ["{sourceName} hits {playerName} for {damageAmount} damage. Health: {currentHP}/{maxHP}.", "{playerName} takes {damageAmount} damage from {sourceName}. Now at {currentHP}/{maxHP}."],
@@ -633,14 +633,14 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     cyberpunk: ["A torrent of debris! {playerName} stands firm against the {eventName}, saving their gear!", "With an iron will, {playerName} holds their ground and their gear through the {eventName}!"],
   },
   storeRestock: { 
-    western: ["{playerName} pays the storekeep {cost} Gold to clear the shelves and put out new stock."],
+    western: ["{playerName} pays the storekeep {cost} Gold to clear the shelves and put out new stock.", "'This merchant's stock is stale.' {playerName} pays {cost} Gold for a fresh selection."],
     japan: ["{playerName} pays the merchant {cost} mon to clear the shelves and put out new stock."],
     safari: ["{playerName} pays the trader {cost} shillings to clear the shelves and put out new stock."],
     horror: ["{playerName} pays the peddler {cost} silver pieces to clear the shelves and put out new stock."],
     cyberpunk: ["{playerName} pays the vendor {cost} credits to clear the shelves and put out new stock."],
   },
   threatDefeated: { 
-    western: ["The {enemyName} has been defeated by {playerName}."],
+    western: ["The {enemyName} has been defeated by {playerName}.", "The {enemyName} falls before {playerName}. The wilderness is a little less crowded."],
     japan: ["The {enemyName} has been defeated by {playerName}."],
     safari: ["The {enemyName} has been defeated by {playerName}."],
     horror: ["The {enemyName} has been defeated by {playerName}."],
