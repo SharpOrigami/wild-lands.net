@@ -385,18 +385,10 @@ const App: React.FC = () => {
         if (isBossActive) {
           soundManager.playMusic('music_boss');
         } else {
-            const ngPlusLevel = gameState.ngPlusLevel;
-            let mainMusic: 'music_main' | 'music_setup_fj' | 'music_setup_as' | 'music_setup_sh' | 'music_setup_cp' = 'music_main';
-            if (ngPlusLevel >= 40 && ngPlusLevel < 50) {
-                mainMusic = 'music_setup_cp';
-            } else if (ngPlusLevel >= 30 && ngPlusLevel < 40) {
-                mainMusic = 'music_setup_sh';
-            } else if (ngPlusLevel >= 20 && ngPlusLevel < 30) {
-                mainMusic = 'music_setup_as';
-            } else if (ngPlusLevel >= 10 && ngPlusLevel < 20) {
-                mainMusic = 'music_setup_fj';
-            }
-            soundManager.playMusic(mainMusic);
+            // FIX: The previous logic incorrectly used theme-specific setup music for the main gameplay loop.
+            // Since there is only one dedicated "main" track, we will use it for all non-boss gameplay
+            // to ensure a consistent and appropriate gameplay tempo, addressing the user's feedback.
+            soundManager.playMusic('music_main');
         }
         break;
       case 'finished':
