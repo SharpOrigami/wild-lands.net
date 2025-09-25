@@ -1,3 +1,5 @@
+// FIX: Add React import to resolve TypeScript error for React.MutableRefObject.
+import React from 'react';
 import { PlayerDetails, CardData, LogEntry, ActiveGameBannerState } from '../types.ts';
 import { soundManager } from './soundManager.ts';
 import { getRandomLogVariation } from './logUtils.ts';

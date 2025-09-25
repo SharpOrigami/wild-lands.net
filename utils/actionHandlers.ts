@@ -1,4 +1,5 @@
-
+// FIX: Add React import to resolve TypeScript errors for React types like Dispatch and MutableRefObject.
+import React from 'react';
 import { GameState, PlayerDetails, LogEntry, CardData, CardContext, ActiveGameBannerState, RunStats } from '../types.ts';
 import { getRandomLogVariation } from './logUtils.ts';
 import { calculateHealAmount, calculateAttackPower, isFirearm, getScaledCard, createTrophyOrBountyCard, getCardCategory, shuffleArray, isBow } from './cardUtils.ts';
