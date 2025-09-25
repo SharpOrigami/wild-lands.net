@@ -164,8 +164,9 @@ export const useGameState = () => {
   }, [gameState?.laudanumVisualActive, gameState?.skunkSprayVisualActive]);
 
   useEffect(() => {
-    // Save game state on change, if in a playable state or finished.
-    if (gameState && (gameState.status === 'playing' || gameState.status === 'playing_initial_reveal' || gameState.status === 'finished')) {
+    // Save game state on change, if in a playable state. We avoid saving 'finished' state
+    // as it's a transitional state that can cause issues on reload.
+    if (gameState && (gameState.status === 'playing' || gameState.status === 'playing_initial_reveal')) {
       try {
         const stateToSave = { ...gameState };
         
@@ -2106,14 +2107,59 @@ export const useGameState = () => {
       if (savedStateString) {
         try {
           const savedState = JSON.parse(savedStateString);
+
+          if (savedState.status === 'finished') {
+            _log("Stuck 'finished' state detected. Recovering progress...", "system");
+            const player = savedState.playerDetails?.[PLAYER_ID];
+
+            if (player) {
+              if (player.health > 0) { // WIN RECOVERY
+                _log("Recovering from a victory.", "system");
+                player.runStats.totalVictories = 1;
+                if (player.character) {
+                  player.runStats.victoriesByCharacter[player.character.id] = (player.runStats.victoriesByCharacter[player.character.id] || 0) + 1;
+                }
+                updateLifetimeStats(player.runStats);
+
+                const allCardsForReview = [
+                    ...(player.hand?.filter(Boolean) || []),
+                    ...(player.playerDeck || []),
+                    ...(player.playerDiscard || [])
+                ];
+                if (player.activeTrap) {
+                  allCardsForReview.push(player.activeTrap);
+                }
+
+                const recoveredState = {
+                  ...savedState,
+                  status: 'deck_review',
+                  deckForReview: allCardsForReview,
+                  modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
+                  activeGameBanner: null,
+                  selectedCard: null,
+                  isLoadingStory: false,
+                };
+                setGameState(recoveredState);
+                localStorage.removeItem('wildWestGameState_WWS');
+                return;
+              } else { // LOSS RECOVERY
+                _log("Recovering from a defeat.", "system");
+                localStorage.removeItem('wildWestGameState_WWS');
+                resetGame({ ngPlusOverride: savedState.ngPlusLevel });
+                return;
+              }
+            } else {
+              _log("Unrecoverable 'finished' state without player data. Performing hard reset.", "error");
+              resetGame({ hardReset: true });
+              return;
+            }
+          }
           
           // Rehydrate character object to include new properties like skills
           if (savedState.playerDetails?.[PLAYER_ID]?.character?.id) {
             const charId = savedState.playerDetails[PLAYER_ID].character.id;
             const fullCharData = CHARACTERS_DATA_MAP[charId];
             if (fullCharData) {
-              // Overwrite the potentially stale character object from the save file
-              // with the up-to-date version from our constants.
               savedState.playerDetails[PLAYER_ID].character = fullCharData;
             }
           }
