@@ -102,7 +102,7 @@ const traitLogTemplates: {
   // The Mercenary
   { trigger: 'threatDefeated', condition: (p) => p.personality?.archetype === 'The Mercenary', chance: 0.7, messages: { western: ["'Contract complete.' The {enemyName} is down.", "The {enemyName} is neutralized. 'Now, where's my pay?'", "'Business is business.' The {enemyName} is finished."]}},
   { trigger: 'itemBought', condition: (p) => p.personality?.archetype === 'The Mercenary', chance: 0.6, messages: { western: ["An investment in my business. {itemName} for {cost}G.", "A professional requires professional tools. The {itemName} costs {cost}G.", "'You have to spend money to make money.' Buys a {itemName}."]}},
-  { trigger: 'goldFound', condition: (p) => p.personality?.archetype === 'The Mercenary', chance: 0.7, messages: { western: ["Profit margin increased by {goldAmount} Gold.", "A bonus. {goldAmount} Gold acquired.", "Unexpected revenue. {goldAmount} Gold."]}},
+  { trigger: 'goldFound', condition: (p) => p.personality?.archetype === 'The Mercenary', chance: 0.7, messages: { western: ["Profit margin increased by {goldAmount} Gold.", "A bonus. {goldAmount} acquired.", "Unexpected revenue. {goldAmount} Gold."]}},
   { trigger: 'itemSold', condition: (p) => p.personality?.archetype === 'The Mercenary', chance: 0.6, messages: { western: ["Everything has a price. Sold {itemName} for {sellAmount}G.", "Surplus equipment sold for {sellAmount}G.", "Liquidated the {itemName} for {sellAmount}G. A good deal."]}},
   { trigger: 'playerAttack', condition: (p) => p.personality?.archetype === 'The Mercenary', chance: 0.6, messages: { western: ["'Nothing personal. Just a job.'", "'This is gonna cost you.'", "He attacks with cold efficiency. 'Let's get this over with.'"]}},
   { trigger: 'eventRevealThreat', condition: (p) => p.personality?.archetype === 'The Mercenary', chance: 0.6, messages: { western: ["Looks like a new contract. The {enemyName} has a bounty on its head.", "'Wonder what the pay is for this one?' A {enemyName} appears.", "A new target of opportunity: {enemyName}."]}},
@@ -114,7 +114,8 @@ const traitLogTemplates: {
   
   // The Wanderer
   { trigger: 'newDay', condition: (p) => p.personality?.archetype === 'The Wanderer', chance: 0.3, messages: { western: ["Day {dayNumber}: Another horizon.", "The road goes on. Day {dayNumber} begins.", "Day {dayNumber}: Let's see where the trail leads today."]}},
-  { trigger: 'eventReveal', condition: (p) => p.personality?.archetype === 'The Wanderer', chance: 0.6, messages: { western: ["The trail offers a new sight: a {eventName}.", "What's this? A {eventName} on the path.", "The journey takes an interesting turn. A {eventName} appears."]}},
+  { trigger: 'eventRevealThreat', condition: (p) => p.personality?.archetype === 'The Wanderer', chance: 0.6, messages: { western: ["The trail presents a challenge: a {enemyName}.", "What's this up ahead? A {enemyName} blocks the path.", "The journey takes a dangerous turn. A {enemyName} appears."]}},
+  { trigger: 'eventRevealItem', condition: (p) => p.personality?.archetype === 'The Wanderer', chance: 0.6, messages: { western: ["The trail offers a small gift: a {itemName}.", "What's this? A {itemName} on the path.", "The journey provides. A {itemName} is found."]}},
   { trigger: 'goldFound', condition: (p) => p.personality?.archetype === 'The Wanderer', chance: 0.6, messages: { western: ["A small distraction. {goldAmount} Gold. The journey continues.", "The road provides. {goldAmount} Gold found.", "Enough for a hot meal. {goldAmount} Gold."]}},
   { trigger: 'threatDefeated', condition: (p) => p.personality?.archetype === 'The Wanderer', chance: 0.7, messages: { western: ["The {enemyName} is gone. The path ahead is clear again.", "One less danger on the road. The {enemyName} has been dealt with.", "The trail is quiet once more. The {enemyName} is defeated."]}},
   { trigger: 'scoutAhead', condition: (p) => p.personality?.archetype === 'The Wanderer', chance: 0.7, messages: { western: ["'What's over the next rise?' Scouting reveals a {eventName}.", "Let's see what the horizon holds. A {eventName} is ahead.", "Always good to know what's coming. Scouting ahead."]}},
@@ -231,6 +232,10 @@ const characterLogTemplates: {
   { trigger: 'itemSold', condition: (p, c) => p.character?.id === 'hunter' && c?.type === 'Trophy', chance: 0.8, messages: { western: ["Sold the {itemName} for {sellAmount}G. 'The land provides.'", "A good price for this {itemName}.", "The trader knows a good pelt when he sees one. {sellAmount}G."]}},
   { trigger: 'eventRevealItem', condition: (p) => p.character?.id === 'hunter', chance: 0.6, messages: { western: ["The trail provides. Found a {itemName}.", "A gift from the wilderness. A {itemName}.", "He spots something useful. 'Well now, what have we here?'"]}},
   { trigger: 'campfireBuilt', condition: (p) => p.character?.id === 'hunter', chance: 0.7, messages: { western: ["He builds a small fire, just enough to keep the beasts at bay.", "A small, smokeless fire. The hunter's way.", "The fire is lit. Time to rest and watch."]}},
+  // Hunter - Boss Fight
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.character?.id === 'hunter' && !!isBossFight, chance: 0.8, messages: { western: ["'The ultimate hunt... I will not fail.' He looses an arrow at the {enemyName}.", "'This is the greatest trophy of all.' He lines up a perfect shot on the {enemyName}."]}},
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.character?.id === 'hunter' && !!isBossFight, chance: 0.8, messages: { western: ["'A hunter must know how to tend to his own wounds.' Heals {healAmount}.", "'Just a moment to catch my breath before the final stalk.' Heals {healAmount} HP."]}},
+
   // Trapper
   { trigger: 'trapSet', condition: (p) => p.character?.id === 'trapper', chance: 0.8, messages: { western: ["'{trapName} won't fail. Something's walking into it.'", "He sets the {trapName} with a grim satisfaction. 'Patience is a virtue.'", "Another trap for the line. The {trapName} is ready."]}},
   { trigger: 'trapCaught', condition: (p) => p.character?.id === 'trapper', chance: 0.8, messages: { western: ["A grim smile. 'Right where I wanted you, {enemyName}.'", "He hears the snap of the trap. 'Got one.'", "The line pays off. The {enemyName} is caught."]}},
@@ -243,6 +248,10 @@ const characterLogTemplates: {
   { trigger: 'newDay', condition: (p) => p.character?.id === 'trapper', chance: 0.25, messages: { western: ["Day {dayNumber}: Checking the lines.", "Day {dayNumber}: Time to see what the traps have caught.", "Day {dayNumber}: The air smells of pine and profit."]}},
   { trigger: 'eventRevealThreat', condition: (p, c) => p.character?.id === 'trapper' && c?.subType === 'animal', chance: 0.6, messages: { western: ["He eyes the {enemyName}. 'You'll look good on a stretching board.'", "A fine specimen. The {enemyName} will bring a good price.", "He measures the {enemyName} with his eye. 'A big one.'"]}},
   { trigger: 'scoutAhead', condition: (p) => p.character?.id === 'trapper', chance: 0.7, messages: { western: ["He checks the lay of the land... 'A {eventName} is near.'", "He reads the tracks. 'Looks like a {eventName} is ahead.'", "He smells the air. 'Something's coming.'"]}},
+  // Trapper - Boss Fight
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.character?.id === 'trapper' && !!isBossFight, chance: 0.8, messages: { western: ["'You're too big for my traps, so this will have to do!' He attacks the {enemyName} with his knife.", "'Every beast has a weak spot.' He probes the {enemyName}'s defenses."]}},
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.character?.id === 'trapper' && !!isBossFight, chance: 0.8, messages: { western: ["'A trapper's gotta be tough to survive.' Heals {healAmount}.", "'Can't collect the bounty if I'm dead.' Heals {healAmount} HP."]}},
+
   // Gunslinger
   { trigger: 'playerAttack', condition: (p, c) => p.character?.id === 'gunslinger' && (c?.id.includes('shooter') || c?.id.includes('rifle')), chance: 0.8, messages: { western: ["'Dance, varmint!' {attackPower} damage to the {enemyName}.", "'Eat lead!' A hail of bullets deals {attackPower} damage.", "A flash of steel and a roar of thunder. {attackPower} damage."]}},
   { trigger: 'threatDefeated', condition: (p, c) => p.character?.id === 'gunslinger' && c?.subType === 'human', chance: 0.7, messages: { western: ["'He was slower.' The {enemyName} is pushing up daisies now.", "'Another notch on the iron.' The {enemyName} is finished.", "He blows the smoke from the barrel. 'Next.'"]}},
@@ -254,19 +263,27 @@ const characterLogTemplates: {
   { trigger: 'playerDamage', condition: (p) => p.character?.id === 'gunslinger', chance: 0.5, messages: { western: ["'Damn! They got a lucky shot in!' {damageAmount} damage.", "He grunts. 'Just a flesh wound.'", "Takes a hit. 'Now I'm mad.'"]}},
   { trigger: 'goldFound', condition: (p) => p.character?.id === 'gunslinger', chance: 0.6, messages: { western: ["{goldAmount} Gold. 'For whiskey and bullets.'", "A welcome sight. {goldAmount} Gold.", "He pockets the coin. 'Pays to be lucky.'"]}},
   { trigger: 'scoutAhead', condition: (p) => p.character?.id === 'gunslinger', chance: 0.6, messages: { western: ["Scouting reveals a {eventName}. 'Best see who's waiting in ambush.'", "He checks the trail. 'Looks like trouble ahead.'", "A quick look reveals a {eventName}. 'Let's get this over with.'"]}},
+  // Gunslinger - Boss Fight
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.character?.id === 'gunslinger' && !!isBossFight, chance: 0.8, messages: { western: ["'This town ain't big enough for the two of us.' He fans the hammer at the {enemyName}.", "'Let's see who's faster.' He draws and fires at the {enemyName} in a blur."]}},
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.character?.id === 'gunslinger' && !!isBossFight, chance: 0.8, messages: { western: ["'Just a scratch. Time to reload.' Heals {healAmount}.", "'Spilled my whiskey... good thing I have this.' Heals {healAmount} HP."]}},
+
   // Doctor
   { trigger: 'playerHeal', condition: (p) => p.character?.id === 'doctor', chance: 0.8, messages: { western: ["'Physician, heal thyself.' Restored {healAmount} health with {sourceName}.", "'A proper application of medicine.' Heals for {healAmount}.", "'This should stabilize the patient... me.' Recovers {healAmount} health."]}},
   { trigger: 'playerCuresIllness', condition: (p, c) => p.character?.id === 'doctor' && !!c?.effect?.cures, chance: 0.9, messages: { western: ["'This {itemName} should do the trick.' The {eventName} is cured.", "He consults his journal. 'Yes, this {itemName} is the correct prescription.'", "'A remarkable recovery.' The {eventName} is no more."]}},
   { trigger: 'playerAttack', condition: (p, c) => p.character?.id === 'doctor' && c?.id.includes('knife'), chance: 0.8, messages: { western: ["'I swore an oath... but you are not my patient.' {attackPower} damage.", "'This will be a precise incision.'", "'Sometimes, surgery is the only answer.'"]}},
   { trigger: 'threatDefeated', condition: (p, c) => p.character?.id === 'doctor' && c?.subType === 'human', chance: 0.7, messages: { western: ["'A life wasted.' The {enemyName} gave him no choice.", "'The diagnosis was terminal.' The {enemyName} is gone.", "He sighs. 'Some maladies cannot be cured.'"]}},
   { trigger: 'threatDefeated', condition: (p, c) => p.character?.id === 'doctor' && c?.subType === 'animal', chance: 0.7, messages: { western: ["'A rabid beast. It was a mercy.' The {enemyName} is put out of its misery.", "He examines the creature. 'The infection was too advanced.'", "A necessary procedure. The animal is at peace."]}},
-  { trigger: 'eventRevealIllness', condition: (p) => p.character?.id === 'doctor', chance: 0.9, messages: { western: ["Symptoms indicate {eventName}. 'I must find a cure.'", "A clear case of {eventName}. 'Now, where did I put my medical journal?'", "A textbook presentation of {eventName}. 'Fascinating... and unfortunate.'"]}},
+  { trigger: 'illnessContracts', condition: (p) => p.character?.id === 'doctor', chance: 0.9, messages: { western: ["Symptoms indicate {illnessName}. 'I must find a cure.'", "A clear case of {illnessName}. 'Now, where did I put my medical journal?'", "A textbook presentation of {illnessName}. 'Fascinating... and unfortunate.'"]}},
   { trigger: 'itemBought', condition: (p, c) => p.character?.id === 'doctor' && c?.type === 'Provision', chance: 0.7, messages: { western: ["'This {itemName} will save a life. Perhaps my own.' Cost: {cost}G.", "An essential supply. Bought {itemName}.", "He inspects the {itemName}. 'This will do.'"]}},
   { trigger: 'itemSold', condition: (p) => p.character?.id === 'doctor', chance: 0.5, messages: { western: ["Sold the {itemName} for {sellAmount}G to resupply the medical kit.", "The {sellAmount}G will go towards more important supplies.", "A necessary trade to keep the bag stocked."]}},
   { trigger: 'newDay', condition: (p) => p.character?.id === 'doctor', chance: 0.25, messages: { western: ["Day {dayNumber}: 'Hoping for fewer patients.'", "Day {dayNumber}: Time to make my rounds.", "Day {dayNumber}: A new day to heal the sick."]}},
   { trigger: 'playerDamage', condition: (p) => p.character?.id === 'doctor', chance: 0.6, messages: { western: ["'Dammit, I'm a doctor, not a soldier!' Took {damageAmount} damage.", "He assesses the wound. 'This will require stitches.'", "Takes {damageAmount} damage. 'First, do no harm... to myself.'"]}},
   { trigger: 'campfireBuilt', condition: (p) => p.character?.id === 'doctor', chance: 0.6, messages: { western: ["A fire to sterilize a needle, or just for warmth.", "He boils some water over the fire. 'Cleanliness is next to godliness.'", "The fire keeps the night chill at bay. Good for morale."]}},
   { trigger: 'laudanumAbuse', condition: (p) => p.character?.id === 'doctor', chance: 0.8, messages: { western: ["'An improper dosage for a non-existent ailment. Note the sedative effects and mild euphoria. Fascinating.'"]}},
+  // Doctor - Boss Fight
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.character?.id === 'doctor' && !!isBossFight, chance: 0.8, messages: { western: ["'Some diseases require surgery... with a knife!' He attacks the {enemyName}.", "'I swore an oath to do no harm, but you are a plague!' He strikes the {enemyName}."]}},
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.character?.id === 'doctor' && !!isBossFight, chance: 0.8, messages: { western: ["'Physician, heal thyself... especially now!' Heals {healAmount}.", "'I must survive to treat the wounds this beast has caused.' Heals {healAmount} HP."]}},
+
   // Herbalist
   { trigger: 'playerHeal', condition: (p, c) => p.character?.id === 'herbalist' && !!c?.id.match(/juniper|basil|peppermint|sage/), chance: 0.9, messages: { western: ["'The earth provides its own medicine.' {sourceName} heals {healAmount}.", "'A simple poultice of {sourceName}.' Restores {healAmount} health.", "She chews the {sourceName} into a paste. 'This will work.' Heals {healAmount}."]}},
   { trigger: 'playerCuresIllness', condition: (p, c) => p.character?.id === 'herbalist' && !!c?.effect?.cures_illness, chance: 0.8, messages: { western: ["'This {itemName} will purge the {eventName}.'", "She finds the right herbs. The {eventName} is cured.", "Nature's remedy for {eventName}."]}},
@@ -280,6 +297,10 @@ const characterLogTemplates: {
   { trigger: 'storeRestock', condition: (p) => p.character?.id === 'herbalist', chance: 0.5, messages: { western: ["The merchant's stock is stale. A restock for {cost}G reveals new wares.", "These goods are unnatural. Let's see what else is available.", "She needs fresher supplies. Restocking."]}},
   { trigger: 'goldFound', condition: (p) => p.character?.id === 'herbalist', chance: 0.5, messages: { western: ["{goldAmount} Gold. 'A gift from the spirits.'", "The earth provides in mysterious ways. {goldAmount} Gold.", "This cold metal has its uses. {goldAmount} Gold."]}},
   { trigger: 'laudanumAbuse', condition: (p) => p.character?.id === 'herbalist', chance: 0.8, messages: { western: ["'The poppy's sleep is a false one. The earth offers truer peace.' She drinks it with a clinical sigh." ]}},
+  // Herbalist - Boss Fight
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.character?.id === 'herbalist' && !!isBossFight, chance: 0.8, messages: { western: ["'Even the most beautiful flower has thorns!' She attacks the {enemyName}.", "'The earth itself cries out for your end!' She strikes at the {enemyName}."]}},
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.character?.id === 'herbalist' && !!isBossFight, chance: 0.8, messages: { western: ["'The forest gives me strength for this final trial.' Heals {healAmount}.", "'A poultice for the body, a prayer for the spirit.' Heals {healAmount} HP."]}},
+
   // Explorer
   { trigger: 'scoutAhead', condition: (p) => p.character?.id === 'explorer', chance: 0.9, messages: { western: ["To chart the unknown! Ahead lies a {eventName}.", "'Let's see what's over that ridge.' Scouting reveals a {eventName}.", "His map is incomplete. Scouting adds a {eventName} to the page."]}},
   { trigger: 'newDay', condition: (p) => p.character?.id === 'explorer', chance: 0.25, messages: { western: ["Day {dayNumber}: 'Onward!'", "Day {dayNumber}: A new territory to explore.", "Day {dayNumber}: The adventure continues!"]}},
@@ -291,6 +312,10 @@ const characterLogTemplates: {
   { trigger: 'threatDefeated', condition: (p) => p.character?.id === 'explorer', chance: 0.6, messages: { western: ["The {enemyName} is no longer an obstacle to progress.", "Another discovery made. The {enemyName} has been catalogued... permanently.", "The path is clear. On to the next discovery!"]}},
   { trigger: 'itemBought', condition: (p) => p.character?.id === 'explorer', chance: 0.6, messages: { western: ["This {itemName} will be invaluable. Cost {cost}G.", "A necessary supply for the journey. Bought a {itemName}.", "He barters for the {itemName}. 'This will aid my expedition.'"]}},
   { trigger: 'playerDamage', condition: (p) => p.character?.id === 'explorer', chance: 0.6, messages: { western: ["'An unexpected peril!' Took {damageAmount} damage.", "He makes a note of the danger in his journal. {damageAmount} damage.", "The frontier is a dangerous place. Took {damageAmount} damage."]}},
+  // Explorer - Boss Fight
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.character?.id === 'explorer' && !!isBossFight, chance: 0.8, messages: { western: ["'The greatest discovery will be your demise!' He attacks the {enemyName}.", "'This will make for one hell of a story!' He charges at the {enemyName}."]}},
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.character?.id === 'explorer' && !!isBossFight, chance: 0.8, messages: { western: ["'The expedition must not fail!' Heals {healAmount}.", "'Just another peril on the map.' Heals {healAmount} HP."]}},
+
   // Preacher
   { trigger: 'playerAttack', condition: (p) => p.character?.id === 'preacher', chance: 0.7, messages: { western: ["'Smite the wicked!' The {itemName} delivers {attackPower} damage unto the {enemyName}.", "'The power of faith compels you... to die!'", "'Let the Lord sort you out!'"]}},
   { trigger: 'threatDefeated', condition: (p) => p.character?.id === 'preacher', chance: 0.7, messages: { western: ["'The sinner, {enemyName}, has been judged!'","'The Lord has delivered this beast, {enemyName}, into my hands!'","'The wicked {enemyName} is cast down!"]}},
@@ -303,6 +328,10 @@ const characterLogTemplates: {
   { trigger: 'campfireBuilt', condition: (p) => p.character?.id === 'preacher', chance: 0.7, messages: { western: ["A fire to read the good book by.", "He builds a fire and says a prayer.", "The fire is a small piece of heaven in this hellish land."]}},
   { trigger: 'goldFound', condition: (p) => p.character?.id === 'preacher', chance: 0.6, messages: { western: ["'A blessing!' The Lord has provided {goldAmount} Gold.", "He gives thanks for the {goldAmount} Gold.", "This {goldAmount} Gold is a gift from on high."]}},
   { trigger: 'laudanumAbuse', condition: (p) => p.character?.id === 'preacher', chance: 0.8, messages: { western: ["'The Devil's comfort... a moment of weakness in the face of temptation. The spirit must be stronger than the flesh.'"]}},
+  // Preacher - Boss Fight
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.character?.id === 'preacher' && !!isBossFight, chance: 0.8, messages: { western: ["'And the Lord said, let there be a reckoning!' He unloads his shotgun at the {enemyName}.", "'By the power vested in me, I cast you out, demon!' He attacks the {enemyName}."]}},
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.character?.id === 'preacher' && !!isBossFight, chance: 0.8, messages: { western: ["'My faith is my shield... but this helps too.' Heals {healAmount}.", "'The righteous shall not perish!' Heals {healAmount} HP."]}},
+
   // Prospector
   { trigger: 'goldFound', condition: (p) => p.character?.id === 'prospector', chance: 0.9, messages: { western: ["'Paydirt!' You're {goldAmount} Gold richer!","'Eureka!' Struck the mother lode! {goldAmount} Gold richer!","'Sweet motherlode!' {goldAmount} Gold in the pan!"]}},
   { trigger: 'itemSold', condition: (p, c) => p.character?.id === 'prospector' && c?.id.includes('nugget'), chance: 0.9, messages: { western: ["'Cashing in!' The {itemName} is worth {sellAmount} Gold.", "He bites the coin to make sure it's real. It is.", "The assayer confirms the value. {sellAmount}G."]}},
@@ -315,6 +344,10 @@ const characterLogTemplates: {
   { trigger: 'newDay', condition: (p) => p.character?.id === 'prospector', chance: 0.25, messages: { western: ["Day {dayNumber}: 'Hoping for paydirt.'", "Day {dayNumber}: Another day, another chance at riches.", "Day {dayNumber}: 'Today's the day I strike it big.'"]}},
   { trigger: 'playerDamage', condition: (p) => p.character?.id === 'prospector', chance: 0.5, messages: { western: ["'Hey! That's my gear!' Took {damageAmount} damage.", "He clutches his gold pouch. 'You ain't gettin' it!'", "Takes a hit. 'Dagnabbit!'"]}},
   { trigger: 'laudanumAbuse', condition: (p) => p.character?.id === 'prospector', chance: 0.8, messages: { western: ["'Wooo-ee! That's the stuff! Numbs the ache in my bones, even when there ain't one.'"]}},
+  // Prospector - Boss Fight
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.character?.id === 'prospector' && !!isBossFight, chance: 0.8, messages: { western: ["'You're standin' on my claim, you son of a bitch!' He attacks the {enemyName}.", "'There's a bounty on your head, and I'm here to collect!' He strikes at the {enemyName}."]}},
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.character?.id === 'prospector' && !!isBossFight, chance: 0.8, messages: { western: ["'Can't spend my gold if I'm dead!' Heals {healAmount}.", "'Just a little something to keep me in the fight for the motherlode.' Heals {healAmount} HP."]}},
+
   // Doctor
   { trigger: 'eventRevealThreat', condition: (p, c) => p.character?.id === 'doctor' && !!c && c.id.includes('vagabond'), chance: 0.7, messages: { western: ["Another poor soul lost to the frontier. 'A tragedy.'","'This poor wretch needs medicine, not judgment.'","The state of these people... 'It breaks the heart.'"]}},
   // Gunslinger
@@ -767,7 +800,28 @@ const characterMotivationLogTemplates: {
   chance: number;
   messages: Partial<Record<Theme, string[]>>;
 }[] = [
-  // ... (content from characterMotivationLogTemplates.ts) ...
+  // --- MOTIVATIONS - BOSS FIGHTS ---
+  // Seeking Redemption
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Redemption' && !!isBossFight, chance: 0.8, messages: { western: ["'This is my penance!' He strikes the {enemyName} with all his might!", "'For those I failed!' His attack on the {enemyName} is fueled by regret."] } },
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Redemption' && !!isBossFight, chance: 0.8, messages: { western: ["'I must live to see this through... to be redeemed.' Heals {healAmount}.", "'The past will not claim me today.' Heals {healAmount} to continue the fight."] } },
+  // Seeking Fortune
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Fortune' && !!isBossFight, chance: 0.8, messages: { western: ["'The bounty on your head is mine!' He attacks the {enemyName} with fervor.", "'Every hit brings me closer to the prize!' He strikes at the {enemyName}."] } },
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Fortune' && !!isBossFight, chance: 0.8, messages: { western: ["'Can't spend the reward if I'm dead!' Heals {healAmount} HP.", "'This is just a business expense.' Heals {healAmount} to protect his investment."] } },
+  // Seeking Vengeance
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Vengeance' && !!isBossFight, chance: 0.8, messages: { western: ["'This is for what you've done!' His attack against {enemyName} is filled with hatred.", "'You took everything from me! Now I take your life!' He screams as he attacks."] } },
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Vengeance' && !!isBossFight, chance: 0.8, messages: { western: ["'I will not die until you have paid!' Heals {healAmount} HP.", "'My hatred sustains me, but this helps too.' Heals {healAmount}."] } },
+  // Seeking Knowledge
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Knowledge' && !!isBossFight, chance: 0.8, messages: { western: ["'Such a unique specimen!' He attacks the {enemyName}, studying its reactions.", "'Every action reveals a new secret!' He presses the attack on the {enemyName}."] } },
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Knowledge' && !!isBossFight, chance: 0.8, messages: { western: ["'I must survive to document this encounter.' Heals {healAmount} HP.", "'Fascinating... the body's resilience is remarkable.' Heals {healAmount}."] } },
+  // Seeking Escape
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Escape' && !!isBossFight, chance: 0.8, messages: { western: ["'You're the last thing between me and freedom!' He attacks the {enemyName} desperately.", "'I'm getting out of here, one way or another!' He strikes the {enemyName}."] } },
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Escape' && !!isBossFight, chance: 0.8, messages: { western: ["'I can't fall here! Not when I'm so close!' Heals {healAmount} HP.", "'Just a little longer... I have to hold on.' Heals {healAmount}."] } },
+  // Seeking Power
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Power' && !!isBossFight, chance: 0.8, messages: { western: ["'Your legend will be the foundation of mine!' He attacks the {enemyName} ruthlessly.", "'There can be only one!' He strikes at the {enemyName} to claim its power."] } },
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Power' && !!isBossFight, chance: 0.8, messages: { western: ["'The powerful do not succumb to mere wounds.' Heals {healAmount} HP.", "'This is but a momentary setback on my path to glory.' Heals {healAmount}."] } },
+  // Seeking Peace
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Peace' && !!isBossFight, chance: 0.8, messages: { western: ["'Only in your defeat will this land know peace!' He attacks the {enemyName}.", "'This violence must end, and it ends with you!' He strikes the {enemyName}."] } },
+  { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.personality?.motivation === 'Seeking Peace' && !!isBossFight, chance: 0.8, messages: { western: ["'I must endure, for the sake of a peaceful tomorrow.' Heals {healAmount} HP.", "'To find peace, one must first survive the war.' Heals {healAmount}."] } },
 ];
 
 
