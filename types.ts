@@ -276,6 +276,7 @@ export interface GameState {
   newlyDrawnCardIndices?: number[];
   triggerEquipAnimation?: boolean;
   eventDifficultyBonus: number;
+  remixDeckOnStart?: boolean;
 }
 
 export interface AIBossData {

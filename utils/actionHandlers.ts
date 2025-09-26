@@ -16,7 +16,7 @@ export interface ActionHandlerArgs {
     triggerAnimation: (type: string, target?: string, amount?: number) => Promise<void>;
     triggerBanner: (message: string, bannerType: ActiveGameBannerState['bannerType'], autoEndTurnAfter?: boolean) => void;
     triggerGoldFlash: (playerId: string) => void;
-    applyHealToPlayer: (player: PlayerDetails, healAmount: number, sourceName: string, isBossFight?: boolean, sourceCard?: CardData) => PlayerDetails;
+    applyHealToPlayer: (player: PlayerDetails, healAmount: number, sourceName: string, isBossFight?: boolean, sourceCard?: CardData, suppressLog?: boolean) => PlayerDetails;
     applyDamageAndGetAnimation: (playerDetailsInput: PlayerDetails, damage: number, sourceName: string, isBossFight?: boolean, eventId?: string, suppressLog?: boolean, sourceCard?: CardData) => { updatedPlayer: PlayerDetails; actualDamageDealt: number; animationDetails: { amount: number; sourceName: string; eventId?: string } | null; };
     getBaseCardByIdentifier: (card: CardData) => CardData;
     soundManager: any;
@@ -73,7 +73,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
     }
 
     const isLaudanumEquivalent = card.id.includes('laudanum') || card.id.includes('morphine_syrette');
-    if (isLaudanumEquivalent) {
+    if (isLaudanumEquivalent && !card.isCheat) {
         const laudanumStatKey = isBossActive ? 'laudanum_used_during_boss' : 'laudanum_used_before_boss';
         modPlayer.runStats[laudanumStatKey as keyof RunStats]++;
         soundManager.playSound('laudanum_use');
@@ -97,7 +97,12 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
         // ... (rest of the USE_ITEM logic goes here)
         if (card.effect.type === 'heal') {
             const healAmount = calculateHealAmount(card, modPlayer);
-            modPlayer = applyHealToPlayer(modPlayer, healAmount, card.name, isBossActive, card);
+            let suppressGenericHealLog = false;
+            if (card.isCheat) {
+                _log(getRandomLogVariation('useCheatItem', { itemName: card.name, healAmount }, theme, modPlayer, card, isBossActive), 'action');
+                suppressGenericHealLog = true;
+            }
+            modPlayer = applyHealToPlayer(modPlayer, healAmount, card.name, isBossActive, card, suppressGenericHealLog);
         }
 
         if (card.effect.cures_illness) {
@@ -185,7 +190,24 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                     }
                 } else {
                     attackPower = calculateAttackPower(card, modPlayer, source as CardContext, currentActiveEvent);
-                    _log(getRandomLogVariation('playerAttack', { playerName: modPlayer.name, enemyName: currentActiveEvent.name, itemName: card.name, attackPower }, theme, modPlayer, currentActiveEvent, isBossActive));
+                    if (card.isCheat) {
+                        _log(getRandomLogVariation('useCheatItem', { playerName: modPlayer.name, enemyName: currentActiveEvent.name, itemName: card.name, attackPower }, theme, modPlayer, card, isBossActive));
+                    } else {
+                        let logCategory = 'playerAttack';
+                        const lowerCasePlayerName = modPlayer.name?.toLowerCase();
+                        const lowerCaseEventName = currentActiveEvent.name.toLowerCase();
+                    
+                        if (lowerCaseEventName.includes('bear') && lowerCasePlayerName === 'hugh glass') {
+                            logCategory = 'playerAttackBear';
+                        } else if (lowerCaseEventName.includes('snake') && lowerCasePlayerName === 'indiana jones') {
+                            logCategory = 'playerAttackSnake';
+                        } else if (theme === 'horror' && lowerCasePlayerName === 'ash williams') {
+                            logCategory = 'playerAttackHorror';
+                        } else if (currentActiveEvent.subType === 'human' && lowerCasePlayerName === 'robocop') {
+                            logCategory = 'playerAttackHuman';
+                        }
+                        _log(getRandomLogVariation(logCategory, { playerName: modPlayer.name, enemyName: currentActiveEvent.name, itemName: card.name, attackPower }, theme, modPlayer, currentActiveEvent, isBossActive));
+                    }
                 }
 
                 if (attackPower > 0 || card.effect.type === 'fire_arrow' || card.effect.type === 'trick_shot') {
@@ -216,6 +238,12 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                         let tier: 'Low' | 'Mid' | 'High' = 'Low';
                         if (originalHealth > 15) tier = 'High'; else if (originalHealth > 8) tier = 'Mid';
                         
+                        let logCategory = `threatDefeated${tier}`;
+                        const lowerCasePlayerName = modPlayer.name?.toLowerCase();
+                        if (updatedActiveEvent.subType === 'human' && lowerCasePlayerName === 'jeremiah johnson') {
+                            logCategory = 'threatDefeatedHuman';
+                        }
+                        
                         if (updatedActiveEvent.id === gameState.aiBoss?.id) {
                             soundManager.playSound('victory_sting');
                             lastAttackPowerRef.current = attackPower;
@@ -230,7 +258,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                             triggerBanner(`${updatedActiveEvent.name} Defeated!`, 'threat_defeated', false);
                             _log(`The final threat is defeated! End the day to claim victory.`, 'system');
                         } else {
-                            _log(getRandomLogVariation(`threatDefeated${tier}`, { enemyName: updatedActiveEvent.name, playerName: modPlayer.name || 'Player' }, theme, modPlayer, updatedActiveEvent), 'event');
+                            _log(getRandomLogVariation(logCategory, { enemyName: updatedActiveEvent.name, playerName: modPlayer.name || 'Player' }, theme, modPlayer, updatedActiveEvent), 'event');
                             triggerBanner(`${updatedActiveEvent.name} Defeated!`, 'threat_defeated');
                             const baseDefeatedEvent = getBaseCardByIdentifier(updatedActiveEvent);
                             if (baseDefeatedEvent) gameUpdates.eventDiscardPile = [...(gameState.eventDiscardPile || []), baseDefeatedEvent];
@@ -255,11 +283,19 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
         if (card.effect.type === 'campfire') {
             modPlayer.isCampfireActive = true;
             modPlayer.runStats.campfiresBuilt++;
-            _log(getRandomLogVariation('campfireBuilt', {}, theme, modPlayer, card), 'action');
+            if (card.isCheat) {
+                _log(getRandomLogVariation('useCheatItem', { itemName: card.name }, theme, modPlayer, card), 'action');
+            } else {
+                _log(getRandomLogVariation('campfireBuilt', {}, theme, modPlayer, card), 'action');
+            }
         } else if (card.effect.type === 'gold' && card.effect.amount) {
             modPlayer.gold += card.effect.amount;
             modPlayer.runStats.gold_earned += card.effect.amount;
-            _log(getRandomLogVariation('goldFoundFromItem', { itemName: card.name, goldAmount: card.effect.amount }, theme, modPlayer, card), 'action');
+            if (card.isCheat) {
+                _log(getRandomLogVariation('useCheatItem', { itemName: card.name, goldAmount: card.effect.amount }, theme, modPlayer, card), 'action');
+            } else {
+                _log(getRandomLogVariation('goldFoundFromItem', { itemName: card.name, goldAmount: card.effect.amount }, theme, modPlayer, card), 'action');
+            }
             triggerGoldFlash(PLAYER_ID);
         } else if (card.effect.type === 'draw') {
             const tonicCardToDiscardLater = getBaseCardByIdentifier(card);
@@ -295,7 +331,11 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                 else modPlayer.playerDiscard = tempDiscard;
                 if (actuallyDrawnCount > 0) {
                     soundManager.playSound('card_draw');
-                    _log(getRandomLogVariation('cardsDrawn', { cardsDrawn: actuallyDrawnCount }, theme, modPlayer), "action");
+                    if (card.isCheat) {
+                        _log(getRandomLogVariation('useCheatItem', { itemName: card.name, cardsDrawn: actuallyDrawnCount }, theme, modPlayer, card), "action");
+                    } else {
+                        _log(getRandomLogVariation('cardsDrawn', { cardsDrawn: actuallyDrawnCount }, theme, modPlayer), "action");
+                    }
                     if(newlyDrawnIndices.length > 0) {
                         gameUpdates.newlyDrawnCardIndices = newlyDrawnIndices;
                     }
@@ -307,7 +347,11 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                 modPlayer.playerDiscard = [...modPlayer.playerDiscard, getBaseCardByIdentifier(modPlayer.activeTrap)];
                 _log(`${modPlayer.name || 'Player'} replaces their old trap with a new ${card.name}.`, 'action');
             } else {
-                _log(getRandomLogVariation('trapSet', { trapName: card.name }, theme, modPlayer, card), 'action');
+                if (card.isCheat) {
+                    _log(getRandomLogVariation('useCheatItem', { itemName: card.name }, theme, modPlayer, card), 'action');
+                } else {
+                    _log(getRandomLogVariation('trapSet', { trapName: card.name }, theme, modPlayer, card), 'action');
+                }
             }
             modPlayer.activeTrap = card;
             cardUsedAndDiscarded = false;
@@ -316,7 +360,11 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
             if (gameState.eventDeck.length > 0) {
                 const nextEvent = gameState.eventDeck[0];
                 const scaledNextEvent = getScaledCard(nextEvent, modPlayer.ngPlusLevel);
-                _log(getRandomLogVariation('scoutAhead', { eventName: scaledNextEvent.name }, theme, modPlayer, card), 'action');
+                if (card.isCheat) {
+                    _log(getRandomLogVariation('useCheatItem', { eventName: scaledNextEvent.name }, theme, modPlayer, card), 'action');
+                } else {
+                    _log(getRandomLogVariation('scoutAhead', { eventName: scaledNextEvent.name }, theme, modPlayer, card), 'action');
+                }
                 triggerBanner(`Next Card: ${scaledNextEvent.name}`, 'generic_info');
                 gameUpdates.selectedCard = { card: scaledNextEvent, source: 'scouted_preview', index: -1 };
             } else {
@@ -330,7 +378,10 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
         
         if (immediateEffect.type === 'heal') {
             const healAmount = calculateHealAmount({ ...card, effect: immediateEffect }, modPlayer);
-            modPlayer = applyHealToPlayer(modPlayer, healAmount, card.name, isBossActive, card);
+            modPlayer = applyHealToPlayer(modPlayer, healAmount, card.name, isBossActive, card, card.isCheat);
+             if (card.isCheat) {
+                _log(getRandomLogVariation('useCheatItem', { itemName: card.name, healAmount }, theme, modPlayer, card, isBossActive), 'action');
+            }
         }
 
         if (immediateEffect.type === 'draw') {
@@ -379,7 +430,11 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
 
             if (actuallyDrawnCount > 0) {
                 soundManager.playSound('card_draw');
-                _log(getRandomLogVariation('cardsDrawn', { cardsDrawn: actuallyDrawnCount }, theme, modPlayer), 'action');
+                if (card.isCheat) {
+                    _log(getRandomLogVariation('useCheatItem', { itemName: card.name, cardsDrawn: actuallyDrawnCount }, theme, modPlayer, card), "action");
+                } else {
+                    _log(getRandomLogVariation('cardsDrawn', { cardsDrawn: actuallyDrawnCount }, theme, modPlayer), 'action');
+                }
                 gameUpdates.newlyDrawnCardIndices = newlyDrawnIndices;
             }
         }
@@ -429,7 +484,13 @@ export const handleEquipItem = ({ player, payload, helpers }: ActionHandlerArgs)
     soundManager.playSound('card_play');
     modPlayer.equippedItems = [...modPlayer.equippedItems, card];
     if (source === CardContext.HAND && index !== undefined) modPlayer.hand[index] = null;
-    _log(getRandomLogVariation('itemEquipped', { itemName: card.name }, theme, modPlayer, card), 'action');
+    
+    if (card.isCheat) {
+        _log(getRandomLogVariation('equipCheatItem', { itemName: card.name }, theme, modPlayer, card), 'action');
+    } else {
+        _log(getRandomLogVariation('itemEquipped', { itemName: card.name }, theme, modPlayer, card), 'action');
+    }
+
     modPlayer.hasEquippedThisTurn = true;
     gameUpdates.triggerEquipAnimation = true;
 
@@ -516,7 +577,12 @@ export const handleUseFromSatchel = ({ player, gameState, payload, isBossActive,
     if (scaledItemFromSatchel.effect) {
         if (scaledItemFromSatchel.effect.type === 'heal') {
             const healAmount = calculateHealAmount(scaledItemFromSatchel, modPlayer);
-            modPlayer = applyHealToPlayer(modPlayer, healAmount, scaledItemFromSatchel.name, isBossActive, scaledItemFromSatchel);
+            let suppressGenericHealLog = false;
+            if (scaledItemFromSatchel.isCheat) {
+                 _log(getRandomLogVariation('useCheatItem', { itemName: scaledItemFromSatchel.name, healAmount }, theme, modPlayer, scaledItemFromSatchel, isBossActive), 'action');
+                 suppressGenericHealLog = true;
+            }
+            modPlayer = applyHealToPlayer(modPlayer, healAmount, scaledItemFromSatchel.name, isBossActive, scaledItemFromSatchel, suppressGenericHealLog);
         }
         if (scaledItemFromSatchel.effect.cures_illness) {
             const illnessIndex = modPlayer.currentIllnesses.findIndex(ill => ill.name === scaledItemFromSatchel.effect!.cures_illness);
@@ -669,7 +735,8 @@ export const handleSellItem = ({ player, gameState, payload, helpers }: ActionHa
     else modPlayer.runStats.items_sold++;
     
     const itemNameForLog = card.type === 'Objective Proof' ? `${card.name}'s bounty` : card.name;
-    _log(getRandomLogVariation('itemSold', { itemName: itemNameForLog, sellAmount: sellPrice }, theme, modPlayer, card), 'action');
+    const logCategory = card.type === 'Objective Proof' ? 'bountySold' : 'itemSold';
+    _log(getRandomLogVariation(logCategory, { itemName: itemNameForLog, sellAmount: sellPrice }, theme, modPlayer, card), 'action');
     triggerGoldFlash(PLAYER_ID);
 
     const cardToSell = getBaseCardByIdentifier(card);
@@ -728,7 +795,8 @@ export const handleSellFromSatchel = ({ player, gameState, payload, helpers }: A
     else modPlayer.runStats.items_sold++;
     
     const itemNameForLog = cardToSell.type === 'Objective Proof' ? `${cardToSell.name}'s bounty` : cardToSell.name;
-    _log(getRandomLogVariation('itemSold', { itemName: itemNameForLog, sellAmount: sellPrice }, theme, modPlayer, cardToSell), 'action');
+    const logCategory = cardToSell.type === 'Objective Proof' ? 'bountySold' : 'itemSold';
+    _log(getRandomLogVariation(logCategory, { itemName: itemNameForLog, sellAmount: sellPrice }, theme, modPlayer, cardToSell), 'action');
     triggerGoldFlash(PLAYER_ID);
 
     const soldCardBase = getBaseCardByIdentifier(cardToSell);

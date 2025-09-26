@@ -201,6 +201,7 @@ const App: React.FC = () => {
     handleCheatIncreaseDifficulty,
     handleCheatAddMaxHealth,
     startNextLevelRemix,
+    handleCheatRemixDeck,
   } = useGameState();
   
   const [tutorialState, setTutorialState] = useState({ active: false, step: 0 });
@@ -647,6 +648,7 @@ const App: React.FC = () => {
           onCheatAddGold={handleCheatAddGold}
           onCheatIncreaseDifficulty={handleCheatIncreaseDifficulty}
           onCheatAddMaxHealth={handleCheatAddMaxHealth}
+          onCheatRemixDeck={handleCheatRemixDeck}
         />
       )}
 

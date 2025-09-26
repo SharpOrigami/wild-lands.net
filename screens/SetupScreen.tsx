@@ -17,6 +17,7 @@ interface SetupScreenProps {
   onCheatAddGold: (amount: number) => void;
   onCheatIncreaseDifficulty: () => void;
   onCheatAddMaxHealth: () => void;
+  onCheatRemixDeck: () => void;
 }
 
 const SetupScreen: React.FC<SetupScreenProps> = ({
@@ -31,6 +32,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({
   onCheatAddGold,
   onCheatIncreaseDifficulty,
   onCheatAddMaxHealth,
+  onCheatRemixDeck,
 }) => {
   const { character: selectedCharacter, name: initialCharacterName, cumulativeNGPlusMaxHealthBonus, health } = playerDetailsProp;
   const [nameInput, setNameInput] = useState(initialCharacterName || '');
@@ -161,6 +163,12 @@ const SetupScreen: React.FC<SetupScreenProps> = ({
     if (value.toLowerCase() === CHEAT_CODES.ADD_MAX_HEALTH) {
         justEnteredCheatRef.current = true;
         onCheatAddMaxHealth();
+        setNameInput('');
+        return;
+    }
+    if (value.toLowerCase() === CHEAT_CODES.REMIX_DECK) {
+        justEnteredCheatRef.current = true;
+        onCheatRemixDeck();
         setNameInput('');
         return;
     }

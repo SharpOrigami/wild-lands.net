@@ -1190,15 +1190,6 @@ export const useGameState = () => {
             isActionInProgress.current = false;
             return;
         }
-        
-        if (modifiablePlayer.isUnsortedDraw) {
-            const actualCards = modifiablePlayer.hand.filter(c => c !== null) as CardData[];
-            actualCards.sort((a, b) => getCardCategory(a) - getCardCategory(b) || a.name.localeCompare(b.name));
-            const newHandConfiguration: (CardData | null)[] = new Array(modifiablePlayer.handSize).fill(null);
-            actualCards.forEach((card, i) => newHandConfiguration[i] = card);
-            modifiablePlayer.hand = newHandConfiguration;
-            modifiablePlayer.isUnsortedDraw = false;
-        }
 
         const finalSelectedCardState = (actionType !== 'SHOW_MODAL' && !(actionType === 'USE_ITEM' && payload?.card?.effect?.type === 'scout')) ? null : initialGameState.selectedCard;
 
@@ -1518,9 +1509,11 @@ export const useGameState = () => {
         const currentGameState = gameStateRef.current;
         if (!currentGameState) { _log("Game state unavailable.", "error"); return; }
         
+        let characterForGame = { ...character }; // Use a mutable copy
+        
         setGameState(prev => ({
             ...prev!, status: 'generating_boss_intro', isLoadingBossIntro: true,
-            playerDetails: { ...prev!.playerDetails, [PLAYER_ID]: { ...prev!.playerDetails[PLAYER_ID], name: playerName, character: character } },
+            playerDetails: { ...prev!.playerDetails, [PLAYER_ID]: { ...prev!.playerDetails[PLAYER_ID], name: playerName, character: characterForGame } },
         }));
         
         if (cheatEffects) {
@@ -1557,13 +1550,13 @@ export const useGameState = () => {
         
         const storyPromise = (async () => {
             const latestGameState = gameStateRef.current!;
-            const cacheKey = getLevelCacheKey(latestGameState.ngPlusLevel, character.id, playerName);
+            const cacheKey = getLevelCacheKey(latestGameState.ngPlusLevel, characterForGame.id, playerName);
             let levelCache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
             const themeMilestone = Math.floor(latestGameState.ngPlusLevel / NG_PLUS_THEME_MILESTONE_INTERVAL);
             const recentBossesKey = `wildWestRecentBosses_theme_${themeMilestone}_WWS`;
             const recentBossNames: string[] = JSON.parse(localStorage.getItem(recentBossesKey) || '[]' );
             const playerPersonality = latestGameState.playerDetails[PLAYER_ID].personality;
-            const characterForAPI = { ...character, personality: playerPersonality };
+            const characterForAPI = { ...characterForGame, personality: playerPersonality };
 
             try {
                 const finalAiBoss = levelCache.aiBoss || await generateAIBossForGame(_log, characterForAPI, playerName, latestGameState.ngPlusLevel, recentBossNames);
@@ -1584,7 +1577,7 @@ export const useGameState = () => {
                 return { finalAiBoss, introData };
             } catch (error) {
                 _log("Error generating boss/intro. Using fallbacks.", "error");
-                const fallbackBoss: CardData = { id:'default_boss_fallback', name: 'The Nameless Dread', type: 'Event', subType: 'human', health: 25, goldValue: 50, effect: {type:'damage', amount: 15}, description: "A shadowy figure of legend... Its presence chills the very air." };
+                const fallbackBoss: CardData = { id:'default_boss_fallback', name: 'The Nameless Dread', type: 'Event', subType: 'human', health: 25, goldValue: 50, effect: {type:'damage', amount: 15}, description: "A shadowy figure of legend, spoken of only in hushed whispers. It is said this entity feeds on despair, its presence chilling the very air and twisting familiar trails into nightmarish labyrinths. Every victory against its lesser minions only seems to draw its baleful attention closer." };
                 return { finalAiBoss: fallbackBoss, introData: { title: "A Shadow on the Trail", paragraph: "The whispers fall silent. A familiar, nameless dread emerges." } };
             }
         })();
@@ -1648,202 +1641,235 @@ export const useGameState = () => {
     }
 
     _log("Proceeding to gameplay...", "system");
+    
+    const currentState = gameStateRef.current;
+    if (!currentState || !currentState.playerDetails[PLAYER_ID]?.character) return;
 
     const pendingRewardsString = localStorage.getItem('wildWestPendingRewardCards_WWS');
     localStorage.removeItem('wildWestPendingRewardCards_WWS'); // Consume it
     const rewardCards: CardData[] = pendingRewardsString ? JSON.parse(pendingRewardsString) : [];
 
-    setGameState(prev => {
-        if (!prev || !prev.playerDetails[PLAYER_ID]?.character) return prev;
+    const playerDetailsFromSetup = currentState.playerDetails[PLAYER_ID];
+    const playerChar = playerDetailsFromSetup.character as Character;
+    let gameUpdates: Partial<GameState> = {};
+    
+    let finalPlayerDeck: CardData[];
+    const starterDeckCards = playerChar.starterDeck.map(id => CURRENT_CARDS_DATA[id]).filter(Boolean) as CardData[];
+    finalPlayerDeck = [...starterDeckCards];
+    
+    const carriedOverCardIds = new Set<string>([
+        ...(JSON.parse(localStorage.getItem('wildWestPlayerDeck_WWS') || '[]') as CardData[]).map(c => c.id),
+        ...playerDetailsFromSetup.equippedItems.map(c => c.id),
+        ...playerDetailsFromSetup.satchel.map(c => c.id)
+    ]);
 
-        const playerDetailsFromSetup = prev.playerDetails[PLAYER_ID];
-        const playerChar = playerDetailsFromSetup.character as Character;
-        const gameUpdates: Partial<GameState> = {};
+    const starterCardIdsForPoolFiltering = playerChar.starterDeck || [];
+    const allPlayerOwnedCardIdsForPool = new Set<string>([...carriedOverCardIds, ...starterCardIdsForPoolFiltering]);
+    let currentCardPool = currentState.initialCardPool.filter(c => !allPlayerOwnedCardIdsForPool.has(c.id) && c.subType !== 'objective');
+
+    const pickPrioritizingRemixed = (pool: CardData[], filter: (c: CardData) => boolean, count: number) => {
+        const allMatching = pool.filter(filter);
+        const remixedItems = allMatching.filter(c => c.id.startsWith('remixed_'));
+        const originalItems = allMatching.filter(c => !c.id.startsWith('remixed_'));
         
-        let finalPlayerDeck: CardData[];
-        const starterDeckCards = playerChar.starterDeck.map(id => CURRENT_CARDS_DATA[id]).filter(Boolean) as CardData[];
-        finalPlayerDeck = [...starterDeckCards];
+        let pickedItems: CardData[] = [];
         
-        const carriedOverCardIds = new Set<string>([
-            ...(JSON.parse(localStorage.getItem('wildWestPlayerDeck_WWS') || '[]') as CardData[]).map(c => c.id),
-            ...playerDetailsFromSetup.equippedItems.map(c => c.id),
-            ...playerDetailsFromSetup.satchel.map(c => c.id)
-        ]);
-
-        const starterCardIdsForPoolFiltering = playerChar.starterDeck || [];
-        const allPlayerOwnedCardIdsForPool = new Set<string>([...carriedOverCardIds, ...starterCardIdsForPoolFiltering]);
-        let currentCardPool = prev.initialCardPool.filter(c => !allPlayerOwnedCardIdsForPool.has(c.id) && c.subType !== 'objective');
-
-        const pickPrioritizingRemixed = (pool: CardData[], filter: (c: CardData) => boolean, count: number) => {
-            const allMatching = pool.filter(filter);
-            const remixedItems = allMatching.filter(c => c.id.startsWith('remixed_'));
-            const originalItems = allMatching.filter(c => !c.id.startsWith('remixed_'));
-            
-            let pickedItems: CardData[] = [];
-            
-            // Prioritize picking from remixed items
-            const shuffledRemixed = shuffleArray(remixedItems);
-            pickedItems.push(...shuffledRemixed);
-            
-            // If more items are needed, pick from original items
-            const neededMore = count - pickedItems.length;
-            if (neededMore > 0) {
-                const shuffledOriginals = shuffleArray(originalItems);
-                pickedItems.push(...shuffledOriginals.slice(0, neededMore));
-            }
-            
-            // Trim to the exact count requested
-            pickedItems = pickedItems.slice(0, count);
-            const pickedIds = new Set(pickedItems.map(c => c.id));
-            const remainingPool = pool.filter(c => !pickedIds.has(c.id));
-            
-            return { picked: pickedItems, remainingPool };
-        };
-
-        const allObjectiveCards = Object.values(ALL_CARDS_DATA_MAP).filter(c => c.subType === 'objective');
-        let chosenObjective: CardData | null = null;
-        if (allObjectiveCards.length > 0) {
-            chosenObjective = allObjectiveCards[Math.floor(Math.random() * allObjectiveCards.length)];
-            _log(`Objective: ${chosenObjective.name}`, 'system');
-        }
-
-        const threatFilter = (c: CardData) => c.type === 'Event' && (c.subType === 'animal' || c.subType === 'human');
-        const illnessEnvFilter = (c: CardData) => c.type === 'Event' && (c.subType === 'illness' || c.subType === 'environmental');
-        const valuableFilter = (c: CardData) => c.type === 'Item' && (c.id.startsWith('item_gold_nugget') || c.id.startsWith('item_jewelry'));
-        const uniqueCharItemIds = new Set(Object.values(CHARACTERS_DATA_MAP).map(c => c.starterDeck[2]));
-        const genericItemFilter = (c: CardData) => (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') && !valuableFilter(c) && !uniqueCharItemIds.has(c.id);
-
-        let threatResult = pickPrioritizingRemixed(currentCardPool, threatFilter, 15); currentCardPool = threatResult.remainingPool;
-        let illnessResult = pickPrioritizingRemixed(currentCardPool, illnessEnvFilter, 2); currentCardPool = illnessResult.remainingPool;
-        let valuableResult = pickPrioritizingRemixed(currentCardPool, valuableFilter, Math.floor(Math.random() * 4)); currentCardPool = valuableResult.remainingPool;
-        const neededFillerItems = EVENT_DECK_SIZE - (threatResult.picked.length + illnessResult.picked.length + valuableResult.picked.length);
-        let fillerResult = pickPrioritizingRemixed(currentCardPool, genericItemFilter, neededFillerItems); currentCardPool = fillerResult.remainingPool;
-        let storeItemsResult = pickPrioritizingRemixed(currentCardPool, genericItemFilter, STORE_DECK_TARGET_SIZE); currentCardPool = storeItemsResult.remainingPool;
-
-        const allPickedForEventDeck = [...threatResult.picked, ...illnessResult.picked, ...valuableResult.picked, ...fillerResult.picked];
-        let eventThreats = allPickedForEventDeck.filter(c => c.subType === 'animal' || c.subType === 'human');
-        const eventNonThreats = shuffleArray(allPickedForEventDeck.filter(c => c.subType !== 'animal' && c.subType !== 'human'));
-        if (prev.ngPlusLevel % 10 === 0) eventThreats.sort((a, b) => (a.health || 0) - (b.health || 0));
-        else eventThreats = shuffleArray(eventThreats);
+        const shuffledRemixed = shuffleArray(remixedItems);
+        pickedItems.push(...shuffledRemixed);
         
-        const finalEventDeck: CardData[] = [];
-        let threatIdx = 0, nonThreatIdx = 0;
-        const ratio = eventNonThreats.length > 0 ? eventThreats.length / (eventThreats.length + eventNonThreats.length) : 1;
-        while (threatIdx < eventThreats.length || nonThreatIdx < eventNonThreats.length) {
-          if (threatIdx < eventThreats.length && (Math.random() < ratio || nonThreatIdx >= eventNonThreats.length)) finalEventDeck.push(eventThreats[threatIdx++]);
-          else if (nonThreatIdx < eventNonThreats.length) finalEventDeck.push(eventNonThreats[nonThreatIdx++]);
-          else break;
-        }
-        if (chosenObjective) finalEventDeck.unshift(chosenObjective);
-
-        let storeItemDeck = shuffleArray(storeItemsResult.picked);
-        const storeDisplayItems = storeItemDeck.splice(0, STORE_DISPLAY_LIMIT).map(card => getScaledCard(card, prev.ngPlusLevel));
-        
-        gameUpdates.eventDeck = finalEventDeck;
-        gameUpdates.storeItemDeck = storeItemDeck;
-        gameUpdates.storeDisplayItems = storeDisplayItems;
-        
-        if (prev.ngPlusLevel > 0) {
-            const carriedOverDeckItems = JSON.parse(localStorage.getItem('wildWestPlayerDeck_WWS') || '[]') as CardData[];
-            const uniqueStarterCards = playerChar.starterDeck
-                .filter(id => id !== 'provision_dried_meat' && !carriedOverCardIds.has(id))
-                .map(id => CURRENT_CARDS_DATA[id])
-                .filter(Boolean) as CardData[];
-            
-            finalPlayerDeck = [...carriedOverDeckItems, ...uniqueStarterCards];
+        const neededMore = count - pickedItems.length;
+        if (neededMore > 0) {
+            const shuffledOriginals = shuffleArray(originalItems);
+            pickedItems.push(...shuffledOriginals.slice(0, neededMore));
         }
         
-        const playerValuablesResult = pickPrioritizingRemixed(currentCardPool, valuableFilter, Math.floor(Math.random() * 4));
-        currentCardPool = playerValuablesResult.remainingPool;
-        const neededPlayerItems = Math.max(0, PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length - playerValuablesResult.picked.length);
-        const playerItemsResult = pickPrioritizingRemixed(currentCardPool, genericItemFilter, neededPlayerItems);
-        const playerDeckAugmentationPool = [...playerValuablesResult.picked, ...playerItemsResult.picked];
-        finalPlayerDeck.push(...playerDeckAugmentationPool);
-
-        if (localStorage.getItem('objectiveReward_well_prepared_WWS') === 'true') {
-            const steakCard = CURRENT_CARDS_DATA['provision_steak'];
-            if (steakCard) {
-                finalPlayerDeck = finalPlayerDeck.filter(card => card.id !== 'provision_dried_meat');
-                for (let i = 0; i < 5; i++) finalPlayerDeck.push(steakCard);
-                _log(`'Well-Prepared' reward: Replaced Dried Meat with 5 Steak.`, 'system');
-            }
-            localStorage.removeItem('objectiveReward_well_prepared_WWS');
-        }
+        pickedItems = pickedItems.slice(0, count);
+        const pickedIds = new Set(pickedItems.map(c => c.id));
+        const remainingPool = pool.filter(c => !pickedIds.has(c.id));
         
-        if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
-            const extraCards = storeItemDeck.splice(0, PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length);
-            finalPlayerDeck.push(...extraCards);
-        }
-        if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE) finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
+        return { picked: pickedItems, remainingPool };
+    };
 
-        
-        finalPlayerDeck = shuffleArray(finalPlayerDeck);
-        const initialHand: (CardData | null)[] = new Array(HAND_LIMIT).fill(null);
-        for (let i = 0; i < HAND_LIMIT; i++) {
-            if (finalPlayerDeck.length > 0) initialHand[i] = getScaledCard(finalPlayerDeck.shift()!, prev.ngPlusLevel);
-        }
-        const actualInitialHandCards = initialHand.filter(c => c !== null) as CardData[];
-        actualInitialHandCards.sort((a, b) => getCardCategory(a) - getCardCategory(b) || a.name.localeCompare(b.name));
-        const sortedInitialHand: (CardData | null)[] = new Array(HAND_LIMIT).fill(null);
-        actualInitialHandCards.forEach((card, idx) => sortedInitialHand[idx] = card);
-        
-        let finalPlayerDiscard = [...playerDetailsFromSetup.playerDiscard];
+    const allObjectiveCards = Object.values(ALL_CARDS_DATA_MAP).filter(c => c.subType === 'objective');
+    let chosenObjective: CardData | null = null;
+    if (allObjectiveCards.length > 0) {
+        chosenObjective = allObjectiveCards[Math.floor(Math.random() * allObjectiveCards.length)];
+        _log(`Objective: ${chosenObjective.name}`, 'system');
+    }
 
-        const cheat = POP_CULTURE_CHEATS.find(c => c.name.toLowerCase() === playerDetailsFromSetup.name?.toLowerCase() && c.requiredCharacterId === playerChar.id);
-        if (cheat && cheat.effects.addCustomCards) {
-            const customCards = cheat.effects.addCustomCards;
-            _log(`A legend's gear manifests: ${customCards.map(c => c.name).join(', ')}.`, 'system');
-            const newCardsMap = { ...CURRENT_CARDS_DATA };
-            customCards.forEach(card => {
-                newCardsMap[card.id] = card;
+    const threatFilter = (c: CardData) => c.type === 'Event' && (c.subType === 'animal' || c.subType === 'human');
+    const illnessEnvFilter = (c: CardData) => c.type === 'Event' && (c.subType === 'illness' || c.subType === 'environmental');
+    const valuableFilter = (c: CardData) => c.type === 'Item' && (c.id.startsWith('item_gold_nugget') || c.id.startsWith('item_jewelry'));
+    const uniqueCharItemIds = new Set(Object.values(CHARACTERS_DATA_MAP).map(c => c.starterDeck[2]));
+    const genericItemFilter = (c: CardData) => (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') && !valuableFilter(c) && !uniqueCharItemIds.has(c.id);
+
+    let threatResult = pickPrioritizingRemixed(currentCardPool, threatFilter, 15); currentCardPool = threatResult.remainingPool;
+    let illnessResult = pickPrioritizingRemixed(currentCardPool, illnessEnvFilter, 2); currentCardPool = illnessResult.remainingPool;
+    let valuableResult = pickPrioritizingRemixed(currentCardPool, valuableFilter, Math.floor(Math.random() * 4)); currentCardPool = valuableResult.remainingPool;
+    const neededFillerItems = EVENT_DECK_SIZE - (threatResult.picked.length + illnessResult.picked.length + valuableResult.picked.length);
+    let fillerResult = pickPrioritizingRemixed(currentCardPool, genericItemFilter, neededFillerItems); currentCardPool = fillerResult.remainingPool;
+    let storeItemsResult = pickPrioritizingRemixed(currentCardPool, genericItemFilter, STORE_DECK_TARGET_SIZE); currentCardPool = storeItemsResult.remainingPool;
+
+    const allPickedForEventDeck = [...threatResult.picked, ...illnessResult.picked, ...valuableResult.picked, ...fillerResult.picked];
+    let eventThreats = allPickedForEventDeck.filter(c => c.subType === 'animal' || c.subType === 'human');
+    const eventNonThreats = shuffleArray(allPickedForEventDeck.filter(c => c.subType !== 'animal' && c.subType !== 'human'));
+    if (currentState.ngPlusLevel % 10 === 0) eventThreats.sort((a, b) => (a.health || 0) - (b.health || 0));
+    else eventThreats = shuffleArray(eventThreats);
+    
+    const finalEventDeck: CardData[] = [];
+    let threatIdx = 0, nonThreatIdx = 0;
+    const ratio = eventNonThreats.length > 0 ? eventThreats.length / (eventThreats.length + eventNonThreats.length) : 1;
+    while (threatIdx < eventThreats.length || nonThreatIdx < eventNonThreats.length) {
+      if (threatIdx < eventThreats.length && (Math.random() < ratio || nonThreatIdx >= eventNonThreats.length)) finalEventDeck.push(eventThreats[threatIdx++]);
+      else if (nonThreatIdx < eventNonThreats.length) finalEventDeck.push(eventNonThreats[nonThreatIdx++]);
+      else break;
+    }
+    if (chosenObjective) finalEventDeck.unshift(chosenObjective);
+
+    let storeItemDeck = shuffleArray(storeItemsResult.picked);
+    const storeDisplayItems = storeItemDeck.splice(0, STORE_DISPLAY_LIMIT).map(card => getScaledCard(card, currentState.ngPlusLevel));
+    
+    gameUpdates.eventDeck = finalEventDeck;
+    gameUpdates.storeItemDeck = storeItemDeck;
+    gameUpdates.storeDisplayItems = storeDisplayItems;
+    
+    if (currentState.ngPlusLevel > 0) {
+        const carriedOverDeckItems = JSON.parse(localStorage.getItem('wildWestPlayerDeck_WWS') || '[]') as CardData[];
+        const uniqueStarterCards = playerChar.starterDeck
+            .filter(id => id !== 'provision_dried_meat' && !carriedOverCardIds.has(id))
+            .map(id => CURRENT_CARDS_DATA[id])
+            .filter(Boolean) as CardData[];
+        
+        finalPlayerDeck = [...carriedOverDeckItems, ...uniqueStarterCards];
+    }
+    
+    const playerValuablesResult = pickPrioritizingRemixed(currentCardPool, valuableFilter, Math.floor(Math.random() * 4));
+    currentCardPool = playerValuablesResult.remainingPool;
+    const neededPlayerItems = Math.max(0, PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length - playerValuablesResult.picked.length);
+    const playerItemsResult = pickPrioritizingRemixed(currentCardPool, genericItemFilter, neededPlayerItems);
+    const playerDeckAugmentationPool = [...playerValuablesResult.picked, ...playerItemsResult.picked];
+    finalPlayerDeck.push(...playerDeckAugmentationPool);
+
+    if (localStorage.getItem('objectiveReward_well_prepared_WWS') === 'true') {
+        const steakCard = CURRENT_CARDS_DATA['provision_steak'];
+        if (steakCard) {
+            finalPlayerDeck = finalPlayerDeck.filter(card => card.id !== 'provision_dried_meat');
+            for (let i = 0; i < 5; i++) finalPlayerDeck.push(steakCard);
+            _log(`'Well-Prepared' reward: Replaced Dried Meat with 5 Steak.`, 'system');
+        }
+        localStorage.removeItem('objectiveReward_well_prepared_WWS');
+    }
+    
+    if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
+        const extraCards = storeItemDeck.splice(0, PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length);
+        finalPlayerDeck.push(...extraCards);
+    }
+    if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE) finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
+
+    if (currentState.remixDeckOnStart) {
+        _log("AI is remixing the full starting deck...", "system");
+        setGameState(current => ({ ...current!, isLoadingNGPlus: true }));
+
+        const uniqueCardsInDeck = [...new Map(finalPlayerDeck.map(card => [card.id, card])).values()];
+        const cardsToRemix: CardData[] = uniqueCardsInDeck.filter(card => !card.isCheat);
+
+        try {
+            const remixPromises = cardsToRemix.map(async (card) => {
+                const remixedResult = await remixCardsForNGPlusGame(_log, { [card.id]: card }, currentState.ngPlusLevel);
+                if (remixedResult && Object.keys(remixedResult).length > 0) {
+                    const newCard = Object.values(remixedResult)[0];
+                    return { originalId: card.id, newCard };
+                }
+                return { originalId: card.id, newCard: null };
             });
-            updateCurrentCardsData(newCardsMap);
-            finalPlayerDiscard.push(...customCards);
-        }
-
-        if (rewardCards.length > 0) {
-            rewardCards.forEach(itemCard => {
-                _log(`Reward delivered: ${itemCard.name}. Added to discard.`, 'system');
-                updateCurrentCardsData({ ...CURRENT_CARDS_DATA, [itemCard.id]: itemCard });
+            const settledRemixes = await Promise.all(remixPromises);
+            const remixedCardsMap = new Map<string, CardData>();
+            const newCardDataForUpdate: { [id: string]: CardData } = {};
+            settledRemixes.forEach(result => {
+                if (result.newCard) {
+                    remixedCardsMap.set(result.originalId, result.newCard);
+                    newCardDataForUpdate[result.newCard.id] = result.newCard;
+                }
             });
-            finalPlayerDiscard.push(...rewardCards);
+            if (remixedCardsMap.size > 0) {
+                updateCurrentCardsData({ ...CURRENT_CARDS_DATA, ...newCardDataForUpdate });
+                finalPlayerDeck = finalPlayerDeck.map(card => remixedCardsMap.get(card.id) || card);
+                _log("AI deck remix successful!", "system");
+            } else {
+                _log("AI deck remix returned no cards. Using original deck.", "error");
+            }
+        } catch (e) {
+            _log(`AI deck remix failed: ${e instanceof Error ? e.message : String(e)}. Using original deck.`, "error");
         }
-        
-        const runStartState = {
-            deck: [...finalPlayerDeck, ...actualInitialHandCards],
-            discard: finalPlayerDiscard,
-            equipped: playerDetailsFromSetup.equippedItems,
-            satchel: playerDetailsFromSetup.satchel.map(c => c.id),
-            gold: playerDetailsFromSetup.gold,
-            maxHealth: playerDetailsFromSetup.maxHealth,
-            health: playerDetailsFromSetup.health,
-            characterId: playerChar.id,
-            stepsTaken: playerDetailsFromSetup.stepsTaken,
-        };
-        localStorage.setItem('wildWestRunStartState_WWS', JSON.stringify(runStartState));
-        _log("Saved run start state.", "debug");
-        
-        const cleanPlayerForStart: PlayerDetails = {
-            ...playerDetailsFromSetup,
-            currentIllnesses: [], // Explicitly clear illnesses
-            mountainSicknessActive: false, // Explicitly clear mountain sickness
-            mountainSicknessTurnsRemaining: 0, // Explicitly clear
-            playerDeck: finalPlayerDeck,
-            hand: sortedInitialHand,
-            playerDiscard: finalPlayerDiscard,
-            characterBaseMaxHealthForRun: playerChar.health + playerDetailsFromSetup.cumulativeNGPlusMaxHealthBonus,
-            isUnsortedDraw: false,
-        };
-        const theme = getThemeName(prev.ngPlusLevel);
-        _log(getRandomLogVariation('playerDeckFinalized', { currentHP: cleanPlayerForStart.health, maxHP: cleanPlayerForStart.maxHealth }, theme, cleanPlayerForStart));
+    }
 
-        return {
-            ...prev, status: 'playing_initial_reveal', ...gameUpdates,
-            playerDeckAugmentationPool: [],
-            playerDetails: { ...prev.playerDetails, [PLAYER_ID]: cleanPlayerForStart },
-            turn: 1,
-            isLoadingNGPlus: false,
-        };
+    finalPlayerDeck = shuffleArray(finalPlayerDeck);
+    const initialHand: (CardData | null)[] = new Array(HAND_LIMIT).fill(null);
+    for (let i = 0; i < HAND_LIMIT; i++) {
+        if (finalPlayerDeck.length > 0) initialHand[i] = getScaledCard(finalPlayerDeck.shift()!, currentState.ngPlusLevel);
+    }
+    const actualInitialHandCards = initialHand.filter(c => c !== null) as CardData[];
+    actualInitialHandCards.sort((a, b) => getCardCategory(a) - getCardCategory(b) || a.name.localeCompare(b.name));
+    const sortedInitialHand: (CardData | null)[] = new Array(HAND_LIMIT).fill(null);
+    actualInitialHandCards.forEach((card, idx) => sortedInitialHand[idx] = card);
+    
+    let finalPlayerDiscard = [...playerDetailsFromSetup.playerDiscard];
+
+    const cheat = POP_CULTURE_CHEATS.find(c => c.name.toLowerCase() === playerDetailsFromSetup.name?.toLowerCase() && c.requiredCharacterId === playerChar.id);
+    if (cheat && cheat.effects.addCustomCards) {
+        const customCards = cheat.effects.addCustomCards;
+        _log(`A legend's gear manifests: ${customCards.map(c => c.name).join(', ')}.`, 'system');
+        const newCardsMap = { ...CURRENT_CARDS_DATA };
+        customCards.forEach(card => {
+            newCardsMap[card.id] = card;
+        });
+        updateCurrentCardsData(newCardsMap);
+        finalPlayerDiscard.push(...customCards);
+    }
+
+    if (rewardCards.length > 0) {
+        rewardCards.forEach(itemCard => {
+            _log(`Reward delivered: ${itemCard.name}. Added to discard.`, 'system');
+            updateCurrentCardsData({ ...CURRENT_CARDS_DATA, [itemCard.id]: itemCard });
+        });
+        finalPlayerDiscard.push(...rewardCards);
+    }
+    
+    const runStartState = {
+        deck: [...finalPlayerDeck, ...actualInitialHandCards],
+        discard: finalPlayerDiscard,
+        equipped: playerDetailsFromSetup.equippedItems,
+        satchel: playerDetailsFromSetup.satchel.map(c => c.id),
+        gold: playerDetailsFromSetup.gold,
+        maxHealth: playerDetailsFromSetup.maxHealth,
+        health: playerDetailsFromSetup.health,
+        characterId: playerChar.id,
+        stepsTaken: playerDetailsFromSetup.stepsTaken,
+    };
+    localStorage.setItem('wildWestRunStartState_WWS', JSON.stringify(runStartState));
+    _log("Saved run start state.", "debug");
+    
+    const cleanPlayerForStart: PlayerDetails = {
+        ...playerDetailsFromSetup,
+        currentIllnesses: [], // Explicitly clear illnesses
+        mountainSicknessActive: false, // Explicitly clear mountain sickness
+        mountainSicknessTurnsRemaining: 0, // Explicitly clear
+        playerDeck: finalPlayerDeck,
+        hand: sortedInitialHand,
+        playerDiscard: finalPlayerDiscard,
+        characterBaseMaxHealthForRun: playerChar.health + playerDetailsFromSetup.cumulativeNGPlusMaxHealthBonus,
+        isUnsortedDraw: false,
+    };
+    const theme = getThemeName(currentState.ngPlusLevel);
+    _log(getRandomLogVariation('playerDeckFinalized', { currentHP: cleanPlayerForStart.health, maxHP: cleanPlayerForStart.maxHealth }, theme, cleanPlayerForStart));
+
+    setGameState({
+        ...currentState, status: 'playing_initial_reveal', ...gameUpdates,
+        playerDeckAugmentationPool: [],
+        playerDetails: { ...currentState.playerDetails, [PLAYER_ID]: cleanPlayerForStart },
+        turn: 1,
+        isLoadingNGPlus: false,
+        remixDeckOnStart: false,
     });
   }, [_log]);
 
@@ -2068,6 +2094,26 @@ export const useGameState = () => {
     });
   }, [_log]);
 
+  const handleCheatRemixDeck = useCallback(() => {
+    setGameState(prev => {
+        if (!prev || prev.status !== 'setup') return prev;
+        _log(`Cheat Activated: The deck will be remixed by the AI on game start.`, 'system');
+        soundManager.playSound('gold');
+        return { 
+            ...prev, 
+            remixDeckOnStart: true,
+            modals: {
+                ...prev.modals,
+                message: {
+                    isOpen: true,
+                    title: 'Cheat Activated',
+                    text: `Deck Remix Enabled! The AI will generate a unique starting deck for you when you start the game.`
+                }
+            }
+        };
+    });
+  }, [_log]);
+
   const startNextLevelRemix = useCallback(() => {
     const currentGameState = gameStateRef.current;
     if (!currentGameState) return;
@@ -2217,5 +2263,6 @@ export const useGameState = () => {
     handleCheatIncreaseDifficulty,
     handleCheatAddMaxHealth,
     startNextLevelRemix,
+    handleCheatRemixDeck,
   };
 };

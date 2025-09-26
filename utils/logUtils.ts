@@ -154,7 +154,7 @@ const traitLogTemplates: {
   { trigger: 'trapBroken', condition: (p) => p.personality?.temperament === 'Deceitful', chance: 0.7, messages: { western: ["'Hmph. A flawed design.' The {trapName} was broken by the {enemyName}.", "'Waste of a good trap.'", "'Next time, I'll use a bigger one.'"]}},
 
   // Reckless
-  { trigger: 'playerAttack', condition: (p) => p.personality?.temperament === 'Reckless', chance: 0.7, messages: { western: ["'Damn the consequences!' He charges the {enemyName} with the {itemName}!", "'Yeehaw!' He attacks with wild abandon!", "'Leeroy Jenkins!' He charges in."]}},
+  { trigger: 'playerAttack', condition: (p) => p.personality?.temperament === 'Reckless', chance: 0.7, messages: { western: ["'Damn the consequences!' He charges the {enemyName} with the {itemName}!", "'Yeehaw!' He attacks with wild abandon!", "'Live or die, I'm giving this all I've got!' He charges in."]}},
   { trigger: 'playerDamage', condition: (p) => p.personality?.temperament === 'Reckless', chance: 0.6, messages: { western: ["'Just a scratch!' Took {damageAmount} damage.", "'Is that all you've got?!' Hit for {damageAmount}!", "He spits blood. 'I've had worse!'"]}},
   { trigger: 'itemBought', condition: (p) => p.personality?.temperament === 'Reckless', chance: 0.6, messages: { western: ["'Looks useful!' Bought the {itemName} for {cost}G.", "'I'll take it! What's it do?'", "He throws the coin at the merchant. 'Gimme the shiny one.'"]}},
   { trigger: 'threatDefeated', condition: (p) => p.personality?.temperament === 'Reckless', chance: 0.7, messages: { western: ["'Ha! Is that all you've got?' The {enemyName} is finished.", "He spits on the ground. 'Next!' The {enemyName} is no more.", "He laughs. 'That was fun! Who's next?'"]}},
@@ -281,7 +281,7 @@ const characterLogTemplates: {
   { trigger: 'campfireBuilt', condition: (p) => p.character?.id === 'doctor', chance: 0.6, messages: { western: ["A fire to sterilize a needle, or just for warmth.", "He boils some water over the fire. 'Cleanliness is next to godliness.'", "The fire keeps the night chill at bay. Good for morale."]}},
   { trigger: 'laudanumAbuse', condition: (p) => p.character?.id === 'doctor', chance: 0.8, messages: { western: ["'An improper dosage for a non-existent ailment. Note the sedative effects and mild euphoria. Fascinating.'"]}},
   // Doctor - Boss Fight
-  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.character?.id === 'doctor' && !!isBossFight, chance: 0.8, messages: { western: ["'Some diseases require surgery... with a knife!' He attacks the {enemyName}.", "'I swore an oath to do no harm, but you are a plague!' He strikes the {enemyName}."]}},
+  { trigger: 'playerAttack', condition: (p, c, isBossFight) => p.character?.id === 'doctor' && !!isBossFight, chance: 0.8, messages: { western: ["'Some diseases require surgery... with a knife!' He attacks the {enemyName}.", "'I swore an oath to do no harm, but you are a plague!' He strikes at the {enemyName}."]}},
   { trigger: 'playerHeal', condition: (p, c, isBossFight) => p.character?.id === 'doctor' && !!isBossFight, chance: 0.8, messages: { western: ["'Physician, heal thyself... especially now!' Heals {healAmount}.", "'I must survive to treat the wounds this beast has caused.' Heals {healAmount} HP."]}},
 
   // Herbalist
@@ -864,6 +864,16 @@ export function getRandomLogVariation(
   isBossFight?: boolean
 ): string {
   
+  // NORMALIZE CATEGORY FIRST (BUG FIX)
+  let triggerCategory = category;
+  if (['threatDefeatedLow', 'threatDefeatedMid', 'threatDefeatedHigh'].includes(category)) {
+    triggerCategory = 'threatDefeated';
+  }
+  if (['eventRevealThreatLow', 'eventRevealThreatMid', 'eventRevealThreatHigh'].includes(category)) {
+    triggerCategory = 'eventRevealThreat';
+    params.enemyName = card?.name;
+  }
+
   if (player && (params.playerName === '' || params.playerName === null || params.playerName === undefined)) {
     params.playerName = player.name;
   }
@@ -876,7 +886,8 @@ export function getRandomLogVariation(
     else params.playerName = 'The Pioneer';
   }
 
-  // --- 1. Pop Culture Catchphrase Priority ---
+  // --- 1. Gather all potential messages ---
+  const popCultureMessages: string[] = [];
   if (player?.name && player.character) {
     const lowerCasePlayerName = player.name.toLowerCase();
     const activeCheat = POP_CULTURE_CHEATS.find(
@@ -884,35 +895,26 @@ export function getRandomLogVariation(
     );
 
     if (activeCheat?.effects.catchphrases) {
-      const phrasesForCategory = activeCheat.effects.catchphrases[category as keyof typeof activeCheat.effects.catchphrases];
+      const phrasesForCategory = activeCheat.effects.catchphrases[triggerCategory as keyof typeof activeCheat.effects.catchphrases];
       
-      // If a cheat phrase exists for this category, it takes highest priority.
-      if (phrasesForCategory && phrasesForCategory.length > 0) {
-        let template = phrasesForCategory[Math.floor(Math.random() * phrasesForCategory.length)];
-        
-        for (const key in params) {
-          if (Object.prototype.hasOwnProperty.call(params, key)) {
-            const value = params[key] !== undefined && params[key] !== null ? String(params[key]) : '';
-            template = template.replace(new RegExp(`{${key}}`, 'g'), value);
-          }
+      if (phrasesForCategory) {
+        let specificPhrases: string[] | undefined;
+
+        if (Array.isArray(phrasesForCategory)) {
+          specificPhrases = phrasesForCategory;
+        } else if (typeof phrasesForCategory === 'object' && card?.id) {
+          specificPhrases = (phrasesForCategory as Record<string, string[]>)[card.id];
         }
-        return template;
+
+        if (specificPhrases && specificPhrases.length > 0) {
+          popCultureMessages.push(...specificPhrases);
+        }
       }
     }
   }
 
-  // --- 2. Gather Personality and Generic Messages ---
   const personalityMessages: string[] = [];
   if (player) {
-    let triggerCategory = category;
-    if (['threatDefeatedLow', 'threatDefeatedMid', 'threatDefeatedHigh'].includes(category)) {
-      triggerCategory = 'threatDefeated';
-    }
-    if (['eventRevealThreatLow', 'eventRevealThreatMid', 'eventRevealThreatHigh'].includes(category)) {
-      triggerCategory = 'eventRevealThreat';
-      params.enemyName = card?.name;
-    }
-
     const allPersonalityLogs = [...characterLogTemplates, ...traitLogTemplates, ...characterMotivationLogTemplates];
     const potentialLogs = allPersonalityLogs.filter(log => log.trigger === triggerCategory);
 
@@ -926,21 +928,25 @@ export function getRandomLogVariation(
     }
   }
   
-  let categoryTemplates = isBossFight ? (bossLogTemplates[category] || logTemplates[category]) : logTemplates[category];
+  const categoryTemplates = isBossFight ? (bossLogTemplates[category] || logTemplates[category]) : logTemplates[category];
   const genericMessages = (categoryTemplates && (categoryTemplates[theme] || categoryTemplates['western'])) || [];
   
-  // --- 3. Select Final Message with Prioritization ---
+  // --- 2. Select Final Message with Prioritization ---
   let finalMessagePool: string[] = [];
-  const usePersonality = Math.random() < 0.8; // 80% chance to prioritize personality messages
+  const usePopCulture = Math.random() < 0.90; // 90% chance
+  const usePersonality = Math.random() < 0.8; // 80% chance
 
-  if (personalityMessages.length > 0 && usePersonality) {
+  if (popCultureMessages.length > 0 && usePopCulture) {
+      finalMessagePool = popCultureMessages;
+  } else if (personalityMessages.length > 0 && usePersonality) {
       finalMessagePool = personalityMessages;
   } else if (genericMessages.length > 0) {
-      // Fallback to generic if personality pool is empty, or the 20% chance hits
       finalMessagePool = genericMessages;
   } else {
-      // Final fallback to personality if generic was also empty
-      finalMessagePool = personalityMessages;
+      // Final fallback chain if primary choices fail
+      if (popCultureMessages.length > 0) finalMessagePool = popCultureMessages;
+      else if (personalityMessages.length > 0) finalMessagePool = personalityMessages;
+      else finalMessagePool = genericMessages;
   }
 
   if (finalMessagePool.length === 0) {

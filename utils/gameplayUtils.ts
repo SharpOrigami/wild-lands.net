@@ -23,6 +23,7 @@ interface ObjectiveCheckResult {
  * @param triggerAnimation - Function to trigger UI animations.
  * @param isBossFight - Flag to indicate if the healing occurs during a boss fight for correct logging.
  * @param sourceCard - The optional card data that is the source of the heal.
+ * @param suppressLog - Optional flag to prevent the generic heal log from being created.
  * @returns The updated PlayerDetails object.
  */
 export const applyHealToPlayer = (
@@ -32,7 +33,8 @@ export const applyHealToPlayer = (
     _log: (message: string, type?: LogEntry['type']) => void,
     triggerAnimation: (type: string, target?: string) => Promise<void>,
     isBossFight?: boolean,
-    sourceCard?: CardData
+    sourceCard?: CardData,
+    suppressLog: boolean = false
 ): PlayerDetails => {
     let modPlayer = { ...player };
     const theme = getThemeName(modPlayer.ngPlusLevel);
@@ -43,7 +45,7 @@ export const applyHealToPlayer = (
         modPlayer.runStats.health_healed += actualHeal;
         // Suppress generic healing message for laudanum/morphine as they have specific logs.
         const isLaudanumEquivalent = sourceName.toLowerCase().includes('laudanum') || sourceName.toLowerCase().includes('morphine');
-        if (!isLaudanumEquivalent) {
+        if (!isLaudanumEquivalent && !suppressLog) {
             _log(getRandomLogVariation('playerHeal', { playerName: modPlayer.name || 'Player', sourceName, healAmount: actualHeal, currentHP: modPlayer.health, maxHP: modPlayer.maxHealth }, theme, modPlayer, sourceCard, isBossFight), 'info');
         }
         triggerAnimation('player-heal-flash-bg', 'player');
@@ -524,7 +526,18 @@ export const applyImmediateEventAndCheckEndTurn = (
                 let tier: 'Low' | 'Mid' | 'High' = 'Low';
                 if (health > 15) tier = 'High';
                 else if (health > 8) tier = 'Mid';
-                _log(getRandomLogVariation(`eventRevealThreat${tier}`, { enemyName: currentEventInstance.name }, theme, modifiablePlayer, currentEventInstance, isBossEvent), 'event');
+                
+                let logCategory = `eventRevealThreat${tier}`;
+                const lowerCasePlayerName = player.name?.toLowerCase();
+                const lowerCaseEventName = currentEventInstance.name.toLowerCase();
+
+                if (lowerCaseEventName.includes('bear') && lowerCasePlayerName === 'hugh glass') {
+                    logCategory = 'eventRevealBear';
+                } else if (lowerCaseEventName.includes('snake') && lowerCasePlayerName === 'indiana jones') {
+                    logCategory = 'eventRevealSnake';
+                }
+
+                _log(getRandomLogVariation(logCategory, { enemyName: currentEventInstance.name }, theme, modifiablePlayer, currentEventInstance, isBossEvent), 'event');
                 break;
             case 'illness':
                 // Illness logging is now handled inside the illness logic block
@@ -547,12 +560,15 @@ export const applyImmediateEventAndCheckEndTurn = (
         const bannerType: ActiveGameBannerState['bannerType'] = eventEffect?.turn_end ? 'turn_ending_event' : 'event_alert';
         triggerBanner(currentEventInstance.name, bannerType, eventEffect?.turn_end);
 
+        let illnessLogCategory = eventEffect?.turn_end ? 'illnessContractsAndEndsTurn' : 'illnessContracts';
+        if (player.name?.toLowerCase() === 'doc holliday') {
+            illnessLogCategory = 'illnessContractsHolliday';
+        }
+        _log(getRandomLogVariation(illnessLogCategory, { illnessName: currentEventInstance.name }, theme, modifiablePlayer, currentEventInstance, isBossEvent), 'event');
+
         if (eventEffect?.turn_end) {
-            _log(getRandomLogVariation('illnessContractsAndEndsTurn', { illnessName: currentEventInstance.name }, theme, modifiablePlayer, currentEventInstance, isBossEvent), 'event');
             turnEndedByEvent = true;
             eventRemovedInitially = true;
-        } else {
-            _log(getRandomLogVariation('illnessContracts', { illnessName: currentEventInstance.name }, theme, modifiablePlayer, currentEventInstance, isBossEvent), 'event');
         }
 
         if (eventId.startsWith('threat_mountain_sickness')) {
