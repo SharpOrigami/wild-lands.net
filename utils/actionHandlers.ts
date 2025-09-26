@@ -86,7 +86,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
             _log(getRandomLogVariation('laudanumHeal', { playerName: modPlayer.name || 'Player', itemName: card.name, healAmount: wouldHeal, currentHP: modPlayer.health + wouldHeal, maxHP: modPlayer.maxHealth }, theme, modPlayer, card, isBossActive), 'action');
         } else {
             modPlayer.runStats.laudanumAbuse++;
-            _log(getRandomLogVariation('laudanumNoHeal', { playerName: modPlayer.name || 'Player', itemName: card.name }, theme, modPlayer, card, isBossActive), 'action');
+            _log(getRandomLogVariation('laudanumAbuse', { playerName: modPlayer.name || 'Player', itemName: card.name }, theme, modPlayer, card, isBossActive), 'action');
         }
     }
 
@@ -295,8 +295,10 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                 else modPlayer.playerDiscard = tempDiscard;
                 if (actuallyDrawnCount > 0) {
                     soundManager.playSound('card_draw');
-                    _log(getRandomLogVariation('cardsDrawn', { cardsDrawn: actuallyDrawnCount }, theme, modPlayer), 'action');
-                    gameUpdates.newlyDrawnCardIndices = newlyDrawnIndices;
+                    _log(getRandomLogVariation('cardsDrawn', { cardsDrawn: actuallyDrawnCount }, theme, modPlayer), "action");
+                    if(newlyDrawnIndices.length > 0) {
+                        gameUpdates.newlyDrawnCardIndices = newlyDrawnIndices;
+                    }
                 }
                 cardUsedAndDiscarded = false; // We handled the discard manually
             }
@@ -319,6 +321,66 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                 gameUpdates.selectedCard = { card: scaledNextEvent, source: 'scouted_preview', index: -1 };
             } else {
                 _log("Trail's empty. Nothin' to scout.", 'info');
+            }
+        }
+    }
+
+    if (card.immediateEffect && cardUsedAndDiscarded) {
+        const immediateEffect = card.immediateEffect;
+        
+        if (immediateEffect.type === 'heal') {
+            const healAmount = calculateHealAmount({ ...card, effect: immediateEffect }, modPlayer);
+            modPlayer = applyHealToPlayer(modPlayer, healAmount, card.name, isBossActive, card);
+        }
+
+        if (immediateEffect.type === 'draw') {
+            if (source === CardContext.HAND && index !== undefined) {
+                modPlayer.hand[index] = null;
+            } else if (source === CardContext.EQUIPPED && index !== undefined) {
+                modPlayer.equippedItems = modPlayer.equippedItems.filter((_, i) => i !== index);
+            } else {
+                 _log("Could not find source of card with secondary draw effect.", "error");
+                 return { player, gameUpdates };
+            }
+            cardUsedAndDiscarded = false;
+
+            const cardsToDrawCount = immediateEffect.amount || 1;
+            let actuallyDrawnCount = 0;
+            const newlyDrawnIndices: number[] = [];
+            let tempDeck = [...modPlayer.playerDeck];
+            let tempDiscard = [...modPlayer.playerDiscard];
+            let tempHand = [...modPlayer.hand];
+
+            while (actuallyDrawnCount < cardsToDrawCount) {
+                const emptyHandSlotIndex = tempHand.findIndex(slot => slot === null);
+                if (emptyHandSlotIndex === -1) {
+                    _log("Hand is full.", "info");
+                    break;
+                }
+                if (tempDeck.length === 0) {
+                    if (tempDiscard.length > 0) {
+                        tempDeck = shuffleArray(tempDiscard);
+                        tempDiscard = [];
+                    } else {
+                        _log("No cards left to draw.", "info");
+                        break;
+                    }
+                }
+                const drawnCard = tempDeck.shift();
+                if (drawnCard) {
+                    tempHand[emptyHandSlotIndex] = getScaledCard(drawnCard, modPlayer.ngPlusLevel);
+                    newlyDrawnIndices.push(emptyHandSlotIndex);
+                    actuallyDrawnCount++;
+                }
+            }
+            modPlayer.playerDeck = tempDeck;
+            modPlayer.hand = tempHand;
+            modPlayer.playerDiscard = [...tempDiscard, cardToDiscard]; 
+
+            if (actuallyDrawnCount > 0) {
+                soundManager.playSound('card_draw');
+                _log(getRandomLogVariation('cardsDrawn', { cardsDrawn: actuallyDrawnCount }, theme, modPlayer), 'action');
+                gameUpdates.newlyDrawnCardIndices = newlyDrawnIndices;
             }
         }
     }
@@ -351,7 +413,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
 
     return { player: modPlayer, gameUpdates };
 };
-
+// ... (rest of the file is identical)
 export const handleEquipItem = ({ player, payload, helpers }: ActionHandlerArgs): ActionHandlerResult => {
     const { card, source, index } = payload;
     const { _log, soundManager } = helpers;
@@ -436,7 +498,7 @@ export const handleUseFromSatchel = ({ player, gameState, payload, isBossActive,
             _log(getRandomLogVariation('laudanumHeal', { playerName: modPlayer.name || 'Player', itemName: scaledItemFromSatchel.name, healAmount: wouldHeal, currentHP: modPlayer.health + wouldHeal, maxHP: modPlayer.maxHealth }, theme, modPlayer, scaledItemFromSatchel, isBossActive), 'action');
         } else {
             modPlayer.runStats.laudanumAbuse++;
-            _log(getRandomLogVariation('laudanumNoHeal', { playerName: modPlayer.name || 'Player', itemName: scaledItemFromSatchel.name }, theme, modPlayer, scaledItemFromSatchel, isBossActive), 'action');
+            _log(getRandomLogVariation('laudanumAbuse', { playerName: modPlayer.name || 'Player', itemName: scaledItemFromSatchel.name }, theme, modPlayer, scaledItemFromSatchel, isBossActive), 'action');
         }
     }
 
