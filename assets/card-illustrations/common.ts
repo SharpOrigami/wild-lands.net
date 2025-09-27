@@ -8,6 +8,8 @@ export const COMMON_ILLUSTRATIONS: { [key: string]: string } = {
   'explorer': 'https://storage.googleapis.com/wild-lands-card-images/explorer.png',
   'preacher': 'https://storage.googleapis.com/wild-lands-card-images/preacher.png',
   'prospector': 'https://storage.googleapis.com/wild-lands-card-images/prospector.png',
+  'custom_fry_clover': 'https://storage.googleapis.com/wild-lands-card-images/custom_fry_clover.png',
+  'custom_fry_tonic': 'https://storage.googleapis.com/wild-lands-card-images/custom_fry_tonic.png',
 
   // Generic Trophy/Bounty Images
   'generic_bounty_proof': 'https://storage.googleapis.com/wild-lands-card-images/generic_bounty_proof.png',

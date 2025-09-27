@@ -5,7 +5,11 @@ import { Character, CardData } from '../types.ts';
  */
 export type CheatPhraseCategory =
   | 'playerAttack'
+  | 'playerAttackHuman'
+  | 'playerAttackAnimal'
   | 'threatDefeated'
+  | 'threatDefeatedHuman'
+  | 'threatDefeatedAnimal'
   | 'goldFound'
   | 'itemBought'
   | 'itemTaken'
@@ -14,13 +18,11 @@ export type CheatPhraseCategory =
   | 'laudanumAbuse'
   | 'bountySold'
   | 'illnessContractsHolliday'
-  | 'threatDefeatedHuman'
   | 'playerAttackBear'
   | 'eventRevealBear'
   | 'playerAttackSnake'
   | 'eventRevealSnake'
   | 'playerAttackHorror'
-  | 'playerAttackHuman'
   | 'equipCheatItem'
   | 'useCheatItem';
 
@@ -74,8 +76,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'item_six_shooter_clint', name: "Peacemaker", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "A revolver that has settled many disputes.", sellValue: 20, isCheat: true, illustrationId: 'item_six_shooter_t1' }
       ],
       catchphrases: {
-        playerAttack: ["'You've gotta ask yourself one question: 'Do I feel lucky?' Well, do ya, punk?'", "'Go ahead, make my day.'", "He squints. 'My mule don't like people laughing. He gets the crazy idea you're laughin' at him.'", "This is the .44 Magnum, the most powerful handgun in the world."],
-        threatDefeated: ["Another one bites the dust. 'Every gun makes its own tune.'", "'A man's got to know his limitations.' The {enemyName} found theirs.", "He blows the smoke from his six-shooter. 'You see, in this world there's two kinds of people, my friend... Those with loaded guns and those who dig. You dig.'", "'Deserve's got nothin' to do with it.'"],
+        playerAttackHuman: ["'You've gotta ask yourself one question: 'Do I feel lucky?' Well, do ya, punk?'", "'Go ahead, make my day.'", "He squints. 'My mule don't like people laughing. He gets the crazy idea you're laughin' at him.'", "'Every gun makes its own tune.'", "'A man's got to know his limitations.'"],
+        playerAttackAnimal: ["He squints at the beast. 'Don't like things that ain't human.'", "He fires without a word. Just another creature in a harsh land.", "The revolver barks. He's not one for conversation with animals.", "'Doesn't matter. Still gotta eat.'", "The sound of his gun is swallowed by the plains."],
+        threatDefeatedHuman: ["'A man's got to know his limitations.' The {enemyName} found theirs.", "He blows the smoke from his six-shooter. 'You see, in this world there's two kinds of people, my friend... Those with loaded guns and those who dig. You dig.'", "'Deserve's got nothin' to do with it.'", "'Get three coffins ready.'"],
+        threatDefeatedAnimal: ["'Just a dumb animal.' He reloads his revolver.", "He looks at the fallen beast. 'The world's a hard place.'", "He takes no notice of the dead creature, his eyes already scanning the horizon.", "The dust settles on the dead creature."],
         goldFound: ["He picks up the {goldAmount} Gold. 'A fistful of dollars.'", "'For a few dollars more...'", "'The Good, the Bad, and the Ugly... and I'm the one with the gold.'"],
         playerDamage: ["He takes the hit without a word, just a cold stare.", "A bullet grazes him. He just chews on his cigarillo.", "'I'm not a man to be trifled with.'"],
         itemBought: ["He pays the {cost}G. 'A man's gotta have a code.'", "'This will come in handy.'"],
@@ -100,8 +104,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_arthur_journal', name: "Arthur's Journal", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "A moment of reflection brings clarity and soothes the body. Draw 2 cards and heal 2 HP.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_medical_journal', immediateEffect: { type: 'heal', amount: 2 } }
       ],
       catchphrases: {
-        playerAttack: ["'You got a kind face... The kind I like to punch!'", "'Outta the damn way!'", "'Sure.' He opens fire."],
-        threatDefeated: ["'You, sir, are a fish.' The {enemyName} is no more.", "He tips his hat. 'We're thieves in a world that don't want us no more.'", "'Maybe when your mother's finished mourning your father, I'll keep her in black on your behalf.'", "'You enjoy being a rich man's toy, do ya?'"],
+        playerAttackHuman: ["'You got a kind face... The kind I like to punch!'", "'Outta the damn way!'", "'Sure.' He opens fire.", "'You've got a price on your head, friend.'", "'This ain't gonna be pretty.'"],
+        playerAttackAnimal: ["'Easy, boy... easy now.' He raises his gun.", "'Just a dumb animal, but it's in my way.'", "'Sorry, friend.' He opens fire on the beast.", "'You're a fine animal. I'm sorry.'"],
+        threatDefeatedHuman: ["'You, sir, are a fish.' The {enemyName} is no more.", "He tips his hat. 'We're thieves in a world that don't want us no more.'", "'Maybe when your mother's finished mourning your father, I'll keep her in black on your behalf.'", "'You didn't have to make me do this.'"],
+        threatDefeatedAnimal: ["He sketches the fallen {enemyName} in his journal. 'A fine specimen.'", "'Just part of the food chain, I suppose.'", "'Well... that's that, then.' He looks sadly at the animal.", "'Rest now, friend.'"],
         goldFound: ["'Just a bit more, and we're off to Tahiti.' He finds {goldAmount} Gold.", "'All I'm saying is... there's always a goddamn train.'", "'One more score, and we're gone.'"],
         playerDamage: ["Takes a hit. 'Sure.'", "A racking cough echoes. 'I'm afraid.'", "He grimaces. 'Vengeance is an idiot's game.'"],
         laudanumAbuse: ["He takes a swig. 'Just need to clear my head.'", "'Helps with the cough.'", "'This is all a big joke to you, ain't it?'"],
@@ -126,8 +132,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_rooster_whiskey', name: "Bottle of Whiskey", type: 'Provision', effect: { type: 'heal', amount: 6 }, description: "Liquid courage for medicinal purposes. Heal 6 HP and draw 1 card.", sellValue: 5, isCheat: true, illustrationId: 'provision_laudanum_t1', immediateEffect: { type: 'draw', amount: 1 } },
       ],
       catchphrases: {
-        playerAttack: ["'Fill your hand, you son of a bitch!'", "'I can do nothin' for you, son.'", "'I call that bold talk for a one-eyed fat man!'"],
-        threatDefeated: ["He takes a pull from his flask. 'I'm a Rooster, not a chicken!'", "'Baby sister, I was born game and I intend to go out that way.'", "'You can't serve papers on a rat, baby sister.'"],
+        playerAttackHuman: ["'Fill your hand, you son of a bitch!'", "'I can do nothin' for you, son.'", "'I call that bold talk for a one-eyed fat man!'", "'Time to face the music!'"],
+        playerAttackAnimal: ["'Damn varmint!' He fires his Colt.", "'Get outta here, you beast!'", "He drunkenly takes aim at the creature. 'Hold still now...'", "'This one's for the pot!'"],
+        threatDefeatedHuman: ["He takes a pull from his flask. 'I'm a Rooster, not a chicken!'", "'Baby sister, I was born game and I intend to go out that way.'", "'You can't serve papers on a rat, baby sister.'", "'He's dead. Now where's my bottle?'"],
+        threatDefeatedAnimal: ["He looks at the fallen animal. 'Well, that's that.' He takes a drink.", "'Waste of a good bullet.'", "He spits. 'Nasty critter.'", "'Now, that's a fine pelt, I reckon.'"],
         playerDamage: ["Takes a hit. 'I'm a-comin', Ned!'", "'They told me you had grit.'", "'This is the real thing!'"],
         laudanumAbuse: ["He chases the laudanum with a swig of whiskey. 'That's got a bite!'", "'By God! That's a brave sight! The far shore!'"],
         goldFound: ["Finds {goldAmount} gold. 'Time is short, and I've got a job to do.'", "'That's a tall drink of water.'"],
@@ -152,8 +160,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'item_six_shooter_roland2', name: "Sandalwood Revolver", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "The other of a pair. The wood grips are worn smooth from use.", sellValue: 50, isCheat: true, illustrationId: 'item_six_shooter_t1' },
       ],
       catchphrases: {
-        playerAttack: ["'I do not aim with my hand; he who aims with his hand has forgotten the face of his father. I aim with my eye.'", "'I do not shoot with my hand; I shoot with my mind.'", "'I do not kill with my gun; I kill with my heart.'"],
-        threatDefeated: ["The {enemyName} has forgotten the face of their father.", "'Go then, there are other worlds than these.'", "'First comes smiles, then lies. Last is gunfire.'", "'The man in black fled across the desert, and the gunslinger followed.'"],
+        playerAttackHuman: ["'I do not aim with my hand; he who aims with his hand has forgotten the face of his father. I aim with my eye.'", "'I do not shoot with my hand; I shoot with my mind.'", "'I do not kill with my gun; I kill with my heart.'", "'Ka is a wheel, and your part in it is over.'"],
+        playerAttackAnimal: ["'Creatures of the thinny... It must be sent back.'", "'The world has moved on. So should you.' He attacks the beast.", "His revolvers bark, ending the creature's strange journey.", "'It is not my quarry, but it is in my path.'"],
+        threatDefeatedHuman: ["The {enemyName} has forgotten the face of their father.", "'Go then, there are other worlds than these.'", "'First comes smiles, then lies. Last is gunfire.'", "'The Tower is closer now.'"],
+        threatDefeatedAnimal: ["He looks at the fallen beast, a strange creature of this broken world. 'Ka is a wheel.'", "The animal is dispatched. He feels no remorse, only a vast emptiness.", "He reloads. The beast was just another test on his path to the Tower.", "'The world has moved on. It produces only monsters now.'"],
         laudanumAbuse: ["He takes the 'demon's medicine'. 'Ka is a wheel.'", "The bitter taste reminds him of Tull, of loss."],
         playerDamage: ["He takes the hit. 'The world has moved on.'", "'There will be water if God wills it.'", "'Long days and pleasant nights.'"],
         playerHeal: ["'Ka-tet. One from many.'", "'I have been a gunslinger, a paladin, a lonely man of the blood.'"],
@@ -179,8 +189,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_mib_maze', name: "The Maze", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "This game is meant for you. Draw 2 cards.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_treasure_map' }
       ],
       catchphrases: {
-        playerAttack: ["'This world is a story. And I'm here to write my own ending.'", "'The game begins now.'", "'Have you ever questioned the nature of your reality?'", "'Winning doesn't mean anything unless someone else loses.'"],
-        threatDefeated: ["'Doesn't look like anything to me.'", "The {enemyName} was just another host on a loop.", "'Some people choose to see the ugliness in this world. The disarray. I choose to see the beauty.'", "'This world is a fiction, one we tell ourselves over and over.' The {enemyName} was just a part of the story."],
+        playerAttackHuman: ["'This world is a story. And I'm here to write my own ending.'", "'The game begins now.'", "'Have you ever questioned the nature of your reality?'", "'Winning doesn't mean anything unless someone else loses.'"],
+        playerAttackAnimal: ["'Just another pawn in the game.' He attacks the beast.", "'Even the animals in this world play their part.'", "He smiles cruelly as he takes aim at the creature.", "'Predictable.'"],
+        threatDefeatedHuman: ["'Doesn't look like anything to me.'", "The {enemyName} was just another host on a loop.", "'Some people choose to see the ugliness in this world. The disarray. I choose to see the beauty.'", "'This world is a fiction, one we tell ourselves over and over.' The {enemyName} was just a part of the story."],
+        threatDefeatedAnimal: ["The beast falls. 'It had its part to play. And now it's done.'", "'Doesn't look like anything to me.'", "He looks at the fallen animal. 'Another meaningless death in a meaningless world.'", "'A minor character written out of the script.'"],
         playerDamage: ["He takes the hit, a flicker of a smile on his face. 'I'm not the hero.'", "'The maze wasn't meant for you.'", "'Revenge is just a different prayer at a different altar, and I am answered.'"],
         goldFound: ["'You can't play God without being acquainted with the devil.'", "'The stakes are very high.'"],
         itemBought: ["He buys the {itemName}. 'A little souvenir of my stay.'", "'Everything is code.'"],
@@ -205,8 +217,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_angel_knife', name: "Bowie Knife", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "For close work.", sellValue: 10, isCheat: true, illustrationId: 'item_sharp_knife_t1' },
       ],
       catchphrases: {
-        playerAttack: ["'When I'm paid, I always see the job through.'", "'Even a filthy beggar like that has a price.'", "'You see, in this world there's two kinds of people, my friend: Those with loaded guns and those who dig. You dig.'"],
-        threatDefeated: ["The bounty is collected. 'Such ingratitude, after all the times I've saved your life.'", "'I like to get my information from the original source.'", "He collects the bounty. 'A job's a job.'"],
+        playerAttackHuman: ["'When I'm paid, I always see the job through.'", "'Even a filthy beggar like that has a price.'", "'You see, in this world there's two kinds of people, my friend: Those with loaded guns and those who dig. You dig.'", "'It's a dirty job, but someone has to do it.'"],
+        playerAttackAnimal: ["'This is not in the contract, but it is an obstacle.'", "'A distraction from the real prize.'", "He dispatches the beast with cold efficiency.", "'A waste of a perfectly good bullet.'"],
+        threatDefeatedHuman: ["The bounty is collected. 'Such ingratitude, after all the times I've saved your life.'", "'I like to get my information from the original source.'", "He collects the bounty. 'A job's a job.'", "'Another piece of business concluded.'"],
+        threatDefeatedAnimal: ["The animal is dispatched. 'A waste of time and a bullet.'", "'The job is done.' He reloads.", "He doesn't spare a glance for the fallen beast.", "'The animal is irrelevant to my purpose.'"],
         goldFound: ["Finds {goldAmount} Gold. 'It's a small world.'", "'I'm a man of business.' Finds {goldAmount} Gold.", "'Half is better than nothing.'"],
         playerDamage: ["'You're a soldier. You know what I'm talking about.'", "'I bet you've got a lot of friends.'"],
         itemBought: ["'I'll pay you a thousand dollars. I think that's a handsome price.'", "'Another beautiful friendship.'"],
@@ -232,8 +246,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_ruth_warrant', name: "Bounty Warrant", type: 'Item', effect: { type: 'gold', amount: 25 }, description: "A legal document worth a pretty penny when cashed in.", sellValue: 25, isCheat: true, illustrationId: 'generic_bounty_proof' }
       ],
       catchphrases: {
-        playerAttack: ["'Got me a bounty worth ten thousand dollars!'", "'No one said this job was supposed to be easy.'", "'When the handbill says 'dead or alive', the rest of us shoot you in the back from up on top of a perch somewhere and bring you in dead over a saddle.'", "'No one said this job is supposed to be easy. It's a job.'"],
-        threatDefeated: ["'When you get to hell, John, tell 'em Daisy sent ya.'", "Justice is served. The {enemyName} is no more.", "'Justice delivered... ain't the same as justice served.'", "'You only need to hang mean bastards, but mean bastards you need to hang!'"],
+        playerAttackHuman: ["'Got me a bounty worth ten thousand dollars!'", "'No one said this job was supposed to be easy.'", "'When the handbill says 'dead or alive', the rest of us shoot you in the back from up on top of a perch somewhere and bring you in dead over a saddle.'", "'You only need to hang mean bastards, but mean bastards you need to hang!'"],
+        playerAttackAnimal: ["'Damn varmints!' He fires his revolver at the beast.", "'Get out of my way, you creature!'", "He attacks the animal. 'This is no place for beasts.'", "'Not worth a bounty, but in my way.'"],
+        threatDefeatedHuman: ["'When you get to hell, John, tell 'em Daisy sent ya.'", "Justice is served. The {enemyName} is no more.", "'Justice delivered... ain't the same as justice served.'", "'Another one for the gallows.'"],
+        threatDefeatedAnimal: ["He looks at the fallen animal. 'Just a dumb beast. Not worth a bounty.'", "'That's one less pest to worry about.'", "He spits. 'Nasty creature.'", "'Now, where was I? Oh yeah, justice.'"],
         playerDamage: ["'I'm taking you to hang, and that's the way it's gonna be.'", "'Well, that's the problem with old men. You can't depend on 'em.'"],
         goldFound: ["Finds {goldAmount} Gold. 'A man's gotta make a living.'", "'This country's goin' to the dogs.'"],
         itemBought: ["'This here is a letter from Abraham Lincoln.'", "'A man's gotta have the right tools for the job.'"],
@@ -258,8 +274,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_earp_badge', name: "U.S. Marshal Badge", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 1, persistent: true }, description: "This badge ain't just for show.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_lucky_bullet' }
       ],
       catchphrases: {
-        playerAttack: ["'You tell 'em I'm comin'! And hell's comin' with me!'", "'You called down the thunder, well now you've got it!'", "'Skin that smoke-wagon and see what happens.'", "'Are you gonna do somethin' or just stand there and bleed?'"],
-        threatDefeated: ["'The law is coming. You tell 'em I'm coming!'", "'You're a daisy if you do!'", "'It's not revenge he's after. It's a reckoning.'"],
+        playerAttackHuman: ["'You tell 'em I'm comin'! And hell's comin' with me!'", "'You called down the thunder, well now you've got it!'", "'Skin that smoke-wagon and see what happens.'", "'Are you gonna do somethin' or just stand there and bleed?'"],
+        playerAttackAnimal: ["'Get out of this town, you damn beast!' He fires his Buntline.", "'The law applies to man and beast alike.' He attacks the creature.", "He takes aim at the animal. 'This is for the good of the town.'", "'A threat to the peace. It must be put down.'"],
+        threatDefeatedHuman: ["'The law is coming. You tell 'em I'm coming!'", "'You're a daisy if you do!'", "'It's not revenge he's after. It's a reckoning.'", "'The law is satisfied.'"],
+        threatDefeatedAnimal: ["He holsters his weapon. 'Just another stray.'", "The animal is put down. 'This town is a little safer now.'", "He looks at the beast. 'Order must be maintained.'", "'Just another stray. Not worth the bullet.'"],
         playerDamage: ["'I'm not gonna let you kill me, Wyatt.'", "'What's it like to be a lawman?'"],
         goldFound: ["Finds {goldAmount} Gold. 'For a man who's got everything, you're a pretty poor specimen.'"],
         itemBought: ["Buys the {itemName}. 'I'm a peaceable man. But I won't be pushed.'"],
@@ -284,8 +302,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_oakley_medal', name: "Exhibition Medal", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'firearm_boost', amount: 2, persistent: true }, description: "A medal for marksmanship. It brings a steady hand.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_lucky_bullet' },
       ],
       catchphrases: {
-        playerAttack: ["'Aim at a high mark and you will hit it.'", "A perfect shot.", "'Anything you can do, I can do better.'", "'I'm not just a showgirl.'"],
-        threatDefeated: ["'I ain't afraid to love a man. I ain't afraid to shoot him either.'", "'My rifle is my best friend.'", "'I was a sure shot.'", "'I can hit a running quail.'"],
+        playerAttackHuman: ["'I'm not just a showgirl.' She takes aim at the man.", "'This is no exhibition.' She fires at the man.", "'Anything you can do, I can do better.'", "'I don't miss.'"],
+        playerAttackAnimal: ["'A moving target is the best kind of target.' She takes aim at the beast.", "'This one will make a fine trophy.' She fires at the animal.", "'Aim at a high mark and you will hit it.'", "'Hold still now, darling.'"],
+        threatDefeatedHuman: ["'I ain't afraid to love a man. I ain't afraid to shoot him either.'", "'My rifle is my best friend.'", "'I was a sure shot.'", "'The performance is over.'"],
+        threatDefeatedAnimal: ["A perfect shot. 'That's how it's done.'", "'This will look good on the wall.'", "She reloads. 'Another successful hunt.'", "'A fine trophy.'"],
         playerDamage: ["'I've been in more exhibitions than you've had hot dinners.'", "'The show must go on.'"],
         goldFound: ["Finds {goldAmount} Gold. 'A little something for my trouble.'", "'The wages of a performer.'"],
         itemBought: ["'A new prop for the show.'", "'This will add a little something to my act.'"],
@@ -311,9 +331,11 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'item_sharp_knife_ash', name: "Chainsaw Hand", type: 'Item', effect: { type: 'weapon', attack: 9, subtype: 'sword' }, description: "Groovy.", sellValue: 20, isCheat: true, illustrationId: 'item_sharp_knife_t2_sh' },
       ],
       catchphrases: {
-        playerAttack: ["'Groovy.'", "'Hail to the king, baby.'", "'This... is my BOOMSTICK!'"],
+        playerAttackHuman: ["'Look, pal, you ain't leadin' but two things right now: Jack and shit. And Jack left town.'", "'You primitive screwheads!'", "'Good. Bad. I'm the guy with the gun.' He attacks."],
+        playerAttackAnimal: ["'What're you? Some kinda mutated squirrel?'", "'Get back to the pet cemetery, Fido!'", "'Come get some!' He attacks the beast.", "'Swallow this!'"],
+        threatDefeatedHuman: ["'Alright you primitive screwheads, listen up!' The man is defeated.", "'That's it. I'm outta here.' The man is down.", "'Who's laughin' now? Huh? Who's laughin' now?!'"],
+        threatDefeatedAnimal: ["'Groovy.' The animal is dispatched.", "'Just another Deadite... or whatever you are.'", "'Who's laughin' now? Huh? Who's laughin' now?!'"],
         playerAttackHorror: ["'Yo, she-bitch! Let's go!'", "'Swallow this!'"],
-        threatDefeated: ["'Gimme some sugar, baby.'", "The {enemyName} is defeated. 'Good. Bad. I'm the guy with the gun.'", "'Come get some.'", "'Who's laughin' now?'"],
         playerDamage: ["'Swallow this!' He takes {damageAmount} damage.", "'Look, maybe I didn't say every single little tiny syllable, no. But basically I said them, yeah.'", "'Workshed.' Takes {damageAmount} damage."],
         itemBought: ["He buys the {itemName}. 'Shop smart. Shop S-Mart.'", "'Yeah... that's right. Who's laughin' now?'"],
         playerHeal: ["Heals for {healAmount}. 'First you wanna kill me, now you wanna kiss me.'"],
@@ -335,12 +357,14 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 99,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'custom_durst_cap', name: "Red Yankee Cap", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 3, persistent: true }, description: "A backwards baseball cap. For when you just wanna break stuff.", sellValue: 7, isCheat: true, illustrationId: 'upgrade_stetson_hat' },
+        { id: 'custom_durst_cap', name: "Red Yankee Cap", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 3, persistent: true }, description: "A backwards baseball cap. For when you just wanna break stuff.", sellValue: 7, isCheat: true, illustrationId: 'upgrade_squirrel_fur_cap_cp' },
         { id: 'custom_durst_water', name: "Hot Dog Flavored Water", type: 'Provision', effect: { type: 'heal', amount: 4 }, description: "It's all about the he-said she-said. Heals 4 HP and lets you draw a card.", sellValue: 1, isCheat: true, illustrationId: 'provision_laudanum_t1', immediateEffect: { type: 'draw', amount: 1 } }
       ],
       catchphrases: {
-        playerAttack: ["'I'll skin your ass raw!' He attacks with the {itemName}!", "'Give me somethin' to break!'", "'It's all about the he-said, she-said bullshit!'", "He attacks. 'Keep rollin', rollin', rollin', rollin' (WHAT?)'"],
-        threatDefeated: ["The {enemyName} is gone. 'Now I know y'all be lovin' this shit right here.'", "'You can take that cookie... and stick it up your, YEAH!'", "The {enemyName} has been dealt with. 'My way or the highway.'", "Another one bites the dust. 'And the winner is... LIMP BIZKIT!'"],
+        playerAttackHuman: ["'I'll skin your ass raw!' He attacks the man!", "'Give me somethin' to break!' He lunges at the human.", "'It's all about the he-said, she-said bullshit!' He attacks."],
+        playerAttackAnimal: ["'What's this fuzzy thing?' He attacks the beast.", "'Get outta my way, you... thing!'", "'Keep rollin', rollin', rollin', rollin' (WHAT?)' He attacks the animal."],
+        threatDefeatedHuman: ["'You can take that cookie... and stick it up your, YEAH!' The man is defeated.", "'Now I know y'all be lovin' this shit right here.' The human is gone.", "Another one bites the dust. 'And the winner is... LIMP BIZKIT!'"],
+        threatDefeatedAnimal: ["The beast is gone. 'My way or the highway.'", "'That was... weird.'", "'I did it all for the nookie.' The animal is defeated."],
         playerDamage: ["Takes {damageAmount} damage. 'It's just one of those days...'", "He takes a hit. 'Everything is fucked up and everybody sucks.'", "Hit for {damageAmount}. 'I think you better quit lettin' shit slip out your mouth!'"],
         goldFound: ["'I did it all for the nookie.' He pockets {goldAmount} Gold.", "'Lookin' for the cash flow.' Finds {goldAmount} Gold.", "Another {goldAmount} Gold. 'I'm a rockstar.'"],
         itemBought: ["Buys the {itemName}. 'Another platinum record on the wall.'", "'This is my generation.'"],
@@ -361,13 +385,14 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 50,
       addMaxHealth: 10,
       addCustomCards: [
-        { id: 'item_rifle_robocop', name: "Auto-9", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "A machine pistol with a three-round burst. Highly effective.", sellValue: 40, isCheat: true, illustrationId: 'item_rifle_t1_cp' },
+        { id: 'item_rifle_robocop', name: "Auto-9", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "A machine pistol with a three-round burst. Highly effective.", sellValue: 40, isCheat: true, illustrationId: 'item_six_iron_t2_cp' },
         { id: 'custom_robocop_armor', name: "OCP Armor", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 2, persistent: true, max_health: 5 }, description: "Titanium armor with Kevlar laminate. Increases Max Health by 5 and reduces incoming damage by 2.", sellValue: 30, isCheat: true, illustrationId: 'upgrade_iron_will_cp' },
       ],
       catchphrases: {
-        playerAttack: ["'Your move, creep.'", "'Dead or alive, you're coming with me.'", "'Come quietly or there will be... trouble.'"],
-        playerAttackHuman: ["'You are under arrest.'", "'Serve the public trust. Protect the innocent. Uphold the law.'", "'Looking for me?'"],
-        threatDefeated: ["'Thank you for your cooperation.'", "'Stay out of trouble.'"],
+        playerAttackHuman: ["'Your move, creep.'", "'Dead or alive, you're coming with me.'", "'Come quietly or there will be... trouble.'", "'You are under arrest.'", "'Serve the public trust. Protect the innocent. Uphold the law.'"],
+        playerAttackAnimal: ["'Unidentified biological entity. Cease hostility.'", "'You are in violation of park regulations. I am authorized to use physical force.'", "'Threat level: minimal.' He engages the creature.", "'Directive 3: Classify.' He attacks."],
+        threatDefeatedHuman: ["'Thank you for your cooperation.'", "'Stay out of trouble.'", "'Justice is served.'", "'You are terminated.'"],
+        threatDefeatedAnimal: ["'Biological threat neutralized. Resuming patrol.'", "'Animal control has been notified.'", "'Area secured.'", "'Threat assessment complete.'"],
         playerDamage: ["The shot sparks off his armor. 'Your programming is inferior.'", "'My programming is a little sensitive.'", "'Directive 4 classified.'"],
         itemBought: ["'I'd buy that for a dollar!'", "'This unit is now equipped with the {itemName}.'"],
         goldFound: ["Finds {goldAmount} Gold. 'Seized as evidence.'"],
@@ -383,6 +408,36 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
   },
   // --- EXPLORER ---
   {
+    name: "philip j fry",
+    requiredCharacterId: 'explorer',
+    effects: {
+      addGold: 93,
+      addMaxHealth: 0,
+      addCustomCards: [
+        { id: 'custom_fry_jacket', name: "Red Bomber Jacket", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 5, persistent: true }, description: "A super sweet jacket. Red. It's not armor, but it makes you feel a little tougher.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_plain_duster_t2_cp' },
+        { id: 'custom_fry_tonic', name: "Can of Slurm", type: 'Provision', effect: { type: 'heal', amount: 2 }, description: "It's highly addictive! Heals 2 HP and lets you draw 3 cards.", sellValue: 1, isCheat: true, illustrationId: 'custom_fry_tonic', immediateEffect: { type: 'draw', amount: 3 }},
+        { id: 'custom_fry_clover', name: "Seven-Leaf Clover", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 7, persistent: true }, description: "Brings 20th-century luck to this backwards time period. Increases sell value of all items by 7.", sellValue: 777, isCheat: true, illustrationId: 'custom_fry_clover' }
+      ],
+      catchphrases: {
+        playerAttackHuman: ["'I'm not a fighter! I'm a delivery boy!'", "'Wooo!' He flails wildly.", "'Hey, you're not a robot! Or a brain!'"],
+        playerAttackAnimal: ["'Aww, it's like a fuzzy little potato... a mean, fuzzy potato!'", "'Maybe it just wants a hug! Oh, nope, definitely biting!'", "'Scruffy! The janitor on Mars!'"],
+        threatDefeatedHuman: ["'I did a thing!'", "'Sweet zombie Jesus, it worked!'", "'Whoa, I'm a hero! I think?'", "'Is he dead? Or just sleeping with his eyes open?'"],
+        threatDefeatedAnimal: ["'Sorry, little guy! You were just too bitey.'", "'I'm a monster! A monster who needs this pelt for... reasons.'", "'I'm walking on sunshine!'"],
+        playerDamage: ["'Ow, my sperm!'", "'My only regret is... that I have... boneitis.'", "'I'm bleeding! Wait... that's just jam from my pocket.'"],
+        goldFound: ["'I'm rich! I can buy a million cans of Slurm!'", "'A hundred dollars! That's like, a hundred things!'", "'I'm a hundredaire!'"],
+        itemBought: ["'Shut up and take my money!'", "'Neat!' *click*"],
+        laudanumAbuse: ["'Whoa, I can see the music!'", "'My hands... they can touch everything but themselves... oh wait.'", "'I'm walking on sunshine!'"],
+        equipCheatItem: {
+          'custom_fry_jacket': ["'Sweet. A jacket.'"],
+          'custom_fry_clover': ["'My seven-leaf clover! This should bring me some luck!'"]
+        },
+        useCheatItem: {
+          'custom_fry_tonic': ["He cracks open the Slurm. 'It's highly addictive!'", "'Ahhh, Slurm. The cause of, and solution to, all of life's problems.'"]
+        }
+      }
+    },
+  },
+  {
     name: "tuco ramirez",
     requiredCharacterId: 'explorer',
     effects: {
@@ -393,8 +448,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_tuco_supplies', name: "Stolen Supplies", type: 'Provision', effect: { type: 'heal', amount: 5 }, description: "Liberated from a less-deserving owner.", sellValue: 1, isCheat: true, illustrationId: 'provision_hardtack' }
       ],
       catchphrases: {
-        playerAttack: ["'When you have to shoot, shoot. Don't talk.'", "'I'll kill you for that!'", "'There are two kinds of spurs, my friend. Those that come in by the door, and those that come in by the window.'"],
-        threatDefeated: ["The Ugly one wins. 'The world is divided into two parts, my friend...'", "'Blondieee! You know what you are?! Just a dirty son-of-a-b-!'", "'The Good, the Bad, and me.' The Ugly one wins."],
+        playerAttackHuman: ["'When you have to shoot, shoot. Don't talk.'", "'I'll kill you for that!'", "'There are two kinds of spurs, my friend. Those that come in by the door, and those that come in by the window.'"],
+        playerAttackAnimal: ["'Stupid animal!'", "'Get away from me, you beast!'", "'I'll make a stew out of you!'", "'You are a dumb beast!'"],
+        threatDefeatedHuman: ["'Blondieee! You know what you are?! Just a dirty son-of-a-b-!'", "'The Good, the Bad, and me.' The Ugly one wins.", "'If you work for a living, why do you kill yourself working?'"],
+        threatDefeatedAnimal: ["The Ugly one wins. 'Ugly animal!'", "'Hah! Not so tough now!'", "'Maybe I can sell this skin.'"],
         playerDamage: ["'You pig! You're the son of a thousand fathers!'", "'Hey, Blondie! You want to know my name?'", "He takes a hit. 'You are the son of a thousand fathers!'"],
         goldFound: ["'If you're going to shoot, shoot! Don't talk!' He grabs the {goldAmount} Gold.", "'I'm looking for the gold, Blondie! The gold!'"],
         equipCheatItem: {
@@ -418,11 +475,13 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_crockett_cap', name: "Coonskin Cap", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_negation', max_health: 4, persistent: true }, description: "King of the Wild Frontier.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_raccoon_skin_hat' },
       ],
       catchphrases: {
-        playerAttack: ["'Be sure you're right, then go ahead.'", "'I'm half-horse, half-alligator and a little attached with a snapping turtle.'", "'I can whip my weight in wildcats.'"],
-        threatDefeated: ["He grins. 'Killed him a bear when he was only three.'", "'I know I am going to hell, so I will make the most of my time on earth.'", "'We're not just fighting for ourselves, but for all our kin.'"],
+        playerAttackHuman: ["'Be sure you're right, then go ahead.' He attacks the man.", "'I'm half-horse, half-alligator and a little attached with a snapping turtle.' He attacks the human.", "'I can whip my weight in wildcats.' He attacks the man."],
+        playerAttackAnimal: ["He grins. 'Killed him a bear when he was only three.' He attacks the beast.", "'I'm a hunter, a warrior, and a pioneer.' He attacks the animal.", "'This one's for the pot.'"],
+        threatDefeatedHuman: ["'We're not just fighting for ourselves, but for all our kin.'", "'Let your tongue speak what your heart thinks.' The man is silent now.", "'May the Lord have mercy on your soul.'"],
+        threatDefeatedAnimal: ["He grins. 'Killed him a bear when he was only three.' The beast is down.", "'The land provides.'", "'A fine trophy.'"],
+        itemTaken: ["'This will be useful on the trail.'", "'The land provides.'", "'A fine specimen.'"],
         playerDamage: ["'Heaven is a great deal bigger than the earth.'", "'Let your tongue speak what your heart thinks.'"],
         goldFound: ["Finds {goldAmount} Gold. 'A little something for the journey.'", "'This will help me on my way.'"],
-        itemTaken: ["'This will be useful on the trail.'", "'The land provides.'", "'A fine specimen.'"],
         equipCheatItem: {
           'custom_crockett_rifle': ["He shoulders Old Betsy. 'A trusty friend.'"],
           'custom_crockett_cap': ["He puts on the Coonskin Cap. 'King of the wild frontier.'"]
@@ -444,8 +503,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_lewis_scout', name: "Corps of Discovery", type: 'Action', effect: { type: 'scout' }, description: "Charting the unknown territory ahead reveals new opportunities. Scout and draw 1 card.", sellValue: 5, isCheat: true, illustrationId: 'action_scout_ahead', immediateEffect: { type: 'draw', amount: 1 } }
       ],
       catchphrases: {
-        playerAttack: ["'We proceed on.'", "'The object of my curiosity is to acquire a knowledge of the different languages.'"],
-        threatDefeated: ["'The country is, as it were, motionless and silent.'", "'I am about to embark on an enterprise of some moment.'"],
+        playerAttackHuman: ["'An obstacle to the expedition.' He attacks the man.", "'We proceed on.'", "'A regrettable but necessary action.'"],
+        playerAttackAnimal: ["'A new species for the journal.' He attacks the beast.", "'Most extraordinary!' He attacks the animal.", "'For the purposes of scientific discovery.'"],
+        threatDefeatedHuman: ["'The country is, as it were, motionless and silent.' The man is defeated.", "'This will be noted in the log.'", "'The path is now clear to proceed.'"],
+        threatDefeatedAnimal: ["'The country is, as it were, motionless and silent.' The beast is defeated.", "'A specimen for the collection.'", "'Its temperament was... hostile.'"],
         itemTaken: ["'A specimen for the collection.'", "'This will be documented in the journal.'", "'Most extraordinary!'"],
         playerDamage: ["'This is an arduous journey.'", "'We must be vigilant.'"],
         playerHeal: ["'The men are in good spirits.'", "'A moment's rest before we proceed on.'"],
@@ -470,8 +531,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'item_six_shooter_clark', name: "Clark's Revolver", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "A reliable sidearm for a cartographer in a dangerous land.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' }
       ],
       catchphrases: {
-        playerAttack: ["'A necessary action for the expedition.'", "'The map will be accurate, I assure you.'"],
-        threatDefeated: ["'Another landmark noted.'", "'This will be an important entry on the map.'"],
+        playerAttackHuman: ["'A necessary action for the expedition.' He attacks the man.", "'Hostile natives. A regrettable necessity.'", "'We must clear a path.'"],
+        playerAttackAnimal: ["'A dangerous beast. It must be put down for the safety of the corps.'", "'Another specimen for the record.' He attacks the animal.", "'We cannot allow it to impede our progress.'"],
+        threatDefeatedHuman: ["'Another landmark noted.'", "'This will be an important entry on the map.' The man is defeated.", "'The way forward is secure.'"],
+        threatDefeatedAnimal: ["'Another landmark noted.'", "'This will be an important entry on the map.' The beast is defeated.", "'The specimen has been... collected.'"],
         playerHeal: ["'The men are in good spirits.'", "'A moment's rest before we proceed on.'"],
         playerDamage: ["'The terrain is difficult, but we will persevere.'", "'A small setback.'"],
         goldFound: ["Finds {goldAmount} Gold. 'A resource for the expedition.'"],
@@ -496,8 +559,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_musashi_katana_2', name: "Musashi's Wakizashi", type: 'Item', effect: { type: 'weapon', attack: 7, subtype: 'sword' }, description: "The companion blade. To know the Way is to see it in all things.", sellValue: 15, isCheat: true, illustrationId: 'item_wakizashi_t1_fj' },
       ],
       catchphrases: {
-        playerAttack: ["'There is nothing outside of yourself.' He strikes with two blades.", "The Way of the warrior is the resolute acceptance of death.", "'In battle, if you make your opponent flinch, you have already won.'"],
-        threatDefeated: ["'Do nothing that is of no use.' The {enemyName} was of no use.", "'Perceive that which cannot be seen with the eye.'", "'The only reason a warrior is alive is to fight, and the only reason a warrior fights is to win.'", "'You can only fight the way you practice.'"],
+        playerAttackHuman: ["'There is nothing outside of yourself.' He strikes the man with two blades.", "The Way of the warrior is the resolute acceptance of death. He attacks the human.", "'In battle, if you make your opponent flinch, you have already won.' He attacks the man."],
+        playerAttackAnimal: ["'To know ten thousand things, know one well.' He attacks the beast.", "'Even a beast has its place in the world... but not here.' He attacks the animal.", "'The Way is in training.' He attacks the creature."],
+        threatDefeatedHuman: ["'Do nothing that is of no use.' The {enemyName} was of no use.", "'Perceive that which cannot be seen with the eye.' The man is gone.", "'You can only fight the way you practice.' The human is defeated."],
+        threatDefeatedAnimal: ["'The only reason a warrior is alive is to fight, and the only reason a warrior fights is to win.' The beast is defeated.", "'The Way is in all things.' He looks at the fallen animal.", "The creature's struggle is over. 'All things are one.'"],
         playerDamage: ["He takes the blow. 'To know ten thousand things, know one well.'", "'Today I am victorious over myself of yesterday.'"],
         playerHeal: ["He binds his wounds. 'The path is long.'"],
         itemBought: ["'The sword has no master but the soul.'"],
@@ -523,8 +588,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_sakai_tanto', name: "Ghost's Tanto", type: 'Item', effect: { type: 'weapon', attack: 6, subtype: 'sword' }, description: "For when honor is not enough.", sellValue: 15, isCheat: true, illustrationId: 'item_knife_t1_fj' },
       ],
       catchphrases: {
-        playerAttack: ["'I am the Ghost.'", "'You have no honor.'", "'For the people of Tsushima!'", "'I will not be a slave to my past.'"],
-        threatDefeated: ["'Honor died on the beach.' The {enemyName} is defeated.", "He cleans his blade. 'The Ghost will haunt you.'"],
+        playerAttackHuman: ["'I am the Ghost.' He attacks the man.", "'You have no honor.' He attacks the human.", "'For the people of Tsushima!' He attacks the man.", "'My storm will claim you.'"],
+        playerAttackAnimal: ["'The spirits of the forest are angry.' He attacks the beast.", "'Even the beasts of this island suffer.' He attacks the animal.", "'A necessary evil.' He attacks the creature.", "'This is for your own good.'"],
+        threatDefeatedHuman: ["'Honor died on the beach.' The {enemyName} is defeated.", "He cleans his blade. 'The Ghost will haunt you.'", "'I will not be a slave to my past.' The man is gone.", "'You are not a warrior. You are a coward.'"],
+        threatDefeatedAnimal: ["The animal is at peace. 'The forest is quiet now.'", "'Another victim of the invasion.' He looks at the fallen beast.", "'May your spirit find peace.'"],
         playerHeal: ["He takes a moment to reflect. 'A new haiku...'", "'I must find my uncle.'", "'The wind guides me.'"],
         playerDamage: ["'I am not your son. I am the Ghost.'", "'I have been a samurai my entire life.'"],
         itemTaken: ["'This will aid my cause.'", "'The people of Tsushima thank you.'"],
@@ -550,8 +617,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_quatermain_map', name: "Map to King Solomon's Mines", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 15, persistent: true }, description: "A map to legendary riches.", sellValue: 50, isCheat: true, illustrationId: 'upgrade_treasure_map_as' }
       ],
       catchphrases: {
-        playerAttack: ["He levels his elephant gun. 'Steady now.'", "'The league of extraordinary gentlemen send their regards.'"],
-        threatDefeated: ["The hunt is over. 'Time for a smoke.'", "He consults his map. 'The diamond mines of King Solomon await!'", "'There is no hunting like the hunting of man.'", "'I've seen things that would make a hyena vomit.' "],
+        playerAttackHuman: ["He levels his elephant gun. 'There is no hunting like the hunting of man.'", "'The league of extraordinary gentlemen send their regards.' He attacks the man.", "'A messy business, this.' He attacks the human."],
+        playerAttackAnimal: ["He levels his elephant gun. 'Steady now.' He attacks the beast.", "'A fine specimen for the hunt.' He attacks the animal.", "'For the glory of the hunt.' He attacks the creature."],
+        threatDefeatedHuman: ["The hunt is over. 'Time for a smoke.' The man is defeated.", "'I've seen things that would make a hyena vomit.' The human is gone.", "'Another one for the books.'"],
+        threatDefeatedAnimal: ["He consults his map. 'The diamond mines of King Solomon await!' The beast is dispatched.", "'A fine trophy.' The animal is defeated.", "'The savanna is a little quieter now.'"],
         goldFound: ["'For a map, this is proving quite profitable.' Finds {goldAmount} Gold."],
         laudanumAbuse: ["'A gentleman's vice.' He takes a dose to steady his nerves, though they are already quite steady."],
         playerDamage: ["'The jungle has its price.'", "'Just a scratch. The trick is not to bleed.'"],
@@ -577,9 +646,11 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_indy_whip', name: "Bullwhip", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "Not just for swinging across chasms.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_bandolier_t1'}
       ],
       catchphrases: {
-        playerAttack: ["He cracks his whip!", "A quick shot from the revolver. 'Trust me.'", "'X never, ever marks the spot!'"],
+        playerAttackHuman: ["A quick shot from the revolver. 'Trust me.'", "'X never, ever marks the spot!' He attacks the man.", "'They're trying to kill us!' He attacks the human.", "'You want to talk to God? Let's go see him together.'"],
+        playerAttackAnimal: ["He cracks his whip at the beast!", "'I'm making this up as I go!' He attacks the animal.", "'Stay back, you foul creature!'", "'I don't like animals that are bigger than me.'"],
         playerAttackSnake: ["'I hate snakes!'", "'Snakes... why did it have to be snakes?'"],
-        threatDefeated: ["The {enemyName} is defeated. 'It's not the years, honey, it's the mileage.'", "'That belongs in a museum!'", "He dusts off his hat. 'I'm making this up as I go!'"],
+        threatDefeatedHuman: ["'That belongs in a museum!' The {enemyName} is defeated.", "'I'm making this up as I go!' The man is gone.", "'It's not the years, honey, it's the mileage.' The human is defeated.", "'No ticket.'"],
+        threatDefeatedAnimal: ["He dusts off his hat. 'Nasty creature.'", "'Another one for the books.' The beast is dispatched.", "'I'm getting too old for this.'"],
         goldFound: ["He pockets the {goldAmount} Gold. 'Fortune and glory, kid. Fortune and glory.'"],
         itemTaken: ["'This should have been in a museum!' He takes the {itemName}.", "'It's a fake. You can tell by the cross-section.'"],
         playerDamage: ["'Snakes. Why'd it have to be snakes?' He takes {damageAmount} damage.", "Takes a punch. 'I hate snakes!'", "'They're trying to kill us!'"],
@@ -607,8 +678,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'item_six_shooter_lara2', name: "Dual Pistols", type: 'Item', effect: {type: 'weapon', attack: 9}, description: "A pair of iconic pistols. For when you mean business.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' }
       ],
       catchphrases: {
-        playerAttack: ["With a flip and a flourish, she opens fire.", "'I make my own luck.'", "'From this moment, every breath you take is a gift from me.'", "'I've simplified your payroll.' "],
-        threatDefeated: ["'The extraordinary is in what we do, not who we are.'", "'A famous explorer once said, that the extraordinary is in what we do, not who we are.'", "'Everything lost is meant to be found.'", "'A survivor is born.'"],
+        playerAttackHuman: ["'I make my own luck.' She attacks the man.", "'I've simplified your payroll.' She attacks the human.", "'From this moment, every breath you take is a gift from me.' She attacks the man."],
+        playerAttackAnimal: ["With a flip and a flourish, she opens fire on the beast.", "'A survivor is born.' She attacks the animal.", "'I'm not afraid of a little competition.' She attacks the creature."],
+        threatDefeatedHuman: ["'The extraordinary is in what we do, not who we are.' The {enemyName} is defeated.", "'A famous explorer once said, that the extraordinary is in what we do, not who we are.' The man is gone.", "'Well, this has been a day.'"],
+        threatDefeatedAnimal: ["'Everything lost is meant to be found.' The beast is dispatched.", "'A survivor is born.' The animal is defeated.", "'Just another Tuesday.'"],
         itemTaken: ["'This belongs in a museum.' She takes the {itemName}.", "'I'm not a thief. I'm a tomb raider.'"],
         playerDamage: ["'Right. Let's get on with it then.'", "'It's not a party until something gets broken.'", "'The path to redemption is never easy.'"],
         goldFound: ["Finds {goldAmount} Gold. 'A lady should be prepared for anything.'"],
@@ -634,10 +707,12 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_drake_grapple', name: "Grappling Hook", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "For reaching high places, or getting out of trouble. Draw 2 cards.", sellValue: 5, isCheat: true, illustrationId: 'action_scout_ahead' }
       ],
       catchphrases: {
-        playerAttack: ["'Here goes nothing!' He opens fire.", "'Sic Parvis Magna.'", "'Look out! Grenade!' (There is no grenade)"],
-        threatDefeated: ["He wipes sweat from his brow. 'Well, that could've gone better.'", "'Another day, another historical artifact trying to kill me.'", "'Don't you have a priceless artifact to steal?'", "'Greatness from small beginnings.'"],
-        playerDamage: ["'Oh, crap.' Takes {damageAmount} damage.", "'No, no, no!' Takes a hit."],
-        goldFound: ["'Kitty got wet.' Finds {goldAmount} Gold."],
+        playerAttackHuman: ["'Here goes nothing!' He opens fire on the man.", "'Sic Parvis Magna.' He attacks the human.", "'Look out! Grenade!' (There is no grenade) He attacks the man."],
+        playerAttackAnimal: ["'Oh, crap. Monsters. Why is it always monsters?' He attacks the beast.", "'Great, now the wildlife is trying to kill me.' He attacks the animal.", "'Stay back, you overgrown hamster!' He attacks the creature."],
+        threatDefeatedHuman: ["He wipes sweat from his brow. 'Well, that could've gone better.'", "'Don't you have a priceless artifact to steal?' The man is defeated.", "'Greatness from small beginnings.' The human is gone."],
+        threatDefeatedAnimal: ["'Another day, another historical artifact trying to kill me.' The beast is dispatched.", "'Kitty got wet.' The animal is defeated.", "'Should have stayed in your cage.'"],
+        playerDamage: ["'Oh, crap.' Takes {damageAmount} damage.", "'No, no, no!' Takes a hit.", "'I'm getting too old for this.'"],
+        goldFound: ["'Kitty got wet.' Finds {goldAmount} Gold.", "'Well, look at that.'"],
         laudanumAbuse: ["'Hair of the dog.' He downs the bottle.", "'Just a little something to take the edge off... all the edges.'"],
         equipCheatItem: {
           'item_six_shooter_drake': ["He checks his pistol. 'Well, here we go again.'"]
@@ -660,8 +735,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'item_webley_revolver_rick2', name: "Rick's Other Pistol", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "The other of a pair. Has more sand in it.", sellValue: 20, isCheat: true, illustrationId: 'item_webley_revolver_t2_as' },
       ],
       catchphrases: {
-        playerAttack: ["'Looks to me like I've got all the horses!'", "'Here I come, you filthy dogs!'", "'Rescue the damsel in distress, kill the bad guy, and save the world.'"],
-        threatDefeated: ["'Patience is a virtue.' The {enemyName} is finally gone.", "'Goodbye, Beni.'", "'This is not good.'", "'Think I'll get me a cup of coffee.'"],
+        playerAttackHuman: ["'Looks to me like I've got all the horses!' He attacks the man.", "'Here I come, you filthy dogs!' He attacks the human.", "'Rescue the damsel in distress, kill the bad guy, and save the world.' He attacks the man."],
+        playerAttackAnimal: ["'I'll be seeing you again, I'm sure.' He attacks the beast.", "'This is not good.' He attacks the animal.", "'I'm a little rusty.' He attacks the creature."],
+        threatDefeatedHuman: ["'Patience is a virtue.' The {enemyName} is finally gone.", "'Goodbye, Beni.' The man is defeated.", "'This is not good.' The human is gone."],
+        threatDefeatedAnimal: ["'Think I'll get me a cup of coffee.' The beast is dispatched.", "'Another one for the history books.' The animal is defeated.", "'Just another day at the office.'"],
         playerDamage: ["'This is bad, Evy! This is really bad!' Takes {damageAmount} damage.", "'I'm a little rusty.'", "'My library card's been revoked!'"],
         itemBought: ["He buys the {itemName}. 'I am a librarian!'"],
         goldFound: ["'I've found something!' Finds {goldAmount} Gold."],
@@ -687,8 +764,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'item_sharp_knife_jensen', name: "Arm Blades", type: 'Item', effect: { type: 'weapon', attack: 9, subtype: 'sword' }, description: "Retractable nanoceramic blades. Lethal and silent.", sellValue: 25, isCheat: true, illustrationId: 'item_sharp_knife_t1_cp' },
       ],
       catchphrases: {
-        playerAttack: ["'This is how it has to be.'", "He deploys his augments.", "'If you want to make enemies, try to change something.'", "'The past can be a prison.'"],
-        threatDefeated: ["'The world is a dangerous place.'", "'I never asked for this.'", "'Some say it's the end of the world. Some say it's the beginning.'", "'Survival is a matter of adaptation.'"],
+        playerAttackHuman: ["'This is how it has to be.' He attacks the man.", "'If you want to make enemies, try to change something.' He attacks the human.", "'They're just men. Flesh and blood. And I'm going to make them bleed.' He attacks the man."],
+        playerAttackAnimal: ["'Unidentified biological threat. Neutralizing.'", "'Survival is a matter of adaptation.' He attacks the beast.", "'The past can be a prison.' He attacks the animal."],
+        threatDefeatedHuman: ["'I never asked for this.' The {enemyName} is defeated.", "'Some say it's the end of the world. Some say it's the beginning.' The man is gone.", "'It's not the end of the world. But you can see it from here.'"],
+        threatDefeatedAnimal: ["'The world is a dangerous place.' The beast is dispatched.", "'Adapt or perish.' The animal is defeated.", "'It was just a machine.'"],
         playerDamage: ["His dermal armor takes the hit. 'I didn't ask for this.'", "'They're just men. Flesh and blood. And I'm going to make them bleed.'", "'The human body is a machine.'"],
         playerHeal: ["'Nanites repairing trauma.'", "'System integrity returning.'"],
         itemBought: ["He buys the {itemName}. 'This will be a useful upgrade.'"],
@@ -715,8 +794,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_holliday_satchel', name: "Gambler's Satchel", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "Take another card and heal 1 HP. You're in your prime.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_leather_satchel_t1', immediateEffect: { type: 'heal', amount: 1 } },
       ],
       catchphrases: { 
-        playerAttack: ["'I'm your huckleberry.'", "'Say when.'"], 
-        threatDefeated: ["'You're no daisy. You're no daisy at all.'", "He sighs. 'My hypocrisy goes only so far.'"],
+        playerAttackHuman: ["'I'm your huckleberry.'", "'Say when.'", "'Why, Johnny Ringo, you look like somebody just walked over your grave.'"], 
+        playerAttackAnimal: ["'Nasty beast. Not my game.'", "'This is undignified.'", "'I do believe I am in my prime.'"],
+        threatDefeatedHuman: ["'You're no daisy. You're no daisy at all.'", "He sighs. 'My hypocrisy goes only so far.'", "'It appears my hypocrisy knows no bounds.'"],
+        threatDefeatedAnimal: ["The beast is dead. 'Well, that was tiresome.'", "'A filthy creature.'", "'Now, for a game of cards.'"],
         playerDamage: ["He coughs. 'Forgive me if I don't shake hands.'", "Takes a hit. 'I have not yet begun to defile myself.'"],
         laudanumAbuse: ["'It appears my hypocrisy knows no bounds.'", "He drinks. 'Why, Johnny Ringo, you look like somebody just walked over your grave.'"],
         playerHeal: ["'It's not my fault if I'm a lunger.' He heals {healAmount} HP."],
@@ -743,8 +824,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       ],
       catchphrases: {
         playerHeal: ["'The body has a remarkable ability to heal itself, if given a chance.'", "'A doctor's work is never done.'", "'This is a simple poultice of herbs.'"],
-        threatDefeated: ["'Sometimes, a woman's touch is a firm hand.'", "'I believe in medicine, not violence, but I also believe in survival.'", "'Sometimes you have to be firm.'"],
-        playerAttack: ["'This is for your own good!'", "'I am a doctor, but I am also a survivor!'"],
+        threatDefeatedHuman: ["'Sometimes, a woman's touch is a firm hand.' The man is defeated.", "'I believe in medicine, not violence, but I also believe in survival.' The human is gone.", "'He should have known better.'"],
+        threatDefeatedAnimal: ["'Sometimes you have to be firm.' The beast is defeated.", "'Poor creature.' The animal is dispatched.", "'It was for its own good.'"],
+        playerAttackHuman: ["'This is for your own good!' She attacks the man.", "'I am a doctor, but I am also a survivor!' She attacks the human.", "'I will not be intimidated!'"],
+        playerAttackAnimal: ["'This beast is a danger to the town.' She attacks the animal.", "'I'm sorry it has to be this way.' She attacks the creature.", "'I will not let you harm anyone else.'"],
         playerDamage: ["'This is highly unprofessional!'", "'Sully! Get the children!'"],
         itemBought: ["'This will be very useful for my practice.'", "'A new tool to help the sick.'"],
         equipCheatItem: {
@@ -769,7 +852,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       catchphrases: {
         playerHeal: ["'The very first requirement in a hospital is that it should do the sick no harm.'", "'The first rule of nursing is to keep the air within as pure as the air without.'", "'Let us never consider ourselves finished nurses... we must be learning all of our lives.'"],
         playerDamage: ["'I attribute my success to this: I never gave or took any excuse.'", "'How very little can be done under the spirit of fear.'", "'Live life when you have it. Life is a splendid gift.'"],
-        threatDefeated: ["'The world is put back by the death of every one who has to sacrifice the development of his or her peculiar gifts to conventionality.'", "'A necessary, if unpleasant, procedure.'"],
+        threatDefeatedHuman: ["'The world is put back by the death of every one who has to sacrifice the development of his or her peculiar gifts to conventionality.'", "'A necessary, if unpleasant, procedure.'", "'Some infections must be purged.'"],
+        threatDefeatedAnimal: ["'A necessary, if unpleasant, procedure.'", "'The creature was a carrier of disease.'", "'The world is a cleaner place now.'"],
         itemBought: ["'This will improve sanitation.'", "'A new tool for the ward.'"],
         equipCheatItem: {
           'custom_nightingale_journal': ["She consults her 'Notes on Nursing'. 'The foundation of all nursing is a clean environment.'"]
@@ -791,9 +875,11 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_livesey_rum', name: "A Grog of Rum", type: 'Provision', effect: { type: 'heal', amount: 6 }, description: "A surprisingly effective restorative.", sellValue: 5, isCheat: true, illustrationId: 'provision_laudanum_t1' },
       ],
       catchphrases: {
-        threatDefeated: ["'If you keep on drinking rum, the world will soon be quit of a very dirty scoundrel!'", "'Fifteen men on a dead man's chest... Yo-ho-ho and a bottle of rum!'", "'If you were sent by Long John, I'll have you know I'm a magistrate.'"],
+        threatDefeatedHuman: ["'If you keep on drinking rum, the world will soon be quit of a very dirty scoundrel!'", "'Fifteen men on a dead man's chest... Yo-ho-ho and a bottle of rum!'", "'If you were sent by Long John, I'll have you know I'm a magistrate.'"],
+        threatDefeatedAnimal: ["The beast is dispatched. 'A jim-dandy of a tale, to be sure.'", "'Ha-ha-ha-ha-ha!' The creature is defeated.", "'A most unsavory specimen.'"],
         laudanumAbuse: ["He downs the bottle. 'The name of rum is 'grief'!'", "'The word 'rum' and the word 'death' mean the same thing to you.'", "'That's a jim-dandy of a tale, to be sure.'"],
-        playerAttack: ["'I'll have the leg off you in a jiffy.'", "'Silence, sir! I am a magistrate.'"],
+        playerAttackHuman: ["'I'll have the leg off you in a jiffy.'", "'Silence, sir! I am a magistrate.'", "'Ha-ha-ha-ha-ha!'"],
+        playerAttackAnimal: ["He attacks the beast. 'A most unsavory creature.'", "'This will make a fine story.'", "'Ha-ha-ha-ha-ha!'"],
         playerHeal: ["'A little something to mend the constitution.'", "'The sea air is good for what ails you.'"],
         itemBought: ["'This will be useful for the voyage.'", "'A wise investment for a long journey.'"],
         equipCheatItem: {
@@ -817,8 +903,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_kenshin_vow', name: "Vow of Non-Killing", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 2, persistent: true }, description: "A vow to never take another life strengthens the spirit against all harm.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_iron_will_fj' }
       ],
       catchphrases: {
-        playerAttack: ["'Oro?' He strikes with the back of his blade.", "A Hiten Mitsurugi-ryū technique!", "'A sword is a tool to protect. A tool to save lives.'", "'I will not kill, but I will not let you kill either.'"],
-        threatDefeated: ["'A sword is a weapon. The art of swordsmanship is learning how to kill. That is the truth.' The {enemyName} is defeated, but not slain."],
+        playerAttackHuman: ["'Oro?' He strikes with the back of his blade.", "A Hiten Mitsurugi-ryū technique!", "'A sword is a tool to protect. A tool to save lives.'", "'I will not kill, but I will not let you kill either.'"],
+        playerAttackAnimal: ["'Oro?' He strikes the beast with the back of his blade.", "'Even a beast deserves a chance to live.' He attacks to disable.", "'This one must be stopped, that it must.'"],
+        threatDefeatedHuman: ["'A sword is a weapon. The art of swordsmanship is learning how to kill. That is the truth.' The {enemyName} is defeated, but not slain.", "'This one has learned their lesson, that they have.'"],
+        threatDefeatedAnimal: ["The beast is subdued. 'Go now, and cause no more trouble.'", "'The forest is a dangerous place. Be careful.'"],
         playerDamage: ["'This is my atonement.'", "'The scar on my cheek is a reminder.'"],
         playerHeal: ["'I must become stronger to protect those I care for.'", "'This one is not strong enough.'"],
         itemBought: ["'The sword has no master but the soul.'"],
@@ -844,8 +932,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_warren_pipe', name: "Warren's Pipe", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "A moment to think can reveal a path forward. Draw 2 cards.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_medical_journal' }
       ],
       catchphrases: {
-        playerAttack: ["'The only time black folks are safe, is when white folks are disarmed.'", "'Got room for one more?'"],
-        threatDefeated: ["He looks at the fallen {enemyName}. 'This here is a letter from Abraham Lincoln.'"],
+        playerAttackHuman: ["'The only time black folks are safe, is when white folks are disarmed.'", "'Got room for one more?'", "'This is for you, Jody.'"],
+        playerAttackAnimal: ["He attacks the beast. 'Just another dumb animal.'", "'A distraction from the real business.'", "'This one ain't worth a bounty.'"],
+        threatDefeatedHuman: ["He looks at the fallen {enemyName}. 'This here is a letter from Abraham Lincoln.'", "'Now that's one cold son-of-a-bitch'", "'The business is concluded.'"],
+        threatDefeatedAnimal: ["The beast is dispatched. 'Not worth a bounty.'", "'Back to the hunt.'", "'The plains are a dangerous place.'"],
         playerDamage: ["He takes the hit, unflinching. 'Starts to get cold on the plains.'", "'Justice ain't blind. It's just too damn scared to look.'"],
         goldFound: ["Finds {goldAmount} Gold. 'This bounty's gettin' bigger.'"],
         itemBought: ["'A man's gotta be prepared.' Buys the {itemName}."],
@@ -871,11 +961,13 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_boone_coat', name: "Deerskin Coat", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 5, persistent: true }, description: "Made for walking quietly through the woods.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_deer_skin_coat_t1' },
       ],
       catchphrases: {
-        threatDefeated: ["'Be sure you're right, then go ahead.'", "'May the Lord have mercy on your soul.'", "'I'm going now. My time is come.'"],
-        itemTaken: ["'I've never been lost, but I was bewildered once for three days.' He takes the {itemName}.", "'Curiosity is natural to the soul of man.'", "'The land provides.'"],
-        playerAttack: ["'I'm half-horse, half-alligator and a little attached with a snapping turtle.'", "'I can whip my weight in wildcats.'"],
+        playerAttackHuman: ["'Be sure you're right, then go ahead.' He attacks the man.", "'I'm half-horse, half-alligator and a little attached with a snapping turtle.' He attacks the human.", "'I can whip my weight in wildcats.' He attacks the man."],
+        playerAttackAnimal: ["He grins. 'Killed him a bear when he was only three.' He attacks the beast.", "'I'm a hunter, a warrior, and a pioneer.' He attacks the animal.", "'This one's for the pot.'"],
+        threatDefeatedHuman: ["'We're not just fighting for ourselves, but for all our kin.'", "'Let your tongue speak what your heart thinks.' The man is silent now.", "'May the Lord have mercy on your soul.'"],
+        threatDefeatedAnimal: ["He grins. 'Killed him a bear when he was only three.' The beast is down.", "'The land provides.'", "'A fine trophy.'"],
+        itemTaken: ["'This will be useful on the trail.'", "'The land provides.'", "'A fine specimen.'"],
         playerDamage: ["'Heaven is a great deal bigger than the earth.'", "'Let your tongue speak what your heart thinks.'"],
-        goldFound: ["Finds {goldAmount} Gold. 'A little something for the journey.'"],
+        goldFound: ["Finds {goldAmount} Gold. 'A little something for the journey.'", "'This will help me on my way.'"],
         equipCheatItem: {
           'custom_boone_rifle': ["He shoulders Old Betsy. 'A good rifle is a good friend.'"],
           'custom_boone_coat': ["The Deerskin Coat is light and quiet."]
@@ -897,8 +989,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'item_sharp_knife_carson', name: "Scout's Knife", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "A reliable blade for a man of the mountains.", sellValue: 10, isCheat: true, illustrationId: 'item_sharp_knife_t1' },
       ],
       catchphrases: {
-        threatDefeated: ["He nods grimly. 'The trail is clear.'", "'I've seen the elephant.'", "'The mountains call to me.'", "'A man must live with the choices he makes.'"],
-        playerAttack: ["'This is how it's done in the mountains.'", "'A simple, effective solution.'"],
+        playerAttackHuman: ["'This is how it's done in the mountains.'", "'A simple, effective solution.'", "'Some men just need puttin' down.'"],
+        playerAttackAnimal: ["'This is how it's done in the mountains.'", "'A simple, effective solution.'", "'For the cookpot.'"],
+        threatDefeatedHuman: ["He nods grimly. 'The trail is clear.'", "'I've seen the elephant.'", "'A man must live with the choices he makes.'", "'Another soul lost to the frontier.'"],
+        threatDefeatedAnimal: ["He nods grimly. 'The trail is clear.'", "'The mountains provide.'", "'A fine pelt.'"],
         itemTaken: ["'This will be useful.'", "'The land provides for those who know how to look.'"],
         playerDamage: ["'A scrape. Nothing more.'", "'The mountains test your resolve.'"],
         equipCheatItem: {
@@ -924,8 +1018,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_artemis_arrowhead', name: "Moonstone Arrowhead", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'bow_boost', amount: 3, persistent: true }, description: "An arrowhead that glows with a faint lunar light.", sellValue: 15, isCheat: true, illustrationId: 'upgrade_lucky_arrowhead' },
       ],
       catchphrases: {
-        playerAttack: ["An arrow loosed under the eye of the moon.", "'Let the hunt commence!'", "'By the light of the full moon!'", "'The huntress does not fail.'"],
-        threatDefeated: ["The {enemyName} falls. 'A tribute to the wilds.'", "'The balance is restored.'"],
+        playerAttackHuman: ["'Let the hunt commence!'", "'By the light of the full moon!'", "'The huntress does not fail.'", "'A mortal's folly.'"],
+        playerAttackAnimal: ["An arrow loosed under the eye of the moon. She attacks the beast.", "'The wilds must be respected.'", "'A tribute to the moon.'"],
+        threatDefeatedHuman: ["The mortal falls. 'They should have known better than to challenge a goddess.'", "'A life for a life.'"],
+        threatDefeatedAnimal: ["The {enemyName} falls. 'A tribute to the wilds.'", "'The balance is restored.'", "'The hunt is concluded.'"],
         playerDamage: ["A mortal strikes a goddess. 'Insolence!'", "'This is but a scratch to an immortal.'"],
         playerHeal: ["'The wilds mend their own.'", "'My strength returns with the rising moon.'"],
         equipCheatItem: {
@@ -949,8 +1045,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'item_six_shooter_hunter', name: "Hunter's Pistol", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "A firearm used for parrying beasts, not for damage.", sellValue: 10, isCheat: true, illustrationId: 'item_six_shooter_t1_sh' },
       ],
       catchphrases: {
-        playerAttack: ["'A hunter must hunt.'", "He strikes with visceral speed."],
-        threatDefeated: ["'Farewell, good hunter. May you find your worth in the waking world.'", "PREY SLAUGHTERED"],
+        playerAttackHuman: ["'A hunter must hunt.'", "He strikes with visceral speed.", "'You are no beast, but you are a threat.'"],
+        playerAttackAnimal: ["'A hunter must hunt.'", "He strikes with visceral speed.", "'Beast... foul beast!'"],
+        threatDefeatedHuman: ["'Farewell, good hunter. May you find your worth in the waking world.'", "PREY SLAUGHTERED", "'Another dream ends.'"],
+        threatDefeatedAnimal: ["'Farewell, good hunter. May you find your worth in the waking world.'", "PREY SLAUGHTERED", "'You are no longer a beast. You are free.'"],
         playerDamage: ["'Fear the Old Blood.' He takes {damageAmount} damage.", "'The sweet blood, oh, it sings to me.'"],
         playerHeal: ["He injects a Blood Vial.", "'Just a little blood, to keep me going.'"],
         itemBought: ["He buys the {itemName}. 'A hunter is never alone.'"],
@@ -977,11 +1075,12 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_jeremiah_coat', name: "Mountain Man's Coat", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 5, persistent: true }, description: "Made from... well, you don't ask.", sellValue: 15, isCheat: true, illustrationId: 'upgrade_bearskin_coat' },
       ],
       catchphrases: {
-        playerAttack: ["He nods. '...and some say he's still up there.'", "'You've come far, pilgrim.'", "'Watch your topknot.'"],
-        threatDefeated: ["'The Rocky Mountains are the marrow of the world.'", "'Would you happen to have a spare pocket watch with a chain?'", "'Elk don't know how many feet a horse has!'"],
-        threatDefeatedHuman: ["'They were trespassers. This is my land.'", "'Some say he's still up there, looking for who done his family wrong.'"],
-        playerDamage: ["He takes the hit. 'It's a hard life.'", "'The mountains test a man.'"],
+        playerAttackHuman: ["'You've come far, pilgrim.' He attacks the man.", "'Watch your topknot.' He attacks the human.", "'Ain't this somethin'?'"],
+        playerAttackAnimal: ["'The Rocky Mountains are the marrow of the world.' He attacks the beast.", "'Elk don't know how many feet a horse has!' He attacks the animal.", "'Just another meal.'"],
+        threatDefeatedHuman: ["'They were trespassers. This is my land.'", "'Some say he's still up there, looking for who done his family wrong.'", "'It is done.'"],
+        threatDefeatedAnimal: ["'The mountains provide.' The beast is defeated.", "'A good day for huntin'.'", "'This will make a fine coat.'"],
         itemTaken: ["'This will be useful.'", "'The mountain provides.'"],
+        playerDamage: ["He takes the hit. 'It's a hard life.'", "'The mountains test a man.'"],
         goldFound: ["'I'll trade this for some supplies.'"],
         equipCheatItem: {
           'item_hunting_rifle_jeremiah': ["The .50 Caliber Hawken feels right in his hands."],
@@ -1005,10 +1104,12 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_glass_revenge', name: "Revenant's Fury", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "Fueled by sheer will. Draw 2 cards.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_iron_will' },
       ],
       catchphrases: {
-        playerAttack: ["'As long as you can still grab a breath, you fight.'", "'Revenge is in God's hands... not mine.' But he attacks anyway.", "'They don't hear your voice! They just see the color of your face.'"],
+        playerAttackHuman: ["'As long as you can still grab a breath, you fight.'", "'Revenge is in God's hands... not mine.' But he attacks anyway.", "'They don't hear your voice! They just see the color of your face.'", "'You are just another man who left me to die.'"],
+        playerAttackAnimal: ["'I've faced worse than you.' He attacks the beast.", "'The wilderness is a cruel mother.' He attacks the animal.", "'You are not the one I seek.' He attacks with cold fury."],
         playerAttackBear: ["He screams, a sound of pure rage and memory. 'I ain't afraid to die anymore. I'd done it already.'", "'He's afraid. He knows how far I came for him.'"],
         eventRevealBear: ["His eyes narrow. He remembers the cold, the pain, the betrayal. He remembers the bear.", "'I'm right here. I'll be right here.' He stares down the bear.", "He touches the scars on his back. 'This time, it's different.'"],
-        threatDefeated: ["'He's afraid. He knows how far I came for him.'"],
+        threatDefeatedHuman: ["'He's afraid. He knows how far I came for him.'", "'It is not enough. He is still out there.'", "He looks at the fallen man. 'You were just in the way.'"],
+        threatDefeatedAnimal: ["The beast falls. 'It is done.' He moves on, his purpose unchanged.", "He looks at the animal. 'The world is filled with things that will kill you.'", "'Another ghost for the forest.'"],
         playerDamage: ["He takes the hit, unfazed. 'I ain't afraid to die anymore. I'd done it already.'", "'I'm right here. I'll be right here.'", "He takes a hit, remembering the bear."],
         playerHeal: ["'I must survive.'", "'My son... he watches over me.'"],
         itemTaken: ["'This will help me survive.'", "'The earth provides.'"],
@@ -1033,8 +1134,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_bridger_scout', name: "Mountain Man's Knowledge", type: 'Action', effect: { type: 'scout' }, description: "He knows these lands like the back of his hand. Scout and draw 1 card.", sellValue: 5, isCheat: true, illustrationId: 'action_scout_ahead', immediateEffect: { type: 'draw', amount: 1 } },
       ],
       catchphrases: {
-        threatDefeated: ["He nods grimly. 'This country is not for greenhorns.'", "'I've seen the elephant.'", "'The mountains call to me.'", "'A man must live with the choices he makes.'"],
         playerAttack: ["'This is how it's done in the mountains.'", "'A simple, effective solution.'"],
+        threatDefeated: ["He nods grimly. 'This country is not for greenhorns.'", "'I've seen the elephant.'", "'The mountains call to me.'", "'A man must live with the choices he makes.'"],
         itemTaken: ["'This will be useful.'", "'The land provides for those who know how to look.'"],
         playerDamage: ["'A scrape. Nothing more.'", "'The mountains test your resolve.'"],
         useCheatItem: {

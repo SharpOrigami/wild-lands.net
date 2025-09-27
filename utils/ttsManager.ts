@@ -122,11 +122,10 @@ class TTSManager {
         this.messageQueue = text.split(/\n+/).filter(p => p.trim().length > 0);
 
         if (this.synthesis.speaking) {
-            this.currentUtterance = null;
             this.synthesis.cancel();
-            this.isSpeaking = false;
+        } else {
+            this.processQueue();
         }
-        this.processQueue();
     }
 
     public speakLogs(messages: string[]) {
@@ -137,11 +136,10 @@ class TTSManager {
         this.messageQueue = messages;
 
         if (this.synthesis.speaking) {
-            this.currentUtterance = null;
             this.synthesis.cancel();
-            this.isSpeaking = false;
+        } else {
+            this.processQueue();
         }
-        this.processQueue();
     }
 
     public cancel() {
