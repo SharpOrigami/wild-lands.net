@@ -277,6 +277,7 @@ export interface GameState {
   triggerEquipAnimation?: boolean;
   eventDifficultyBonus: number;
   remixDeckOnStart?: boolean;
+  saveSlotIndex?: number | null;
 }
 
 export interface AIBossData {

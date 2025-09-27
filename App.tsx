@@ -13,6 +13,7 @@ import TutorialComponent from './components/TutorialComponent.tsx';
 import StatsModalComponent from './components/StatsModalComponent.tsx';
 import TTSModalComponent from './components/TTSModalComponent.tsx';
 import ManualContent from './components/ManualContent.tsx'; // Import the new component
+import SaveGameModalComponent from './components/SaveGameModalComponent.tsx';
 import { loadLifetimeStats, resetLifetimeStats } from './utils/statsUtils.ts';
 import { LifetimeStats } from './types.ts';
 import { PLAYER_ID, NG_PLUS_THEME_MILESTONE_INTERVAL, APP_VERSION } from './constants.ts';
@@ -202,11 +203,18 @@ const App: React.FC = () => {
     handleCheatAddMaxHealth,
     startNextLevelRemix,
     handleCheatRemixDeck,
+// FIX: Destructure saveGame, loadGame, deleteGame, and downloadGame from useGameState.
+    saveGame,
+    loadGame,
+    deleteGame,
+    downloadGame,
+    uploadAndLoadGame,
   } = useGameState();
   
   const [tutorialState, setTutorialState] = useState({ active: false, step: 0 });
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [isTTSModalOpen, setIsTTSModalOpen] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [lifetimeStats, setLifetimeStats] = useState<LifetimeStats | null>(null);
   const [isAssetsInitialized, setIsAssetsInitialized] = useState(false);
   const [isBackgroundLoading, setIsBackgroundLoading] = useState(false);
@@ -221,6 +229,11 @@ const App: React.FC = () => {
     setIsTTSModalOpen(prev => !prev);
   }
 
+  const toggleSaveModal = () => {
+    soundManager.playSound('ui_button_click');
+    setIsSaveModalOpen(prev => !prev);
+  };
+
   const enableNgPlusButtons = () => {
       soundManager.playSound('gold');
       handleCardAction('SHOW_MODAL', {
@@ -233,6 +246,10 @@ const App: React.FC = () => {
 
   const handleCheatAddGold = (amount: number) => {
       handleCardAction('CHEAT_ADD_GOLD', { amount });
+  };
+
+  const handleNewGame = (slotIndex: number) => {
+    fullResetGame({ saveSlotIndex: slotIndex });
   };
 
   useEffect(() => {
@@ -797,8 +814,29 @@ const App: React.FC = () => {
         />
       )}
 
+      {isSaveModalOpen && gameState && (
+        <SaveGameModalComponent
+          isOpen={isSaveModalOpen}
+          onClose={toggleSaveModal}
+          gameState={gameState}
+          onSave={saveGame}
+          onLoad={loadGame}
+          onDelete={deleteGame}
+          onDownload={downloadGame}
+          onNewGame={handleNewGame}
+          onUploadAndLoad={uploadAndLoadGame}
+        />
+      )}
+
       {gameState.status === 'setup' && (
         <div className="absolute left-4 top-4 flex flex-col items-start gap-2 z-[500]">
+          <button
+            onClick={toggleSaveModal}
+            className="button !bg-green-800 hover:!bg-green-900 !text-white !border-green-900 text-xs py-1 px-2"
+            title="Save, load, create a new game, or download a game."
+          >
+            Save
+          </button>
           <button
             onClick={() => {
               soundManager.playSound('ui_button_click');

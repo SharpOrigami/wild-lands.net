@@ -21,6 +21,7 @@ import { applyHealToPlayer as applyHealToPlayerUtil, applyDamageAndGetAnimation 
 import { createPedometerManager } from '../gameLogic/pedometerManager.ts';
 import * as actionHandlers from '../utils/actionHandlers.ts';
 import { POP_CULTURE_CHEATS, PopCultureCheatEffect } from '../utils/cheatCodes.ts';
+import { saveGameToSlot, getSaveGames, deleteGameInSlot } from '../utils/saveUtils.ts';
 
 
 const initialModalState: ModalState = { isOpen: false, title: '', text: '' };
@@ -1325,9 +1326,9 @@ export const useGameState = () => {
     }
   }, [_log]);
 
-  const resetGame = useCallback((options: { hardReset?: boolean; ngPlusOverride?: number } = {}) => {
+  const resetGame = useCallback((options: { hardReset?: boolean; ngPlusOverride?: number; saveSlotIndex?: number } = {}) => {
     ttsManager.cancel();
-    const { hardReset = false, ngPlusOverride } = options;
+    const { hardReset = false, ngPlusOverride, saveSlotIndex } = options;
     const isInitialLoad = gameStateRef.current === null;
     const initialStatus = (hardReset || isInitialLoad) ? 'landing' : 'setup';
 
@@ -1376,7 +1377,7 @@ export const useGameState = () => {
         ngPlusLevel, cumulativeNGPlusMaxHealthBonus, stepsTaken,
     };
     const baseInitialState: GameState = {
-        status: initialStatus, playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjective: null, storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, triggerEquipAnimation: false, eventDifficultyBonus: 0,
+        status: initialStatus, playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjective: null, storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, triggerEquipAnimation: false, eventDifficultyBonus: 0, saveSlotIndex: saveSlotIndex ?? undefined,
     };
     setGameState(baseInitialState);
     
@@ -1997,9 +1998,9 @@ export const useGameState = () => {
     resetGame({ ngPlusOverride: currentGameState.ngPlusLevel + 1 });
   }, [resetGame, _log]);
   
-  const fullResetGame = useCallback(() => {
+  const fullResetGame = useCallback((options?: { saveSlotIndex?: number }) => {
     ttsManager.cancel();
-    resetGame({ hardReset: true });
+    resetGame({ hardReset: true, ...options });
   }, [resetGame]);
   const deselectAllCards = useCallback(() => setGameState(prev => !prev || !prev.selectedCard ? prev : { ...prev, selectedCard: null }), []);
   const setSelectedCard = useCallback((details: { card: CardData; source: string; index: number } | null) => setGameState(prev => !prev ? null : { ...prev, selectedCard: details }), []);
@@ -2143,6 +2144,109 @@ export const useGameState = () => {
     });
   }, [_log]);
 
+  const saveGame = useCallback((slotIndex: number) => {
+    const currentGameState = gameStateRef.current;
+    if (!currentGameState) return;
+    const success = saveGameToSlot(currentGameState, slotIndex);
+    if (success) {
+      _log(`Game saved to slot ${slotIndex + 1}.`, 'system');
+      setGameState(prev => prev ? { ...prev, saveSlotIndex: slotIndex } : null);
+    } else {
+      _log(`Failed to save game to slot ${slotIndex + 1}.`, 'error');
+    }
+  }, [_log]);
+
+  const loadGame = useCallback((slotIndex: number) => {
+    const saves = getSaveGames();
+    const savedState = saves[slotIndex];
+    if (savedState) {
+      const themeName = getThemeName(savedState.ngPlusLevel || 0);
+      let remixedCards: { [id: string]: CardData } = {};
+      if (savedState.ngPlusLevel > 0 && savedState.ngPlusLevel < 10) {
+          const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
+          remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+      } else if (savedState.ngPlusLevel >= 10) {
+          const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
+          remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+      }
+
+      const finalCardsData = { ...ALL_CARDS_DATA_MAP, ...remixedCards };
+      if (savedState.aiBoss?.id) {
+          finalCardsData[savedState.aiBoss.id] = savedState.aiBoss;
+      }
+      updateCurrentCardsData(finalCardsData);
+
+      const rehydratedState: GameState = {
+        ...savedState,
+        modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
+        activeGameBanner: initialGameBannerState,
+        pendingPlayerDamageAnimation: null,
+        scrollAnimationPhase: 'none',
+        newlyDrawnCardIndices: undefined,
+        triggerEquipAnimation: false,
+        isLoadingBossIntro: false,
+        isLoadingStory: false,
+        isLoadingNGPlus: false,
+        showNGPlusRewardModal: false,
+        selectedCard: null,
+      };
+
+      setGameState(rehydratedState);
+      _log(`Game loaded from slot ${slotIndex + 1}.`, 'system');
+      localStorage.setItem('wildWestGameState_WWS', JSON.stringify(rehydratedState));
+    } else {
+      _log(`No game found in slot ${slotIndex + 1}.`, 'error');
+    }
+  }, [_log]);
+
+  const deleteGame = useCallback((slotIndex: number) => {
+    const success = deleteGameInSlot(slotIndex);
+    if (success) {
+      _log(`Save game in slot ${slotIndex + 1} deleted.`, 'system');
+    } else {
+      _log(`Failed to delete save in slot ${slotIndex + 1}.`, 'error');
+    }
+  }, [_log]);
+
+  const downloadGame = useCallback((slotIndex: number) => {
+    const saves = getSaveGames();
+    const gameStateToDownload = saves[slotIndex];
+    if (gameStateToDownload) {
+      try {
+        const jsonString = JSON.stringify(gameStateToDownload, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const playerName = gameStateToDownload.playerDetails[PLAYER_ID]?.name || 'Player';
+        const date = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `WildLands_Save_Slot${slotIndex + 1}_${playerName}_${date}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        _log(`Downloaded save from slot ${slotIndex + 1}.`, 'system');
+      } catch (error) {
+        _log(`Failed to download save from slot ${slotIndex + 1}.`, 'error');
+        console.error("Error downloading save file:", error);
+      }
+    } else {
+       _log(`No game data in slot ${slotIndex + 1} to download.`, 'error');
+    }
+  }, [_log]);
+
+  const uploadAndLoadGame = useCallback((uploadedGameState: GameState, slotIndex: number) => {
+    // Save the uploaded state into the specified slot
+    const success = saveGameToSlot(uploadedGameState, slotIndex);
+    if (success) {
+      _log(`Game state from file successfully saved to slot ${slotIndex + 1}.`, 'system');
+      // Now, load the game from that slot, which rehydrates everything properly
+      loadGame(slotIndex);
+    } else {
+      _log(`Failed to save uploaded game to slot ${slotIndex + 1}.`, 'error');
+    }
+  }, [_log, loadGame]);
+
   const startNextLevelRemix = useCallback(() => {
     const currentGameState = gameStateRef.current;
     if (!currentGameState) return;
@@ -2268,5 +2372,10 @@ export const useGameState = () => {
     handleCheatAddMaxHealth,
     startNextLevelRemix,
     handleCheatRemixDeck,
+    saveGame,
+    loadGame,
+    deleteGame,
+    downloadGame,
+    uploadAndLoadGame,
   };
 };
