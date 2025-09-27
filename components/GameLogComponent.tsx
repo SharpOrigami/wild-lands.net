@@ -21,8 +21,9 @@ const GameLogComponent: React.FC<GameLogProps> = ({ logEntries }) => {
   // The log arrives with newest entries first. We process it as is.
   for (const entry of logEntries) {
       const time = new Date(entry.timestamp);
-      // Key based on message and time down to the second
-      const key = `${entry.message}_${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`;
+      // Key based on message and time down to the millisecond to avoid false-positive deduplication
+      // that can cause issues with narration playback logic.
+      const key = `${entry.message}_${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}.${time.getMilliseconds()}`;
       if (!seenLogKeys.has(key)) {
           uniqueLogEntries.push(entry);
           seenLogKeys.add(key);

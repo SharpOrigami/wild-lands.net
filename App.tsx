@@ -362,8 +362,6 @@ const App: React.FC = () => {
         soundManager.stopMusic();
         break;
       case 'setup':
-      case 'generating_boss_intro':
-      case 'showing_boss_intro':
         {
             const ngPlusLevel = gameState.ngPlusLevel;
             let setupMusic: 'music_setup' | 'music_setup_fj' | 'music_setup_as' | 'music_setup_sh' | 'music_setup_cp' = 'music_setup';
@@ -381,16 +379,20 @@ const App: React.FC = () => {
             soundManager.playMusic(setupMusic);
         }
         break;
+      case 'generating_boss_intro':
+      case 'showing_boss_intro':
+        soundManager.playMusic('music_main');
+        break;
       case 'playing':
       case 'playing_initial_reveal':
         if (isBossActive) {
           soundManager.playMusic('music_boss');
         } else {
-            // FIX: The previous logic incorrectly used theme-specific setup music for the main gameplay loop.
-            // Since there is only one dedicated "main" track, we will use it for all non-boss gameplay
-            // to ensure a consistent and appropriate gameplay tempo, addressing the user's feedback.
-            soundManager.playMusic('music_main');
+          soundManager.playMusic('music_main');
         }
+        break;
+      case 'deck_review':
+        soundManager.playMusic('music_victory');
         break;
       case 'finished':
         if (gameState.playerDetails[PLAYER_ID]?.health > 0) {

@@ -16,7 +16,7 @@ import { generateStoryForGame, generateAIBossForGame, remixCardsForNGPlusGame, g
 import { updateLifetimeStats } from '../utils/statsUtils.ts';
 import { soundManager } from '../utils/soundManager.ts';
 import { ttsManager } from '../utils/ttsManager.ts';
-import { getThemedCardPool, getThemeSuffix, getThemeSuffixForMilestone, getThemeName } from '../utils/themeUtils.ts';
+import { getThemedCardPool, getThemeSuffix, getThemeName, getThemeSuffixForMilestone } from '../utils/themeUtils.ts';
 import { applyHealToPlayer as applyHealToPlayerUtil, applyDamageAndGetAnimation as applyDamageAndGetAnimationUtil, handleTrapInteractionWithEvent as handleTrapInteractionWithEventUtil, handleObjectiveCompletionChecks as handleObjectiveCompletionChecksUtil, applyImmediateEventAndCheckEndTurn as applyImmediateEventAndCheckEndTurnUtil } from '../utils/gameplayUtils.ts';
 import { createPedometerManager } from '../gameLogic/pedometerManager.ts';
 import * as actionHandlers from '../utils/actionHandlers.ts';
@@ -1251,6 +1251,80 @@ export const useGameState = () => {
     } : null);
   }, [_log, triggerGoldFlash, getBaseCardByIdentifier]);
 
+  const pregenerateNextLevelRemix = useCallback(async (level: number) => {
+    try {
+        const themeName = getThemeName(level);
+        const themeSuffix = getThemeSuffix(level);
+
+        if (level === 0) return;
+
+        // Levels 1-9
+        if (level >= 1 && level < 10) {
+            const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
+            let cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+            
+            const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => !/_fj$|_as$|_sh$|_cp$/.test(c.id));
+            const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
+            const remixableCards = originalThemePool.filter(card => !alreadyRemixedOriginalIds.has(card.id) && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
+
+            if (remixableCards.length > 0) {
+                _log(`Remixing 1 new card for the Western pool for NG+${level}...`, "system");
+                const cardToRemix = shuffleArray(remixableCards)[0];
+                const singleRemixResult = await remixCardsForNGPlusGame(_log, { [cardToRemix.id]: cardToRemix }, level);
+                if (singleRemixResult) {
+                    const newRemixedCards = { ...cumulativeRemixedCards, ...singleRemixResult };
+                    localStorage.setItem(remixedPoolKey, JSON.stringify(newRemixedCards));
+                }
+            }
+        } 
+        // Milestone Levels
+        else if (level >= 10 && level % NG_PLUS_THEME_MILESTONE_INTERVAL === 0) {
+            const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
+            localStorage.removeItem(remixedPoolKey); // Clear the pool for the new theme
+            _log(`Entering a new realm for NG+${level}: ${themeName}. Clearing old legends and forging a new one...`, "system");
+            
+            const themeSuffixForMilestone = getThemeSuffixForMilestone(level);
+            let cardsForRemixingPool: CardData[] = [];
+            if (themeSuffixForMilestone) {
+                cardsForRemixingPool = Object.values(ALL_CARDS_DATA_MAP).filter(c => c.id.endsWith(themeSuffixForMilestone) && c.subType !== 'objective' && c.buyCost && c.buyCost > 0);
+            }
+
+            if (cardsForRemixingPool.length > 0) {
+                const cardToRemix = shuffleArray(cardsForRemixingPool)[0];
+                const singleRemixedCard = await remixCardsForNGPlusGame(_log, { [cardToRemix.id]: cardToRemix }, level);
+                localStorage.setItem(remixedPoolKey, JSON.stringify(singleRemixedCard || {}));
+            }
+        } 
+        // Non-Milestone Themed Levels
+        else if (level > 10) {
+            const CARDS_TO_REMIX_PER_LEVEL = 10;
+            const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
+            let cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+            
+            const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => themeSuffix ? c.id.endsWith(themeSuffix) : false);
+            const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
+            const remixableCards = originalThemePool.filter(card => !alreadyRemixedOriginalIds.has(card.id) && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
+
+            if (remixableCards.length > 0) {
+                const numToRemix = Math.min(CARDS_TO_REMIX_PER_LEVEL, remixableCards.length);
+                _log(`Adding ${numToRemix} new remixed cards to the ${themeName} pool for NG+${level}...`, "system");
+                const shuffledRemixable = shuffleArray(remixableCards);
+                const cardsToRemixSelection = shuffledRemixable.slice(0, numToRemix);
+                const cardsToRemixDict: { [id: string]: CardData } = {};
+                cardsToRemixSelection.forEach(card => { cardsToRemixDict[card.id] = card; });
+
+                const multiRemixResult = await remixCardsForNGPlusGame(_log, cardsToRemixDict, level);
+                if (multiRemixResult) {
+                    const newRemixedCards = { ...cumulativeRemixedCards, ...multiRemixResult };
+                    localStorage.setItem(remixedPoolKey, JSON.stringify(newRemixedCards));
+                }
+            }
+        }
+    } catch (err) {
+        _log(`Failed to pregenerate assets for NG+${level}. They will be generated upon starting the next run.`, "error");
+    }
+  }, [_log]);
+
   const resetGame = useCallback((options: { hardReset?: boolean; ngPlusOverride?: number } = {}) => {
     ttsManager.cancel();
     const { hardReset = false, ngPlusOverride } = options;
@@ -1305,55 +1379,6 @@ export const useGameState = () => {
         status: initialStatus, playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjective: null, storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, triggerEquipAnimation: false, eventDifficultyBonus: 0,
     };
     setGameState(baseInitialState);
-
-    const pregenerateNextLevelRemix = async (level: number) => {
-        try {
-            if (level >= 10) {
-                const themeName = getThemeName(level);
-                const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-                
-                if (level % NG_PLUS_THEME_MILESTONE_INTERVAL === 0) {
-                    _log(`Pregenerating new theme for NG+${level}: ${themeName}. Remixing card set...`, "system");
-                    const themeSuffix = getThemeSuffixForMilestone(level);
-                    let cardsForRemixing: { [id: string]: CardData } = {};
-                    if (themeSuffix) {
-                        for (const cardId in ALL_CARDS_DATA_MAP) {
-                            if (cardId.endsWith(themeSuffix)) cardsForRemixing[cardId] = ALL_CARDS_DATA_MAP[cardId];
-                        }
-                    }
-                    const bulkRemixedCards = await remixCardsForNGPlusGame(_log, cardsForRemixing, level);
-                    localStorage.setItem(remixedPoolKey, JSON.stringify(bulkRemixedCards || {}));
-                } else {
-                    const CARDS_TO_REMIX_PER_LEVEL = 10;
-                    const cumulativeRemixedCardsStr = localStorage.getItem(remixedPoolKey);
-                    let cumulativeRemixedCards = cumulativeRemixedCardsStr ? JSON.parse(cumulativeRemixedCardsStr) : {};
-                    
-                    const themeSuffix = getThemeSuffix(level);
-                    const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => themeSuffix ? c.id.endsWith(themeSuffix) : !/_fj$|_as$|_sh$|_cp$/.test(c.id));
-                    
-                    const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
-                    const remixableCards = originalThemePool.filter(card => !alreadyRemixedOriginalIds.has(card.id) && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
-
-                    if (remixableCards.length > 0) {
-                        const numToRemix = Math.min(CARDS_TO_REMIX_PER_LEVEL, remixableCards.length);
-                        _log(`Adding ${numToRemix} new remixed cards to the ${themeName} pool for NG+${level}...`, "system");
-                        const shuffledRemixable = shuffleArray(remixableCards);
-                        const cardsToRemixSelection = shuffledRemixable.slice(0, numToRemix);
-                        const cardsToRemixDict: { [id: string]: CardData } = {};
-                        cardsToRemixSelection.forEach(card => { cardsToRemixDict[card.id] = card; });
-
-                        const multiRemixResult = await remixCardsForNGPlusGame(_log, cardsToRemixDict, level);
-                        if (multiRemixResult) {
-                            const newRemixedCards = { ...cumulativeRemixedCards, ...multiRemixResult };
-                            localStorage.setItem(remixedPoolKey, JSON.stringify(newRemixedCards));
-                        }
-                    }
-                }
-            }
-        } catch (err) {
-            _log(`Failed to pregenerate assets for NG+${level}. They will be generated upon starting the next run.`, "error");
-        }
-    };
     
     const initializeLevel = async (level: number) => {
       try {
@@ -1370,8 +1395,8 @@ export const useGameState = () => {
 
         let finalRemixedCards: { [id: string]: CardData } = {};
         if (level > 0 && level < 10) {
-            const remixedKey = `ngPlusThemeSet_level_${level}_WWS`;
-            finalRemixedCards = JSON.parse(localStorage.getItem(remixedKey) || '{}');
+            const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
+            finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
         } else if (level >= 10) {
             const themeName = getThemeName(level);
             const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
@@ -1443,7 +1468,7 @@ export const useGameState = () => {
       }
     };
     initializeLevel(ngPlusLevel);
-  }, [_log]);
+  }, [_log, pregenerateNextLevelRemix]);
 
   const selectCharacter = useCallback((character: Character) => {
     setGameState(prev => {
@@ -1589,20 +1614,9 @@ export const useGameState = () => {
         remixGenerationPromise.current = (async () => {
             const ngPlusLevel = gameStateRef.current!.ngPlusLevel;
             if (ngPlusLevel > 0 && ngPlusLevel < 10) {
-                const currentThemeKey = `ngPlusThemeSet_level_${ngPlusLevel}_WWS`;
-                let remixedCards = JSON.parse(localStorage.getItem(currentThemeKey) || '{}');
-                if (Object.keys(remixedCards).length === 0) {
-                    _log(`A strange new item appears on the frontier for NG+${ngPlusLevel}...`, "system");
-                    const westernCardPool = Object.values(ALL_CARDS_DATA_MAP).filter(card => !/_fj$|_as$|_sh$|_cp$/.test(card.id) && (card.type === 'Item' || card.type === 'Player Upgrade' || card.type === 'Action') && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
-                    if (westernCardPool.length > 0) {
-                        const cardToRemix = westernCardPool[Math.floor(Math.random() * westernCardPool.length)];
-                        const singleRemixedCardDict = await remixCardsForNGPlusGame(_log, { [cardToRemix.id]: cardToRemix }, ngPlusLevel);
-                        if (singleRemixedCardDict) {
-                            remixedCards = singleRemixedCardDict;
-                            localStorage.setItem(currentThemeKey, JSON.stringify(remixedCards));
-                        }
-                    }
-                }
+                const remixedKey = `remixedCardPool_theme_western_WWS`;
+                let remixedCards = JSON.parse(localStorage.getItem(remixedKey) || '{}');
+                // The new logic will already have added a card, so no need for this block.
                 if (Object.keys(remixedCards).length > 0) {
                     updateCurrentCardsData({ ...CURRENT_CARDS_DATA, ...remixedCards });
                 }
@@ -1631,7 +1645,7 @@ export const useGameState = () => {
     } finally {
         isActionInProgress.current = false;
     }
-  }, [_log]);
+  }, [_log, pregenerateNextLevelRemix]);
 
   const proceedToGamePlay = useCallback(async () => {
     if (remixGenerationPromise.current) {
@@ -1818,13 +1832,28 @@ export const useGameState = () => {
     const cheat = POP_CULTURE_CHEATS.find(c => c.name.toLowerCase() === playerDetailsFromSetup.name?.toLowerCase() && c.requiredCharacterId === playerChar.id);
     if (cheat && cheat.effects.addCustomCards) {
         const customCards = cheat.effects.addCustomCards;
-        _log(`A legend's gear manifests: ${customCards.map(c => c.name).join(', ')}.`, 'system');
-        const newCardsMap = { ...CURRENT_CARDS_DATA };
-        customCards.forEach(card => {
-            newCardsMap[card.id] = card;
-        });
-        updateCurrentCardsData(newCardsMap);
-        finalPlayerDiscard.push(...customCards);
+        
+        // Check for existing cheat cards to prevent duplication on restart
+        const allPlayerCardIds = new Set([
+            ...playerDetailsFromSetup.playerDeck.map(c => c.id),
+            ...playerDetailsFromSetup.playerDiscard.map(c => c.id),
+            ...playerDetailsFromSetup.equippedItems.map(c => c.id),
+            ...playerDetailsFromSetup.satchel.map(c => c.id)
+        ]);
+
+        const newCardsToAdd = customCards.filter(customCard => !allPlayerCardIds.has(customCard.id));
+
+        if (newCardsToAdd.length > 0) {
+            _log(`A legend's gear manifests: ${newCardsToAdd.map(c => c.name).join(', ')}.`, 'system');
+            const newCardsMap = { ...CURRENT_CARDS_DATA };
+            newCardsToAdd.forEach(card => {
+                newCardsMap[card.id] = card;
+            });
+            updateCurrentCardsData(newCardsMap);
+            finalPlayerDiscard.push(...newCardsToAdd);
+        } else {
+            _log(`Legendary gear already present.`, 'debug');
+        }
     }
 
     if (rewardCards.length > 0) {
@@ -1871,7 +1900,7 @@ export const useGameState = () => {
         isLoadingNGPlus: false,
         remixDeckOnStart: false,
     });
-  }, [_log]);
+  }, [_log, pregenerateNextLevelRemix]);
 
    useEffect(() => {
     if (gameState?.status === 'playing_initial_reveal') {
@@ -2119,33 +2148,8 @@ export const useGameState = () => {
     if (!currentGameState) return;
     const nextLevel = currentGameState.ngPlusLevel + 1;
     _log(`Pregenerating assets for NG+${nextLevel}...`, "system");
-
-    const pregenerateNextLevelRemix = async (level: number) => {
-        try {
-            if (level >= 10) {
-                const themeName = getThemeName(level);
-                const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-                if (level % NG_PLUS_THEME_MILESTONE_INTERVAL === 0) {
-                    const themeSuffix = getThemeSuffixForMilestone(level);
-                    let cardsForRemixing: { [id: string]: CardData } = {};
-                    if (themeSuffix) {
-                        for (const cardId in ALL_CARDS_DATA_MAP) {
-                            if (cardId.endsWith(themeSuffix)) cardsForRemixing[cardId] = ALL_CARDS_DATA_MAP[cardId];
-                        }
-                    }
-                    const bulkRemixedCards = await remixCardsForNGPlusGame(_log, cardsForRemixing, level);
-                    localStorage.setItem(remixedPoolKey, JSON.stringify(bulkRemixedCards || {}));
-                } else {
-                    // Logic for non-milestone levels can be added here if needed
-                }
-            }
-            _log(`Finished pregenerating assets for NG+${level}.`, "system");
-        } catch (err) {
-            _log(`Failed to pregenerate assets for NG+${level}. They will be generated upon starting the next run.`, "error");
-        }
-    };
     nextLevelRemixPromise.current = pregenerateNextLevelRemix(nextLevel);
-  }, [_log]);
+  }, [_log, pregenerateNextLevelRemix]);
 
   useEffect(() => {
     if (gameState === null) {

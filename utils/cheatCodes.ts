@@ -76,13 +76,13 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'item_six_shooter_clint', name: "Peacemaker", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "A revolver that has settled many disputes.", sellValue: 20, isCheat: true, illustrationId: 'item_six_shooter_t1' }
       ],
       catchphrases: {
-        playerAttackHuman: ["'You've gotta ask yourself one question: 'Do I feel lucky?' Well, do ya, punk?'", "'Go ahead, make my day.'", "He squints. 'My mule don't like people laughing. He gets the crazy idea you're laughin' at him.'", "'Every gun makes its own tune.'", "'A man's got to know his limitations.'"],
-        playerAttackAnimal: ["He squints at the beast. 'Don't like things that ain't human.'", "He fires without a word. Just another creature in a harsh land.", "The revolver barks. He's not one for conversation with animals.", "'Doesn't matter. Still gotta eat.'", "The sound of his gun is swallowed by the plains."],
-        threatDefeatedHuman: ["'A man's got to know his limitations.' The {enemyName} found theirs.", "He blows the smoke from his six-shooter. 'You see, in this world there's two kinds of people, my friend... Those with loaded guns and those who dig. You dig.'", "'Deserve's got nothin' to do with it.'", "'Get three coffins ready.'"],
-        threatDefeatedAnimal: ["'Just a dumb animal.' He reloads his revolver.", "He looks at the fallen beast. 'The world's a hard place.'", "He takes no notice of the dead creature, his eyes already scanning the horizon.", "The dust settles on the dead creature."],
-        goldFound: ["He picks up the {goldAmount} Gold. 'A fistful of dollars.'", "'For a few dollars more...'", "'The Good, the Bad, and the Ugly... and I'm the one with the gold.'"],
-        playerDamage: ["He takes the hit without a word, just a cold stare.", "A bullet grazes him. He just chews on his cigarillo.", "'I'm not a man to be trifled with.'"],
-        itemBought: ["He pays the {cost}G. 'A man's gotta have a code.'", "'This will come in handy.'"],
+        playerAttackHuman: ["'Every gun makes its own tune.'", "'My mule don't like people laughing.'", "'When a man with a .45 meets a man with a rifle, you said, the man with a pistol's a dead man. Let's see if that's true.'"],
+        playerAttackAnimal: ["He fires without a word. Just another creature in a harsh land.", "The sound of his gun is swallowed by the plains."],
+        threatDefeatedHuman: ["'You see, in this world there's two kinds of people, my friend... Those with loaded guns and those who dig. You dig.'", "'Get three coffins ready.'", "'Such ingratitude, after all the times I've saved your life.'"],
+        threatDefeatedAnimal: ["'Just a dumb animal.' He reloads his revolver.", "He takes no notice of the dead creature, his eyes already scanning the horizon."],
+        goldFound: ["He picks up the {goldAmount} Gold. 'A fistful of dollars.'", "'For a few dollars more...'"],
+        playerDamage: ["He takes the hit without a word, just a cold stare.", "A bullet grazes him. He just chews on his cigarillo.", "Takes {damageAmount} damage. 'The man with the rifle... he's a dead man.'"],
+        itemBought: ["He pays the {cost}G. 'I'll sleep with my eyes open.'", "'This will come in handy.'"],
         equipCheatItem: {
           'custom_clint_poncho': ["He dons the dusty poncho. It feels... familiar."],
           'item_six_shooter_clint': ["He checks the action on the Peacemaker. 'Alright.'"]
@@ -105,7 +105,7 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       ],
       catchphrases: {
         playerAttackHuman: ["'You got a kind face... The kind I like to punch!'", "'Outta the damn way!'", "'Sure.' He opens fire.", "'You've got a price on your head, friend.'", "'This ain't gonna be pretty.'"],
-        playerAttackAnimal: ["'Easy, boy... easy now.' He raises his gun.", "'Just a dumb animal, but it's in my way.'", "'Sorry, friend.' He opens fire on the beast.", "'You're a fine animal. I'm sorry.'"],
+        playerAttackAnimal: ["'Easy, girl... easy now.' He raises his gun.", "'Just a dumb animal, but it's in my way.'", "'Sorry, friend.' He opens fire on the beast.", "'You're a fine animal. I'm sorry.'"],
         threatDefeatedHuman: ["'You, sir, are a fish.' The {enemyName} is no more.", "He tips his hat. 'We're thieves in a world that don't want us no more.'", "'Maybe when your mother's finished mourning your father, I'll keep her in black on your behalf.'", "'You didn't have to make me do this.'"],
         threatDefeatedAnimal: ["He sketches the fallen {enemyName} in his journal. 'A fine specimen.'", "'Just part of the food chain, I suppose.'", "'Well... that's that, then.' He looks sadly at the animal.", "'Rest now, friend.'"],
         goldFound: ["'Just a bit more, and we're off to Tahiti.' He finds {goldAmount} Gold.", "'All I'm saying is... there's always a goddamn train.'", "'One more score, and we're gone.'"],
@@ -132,10 +132,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_rooster_whiskey', name: "Bottle of Whiskey", type: 'Provision', effect: { type: 'heal', amount: 6 }, description: "Liquid courage for medicinal purposes. Heal 6 HP and draw 1 card.", sellValue: 5, isCheat: true, illustrationId: 'provision_laudanum_t1', immediateEffect: { type: 'draw', amount: 1 } },
       ],
       catchphrases: {
-        playerAttackHuman: ["'Fill your hand, you son of a bitch!'", "'I can do nothin' for you, son.'", "'I call that bold talk for a one-eyed fat man!'", "'Time to face the music!'"],
-        playerAttackAnimal: ["'Damn varmint!' He fires his Colt.", "'Get outta here, you beast!'", "He drunkenly takes aim at the creature. 'Hold still now...'", "'This one's for the pot!'"],
-        threatDefeatedHuman: ["He takes a pull from his flask. 'I'm a Rooster, not a chicken!'", "'Baby sister, I was born game and I intend to go out that way.'", "'You can't serve papers on a rat, baby sister.'", "'He's dead. Now where's my bottle?'"],
-        threatDefeatedAnimal: ["He looks at the fallen animal. 'Well, that's that.' He takes a drink.", "'Waste of a good bullet.'", "He spits. 'Nasty critter.'", "'Now, that's a fine pelt, I reckon.'"],
+        playerAttackHuman: ["'Fill your hand, you son of a bitch!'", "'I can do nothin' for you, son.'", "'I call that bold talk for a one-eyed fat man!'"],
+        playerAttackAnimal: ["'Damn varmint!' He fires his Colt.", "'Get outta here, you beast!'", "He drunkenly takes aim at the creature. 'Hold still now...'"],
+        threatDefeatedHuman: ["He takes a pull from his flask. 'I'm a Rooster, not a chicken!'", "'Baby sister, I was born game and I intend to go out that way.'", "'You can't serve papers on a rat.'"],
+        threatDefeatedAnimal: ["He looks at the fallen animal. 'Well, that's that.' He takes a drink.", "'Waste of a good bullet.'", "He spits. 'Nasty critter.'"],
         playerDamage: ["Takes a hit. 'I'm a-comin', Ned!'", "'They told me you had grit.'", "'This is the real thing!'"],
         laudanumAbuse: ["He chases the laudanum with a swig of whiskey. 'That's got a bite!'", "'By God! That's a brave sight! The far shore!'"],
         goldFound: ["Finds {goldAmount} gold. 'Time is short, and I've got a job to do.'", "'That's a tall drink of water.'"],
@@ -217,11 +217,11 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_angel_knife', name: "Bowie Knife", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "For close work.", sellValue: 10, isCheat: true, illustrationId: 'item_sharp_knife_t1' },
       ],
       catchphrases: {
-        playerAttackHuman: ["'When I'm paid, I always see the job through.'", "'Even a filthy beggar like that has a price.'", "'You see, in this world there's two kinds of people, my friend: Those with loaded guns and those who dig. You dig.'", "'It's a dirty job, but someone has to do it.'"],
-        playerAttackAnimal: ["'This is not in the contract, but it is an obstacle.'", "'A distraction from the real prize.'", "He dispatches the beast with cold efficiency.", "'A waste of a perfectly good bullet.'"],
-        threatDefeatedHuman: ["The bounty is collected. 'Such ingratitude, after all the times I've saved your life.'", "'I like to get my information from the original source.'", "He collects the bounty. 'A job's a job.'", "'Another piece of business concluded.'"],
-        threatDefeatedAnimal: ["The animal is dispatched. 'A waste of time and a bullet.'", "'The job is done.' He reloads.", "He doesn't spare a glance for the fallen beast.", "'The animal is irrelevant to my purpose.'"],
-        goldFound: ["Finds {goldAmount} Gold. 'It's a small world.'", "'I'm a man of business.' Finds {goldAmount} Gold.", "'Half is better than nothing.'"],
+        playerAttackHuman: ["'When I'm paid, I always see the job through.'", "'Even a filthy beggar like that has a price.'", "'It's a dirty job, but someone has to do it.'"],
+        playerAttackAnimal: ["'This is not in the contract, but it is an obstacle.'", "'A distraction from the real prize.'", "He dispatches the beast with cold efficiency."],
+        threatDefeatedHuman: ["The bounty is collected. 'Such ingratitude, after all the times I've saved your life.'", "'I like to get my information from the original source.'", "He collects the bounty. 'A job's a job.'"],
+        threatDefeatedAnimal: ["The animal is dispatched. 'A waste of time and a bullet.'", "'The job is done.' He reloads.", "He doesn't spare a glance for the fallen beast."],
+        goldFound: ["Finds {goldAmount} Gold. 'It's a small world.'", "'I'm a man of business.' Finds {goldAmount} Gold."],
         playerDamage: ["'You're a soldier. You know what I'm talking about.'", "'I bet you've got a lot of friends.'"],
         itemBought: ["'I'll pay you a thousand dollars. I think that's a handsome price.'", "'Another beautiful friendship.'"],
         equipCheatItem: {
@@ -247,12 +247,12 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       ],
       catchphrases: {
         playerAttackHuman: ["'Got me a bounty worth ten thousand dollars!'", "'No one said this job was supposed to be easy.'", "'When the handbill says 'dead or alive', the rest of us shoot you in the back from up on top of a perch somewhere and bring you in dead over a saddle.'", "'You only need to hang mean bastards, but mean bastards you need to hang!'"],
-        playerAttackAnimal: ["'Damn varmints!' He fires his revolver at the beast.", "'Get out of my way, you creature!'", "He attacks the animal. 'This is no place for beasts.'", "'Not worth a bounty, but in my way.'"],
-        threatDefeatedHuman: ["'When you get to hell, John, tell 'em Daisy sent ya.'", "Justice is served. The {enemyName} is no more.", "'Justice delivered... ain't the same as justice served.'", "'Another one for the gallows.'"],
-        threatDefeatedAnimal: ["He looks at the fallen animal. 'Just a dumb beast. Not worth a bounty.'", "'That's one less pest to worry about.'", "He spits. 'Nasty creature.'", "'Now, where was I? Oh yeah, justice.'"],
+        playerAttackAnimal: ["'Damn varmints!' He fires his revolver at the beast.", "'Get out of my way, you creature!'", "He attacks the animal. 'This is no place for beasts.'"],
+        threatDefeatedHuman: ["'Justice delivered... ain't the same as justice served.'", "'Another one for the gallows.'", "'When I get to Red Rock, that {enemyName}'s gonna hang.'"],
+        threatDefeatedAnimal: ["He looks at the fallen animal. 'Just a dumb beast. Not worth a bounty.'", "'That's one less pest to worry about.'", "He spits. 'Nasty creature.'"],
         playerDamage: ["'I'm taking you to hang, and that's the way it's gonna be.'", "'Well, that's the problem with old men. You can't depend on 'em.'"],
         goldFound: ["Finds {goldAmount} Gold. 'A man's gotta make a living.'", "'This country's goin' to the dogs.'"],
-        itemBought: ["'This here is a letter from Abraham Lincoln.'", "'A man's gotta have the right tools for the job.'"],
+        itemBought: ["'A man's gotta have the right tools for the job.'"],
         equipCheatItem: {
           'item_six_shooter_ruth': ["He holsters the Hangman's Revolver. 'This'll bring 'em in.'"]
         },
@@ -275,10 +275,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       ],
       catchphrases: {
         playerAttackHuman: ["'You tell 'em I'm comin'! And hell's comin' with me!'", "'You called down the thunder, well now you've got it!'", "'Skin that smoke-wagon and see what happens.'", "'Are you gonna do somethin' or just stand there and bleed?'"],
-        playerAttackAnimal: ["'Get out of this town, you damn beast!' He fires his Buntline.", "'The law applies to man and beast alike.' He attacks the creature.", "He takes aim at the animal. 'This is for the good of the town.'", "'A threat to the peace. It must be put down.'"],
+        playerAttackAnimal: ["'Get out of this town, you damn beast!' He fires his Buntline.", "'The law applies to man and beast alike.' He attacks the creature.", "He takes aim at the animal. 'This is for the good of the town.'"],
         threatDefeatedHuman: ["'The law is coming. You tell 'em I'm coming!'", "'You're a daisy if you do!'", "'It's not revenge he's after. It's a reckoning.'", "'The law is satisfied.'"],
-        threatDefeatedAnimal: ["He holsters his weapon. 'Just another stray.'", "The animal is put down. 'This town is a little safer now.'", "He looks at the beast. 'Order must be maintained.'", "'Just another stray. Not worth the bullet.'"],
-        playerDamage: ["'I'm not gonna let you kill me, Wyatt.'", "'What's it like to be a lawman?'"],
+        threatDefeatedAnimal: ["He holsters his weapon. 'Just another stray.'", "The animal is put down. 'This town is a little safer now.'", "He looks at the beast. 'Order must be maintained.'"],
+        playerDamage: ["He takes a hit. 'I'm your huckleberry.' (Wait, that's the other guy...)", "'I'm a peaceable man... but I won't be pushed.'", "'They got my brother... they'll get what's comin' to 'em.'"],
         goldFound: ["Finds {goldAmount} Gold. 'For a man who's got everything, you're a pretty poor specimen.'"],
         itemBought: ["Buys the {itemName}. 'I'm a peaceable man. But I won't be pushed.'"],
         equipCheatItem: {
@@ -390,11 +390,11 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       ],
       catchphrases: {
         playerAttackHuman: ["'Your move, creep.'", "'Dead or alive, you're coming with me.'", "'Come quietly or there will be... trouble.'", "'You are under arrest.'", "'Serve the public trust. Protect the innocent. Uphold the law.'"],
-        playerAttackAnimal: ["'Unidentified biological entity. Cease hostility.'", "'You are in violation of park regulations. I am authorized to use physical force.'", "'Threat level: minimal.' He engages the creature.", "'Directive 3: Classify.' He attacks."],
+        playerAttackAnimal: ["'Unidentified biological entity. Cease hostility.'", "'You are in violation of park regulations. I am authorized to use physical force.'", "'Threat level: minimal.' He engages the creature."],
         threatDefeatedHuman: ["'Thank you for your cooperation.'", "'Stay out of trouble.'", "'Justice is served.'", "'You are terminated.'"],
-        threatDefeatedAnimal: ["'Biological threat neutralized. Resuming patrol.'", "'Animal control has been notified.'", "'Area secured.'", "'Threat assessment complete.'"],
-        playerDamage: ["The shot sparks off his armor. 'Your programming is inferior.'", "'My programming is a little sensitive.'", "'Directive 4 classified.'"],
-        itemBought: ["'I'd buy that for a dollar!'", "'This unit is now equipped with the {itemName}.'"],
+        threatDefeatedAnimal: ["'Biological threat neutralized. Resuming patrol.'", "'Animal control has been notified.'", "'Area secured.'"],
+        playerDamage: ["The shot sparks off his armor. 'Your programming is inferior.'", "'My programming is a little sensitive.'", "'Directive 4: Classified.'"],
+        itemBought: ["Acquiring {itemName}. 'This will serve a law enforcement function.'", "'This unit is now equipped with the {itemName}.'"],
         goldFound: ["Finds {goldAmount} Gold. 'Seized as evidence.'"],
         equipCheatItem: {
           'item_rifle_robocop': ["The Auto-9 emerges from his thigh holster. 'Ready.'"],
@@ -768,7 +768,7 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         playerAttackAnimal: ["'Unidentified biological threat. Neutralizing.'", "'Survival is a matter of adaptation.' He attacks the beast.", "'The past can be a prison.' He attacks the animal."],
         threatDefeatedHuman: ["'I never asked for this.' The {enemyName} is defeated.", "'Some say it's the end of the world. Some say it's the beginning.' The man is gone.", "'It's not the end of the world. But you can see it from here.'"],
         threatDefeatedAnimal: ["'The world is a dangerous place.' The beast is dispatched.", "'Adapt or perish.' The animal is defeated.", "'It was just a machine.'"],
-        playerDamage: ["His dermal armor takes the hit. 'I didn't ask for this.'", "'They're just men. Flesh and blood. And I'm going to make them bleed.'", "'The human body is a machine.'"],
+        playerDamage: ["His dermal armor takes the hit. 'I never asked for this.'", "'They're just men. Flesh and blood. And I'm going to make them bleed.'", "'The human body is a machine.'"],
         playerHeal: ["'Nanites repairing trauma.'", "'System integrity returning.'"],
         itemBought: ["He buys the {itemName}. 'This will be a useful upgrade.'"],
         equipCheatItem: {
@@ -1310,7 +1310,7 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       ],
       catchphrases: {
         playerHeal: ["'It is the sweet, simple things of life which are the real ones after all.'", "'Home is the nicest word there is.'", "'A good laugh is sunshine in the house.'", "'There's no great loss without some small gain.'"],
-        threatDefeated: ["'The only good Indian is a dead Indian.'", "'We must be brave.'"],
+        threatDefeated: ["The threat is gone. 'We must be brave.'", "'The land is a little safer now.'"],
         playerDamage: ["'This is a hard land.'", "'We must endure.'"],
         playerAttack: ["'Pa said we must be ready for anything.'", "'For the family.'"],
         useCheatItem: {
@@ -1536,4 +1536,4 @@ export const CHEAT_CODES = {
   REMIX_DECK: "remix my deck",
 };
 
-export const CHEAT_ADD_GOLD_AMOUNT = 500;
+export const CHEAT_ADD_GOLD_AMOUNT = 5000;

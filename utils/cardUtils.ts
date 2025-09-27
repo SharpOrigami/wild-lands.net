@@ -406,20 +406,31 @@ export function calculateAttackPower(card: CardData, playerDetails: PlayerDetail
 
 
     // --- Multiplier Boosts (Equipped Only) ---
+    const multipliers: number[] = [];
     playerDetails.equippedItems.forEach(item => {
         const effect = item.effect;
         if (effect?.type === 'upgrade' && effect.multiplier && effect.multiplier > 1) {
+            let applies = false;
             if (isFirearmCard && effect.subtype === 'firearm_multiplier' && !options?.ignoreBandolier) {
-                attackPower *= effect.multiplier;
+                applies = true;
             }
             if (isBowCard && effect.subtype === 'bow_multiplier' && !options?.ignoreQuiver) {
-                attackPower *= effect.multiplier;
+                applies = true;
             }
             if (isKnife && effect.subtype === 'bladed_multiplier') {
-                attackPower *= effect.multiplier;
+                applies = true;
+            }
+            if (applies) {
+                multipliers.push(effect.multiplier);
             }
         }
     });
+    
+    if (multipliers.length > 0) {
+        // Sum of multipliers, as requested by user. e.g., 3x + 6x = 9x.
+        const totalMultiplier = multipliers.reduce((sum, current) => sum + current, 0);
+        attackPower *= totalMultiplier;
+    }
 
     return attackPower;
 }
