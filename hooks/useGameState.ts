@@ -1828,18 +1828,18 @@ export const useGameState = () => {
     const sortedInitialHand: (CardData | null)[] = new Array(HAND_LIMIT).fill(null);
     actualInitialHandCards.forEach((card, idx) => sortedInitialHand[idx] = card);
     
-    let finalPlayerDiscard = [...playerDetailsFromSetup.playerDiscard];
+    const finalPlayerDiscard = [...playerDetailsFromSetup.playerDiscard];
 
     const cheat = POP_CULTURE_CHEATS.find(c => c.name.toLowerCase() === playerDetailsFromSetup.name?.toLowerCase() && c.requiredCharacterId === playerChar.id);
     if (cheat && cheat.effects.addCustomCards) {
         const customCards = cheat.effects.addCustomCards;
         
-        // Check for existing cheat cards to prevent duplication on restart
+        // Check for existing cheat cards to prevent duplication
         const allPlayerCardIds = new Set([
-            ...playerDetailsFromSetup.playerDeck.map(c => c.id),
-            ...playerDetailsFromSetup.playerDiscard.map(c => c.id),
             ...playerDetailsFromSetup.equippedItems.map(c => c.id),
-            ...playerDetailsFromSetup.satchel.map(c => c.id)
+            ...playerDetailsFromSetup.satchel.map(c => c.id),
+            ...finalPlayerDeck.map(c => c.id),
+            ...(playerDetailsFromSetup.playerDiscard || []).map(c => c.id)
         ]);
 
         const newCardsToAdd = customCards.filter(customCard => !allPlayerCardIds.has(customCard.id));

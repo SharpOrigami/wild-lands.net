@@ -315,12 +315,6 @@
         }
         .player-is-ill { animation: player-illness-pulse 0.8s ease-in-out 2; }
 
-        @keyframes player-scarlet-fever-flash-bg {
-            0%, 100% { background-color: rgba(244, 241, 234, 0.9); } /* Player area default bg */
-            50% { background-color: var(--scarlet-fever-color); } /* Scarlet/purple flash */
-        }
-        .player-scarlet-fever-effect { animation: player-scarlet-fever-flash-bg 0.5s ease-out 2; } /* Flash twice for emphasis */
-
         @keyframes hat-saved-player-bg {
             0%, 100% { background-color: rgba(244, 241, 234, 0.9); border-color: var(--border-color); }
             50% { background-color: rgba(var(--tarnished-gold-rgb), 0.25); border-color: var(--tarnished-gold); box-shadow: 0 0 10px rgba(var(--tarnished-gold-rgb),0.5); transform: scale(1.02); }

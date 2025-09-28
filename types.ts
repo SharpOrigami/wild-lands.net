@@ -24,8 +24,6 @@ export type CardEffectType =
   | 'conditional_damage' // Added to resolve TypeScript errors
   | 'random_gold_steal' // Primarily for immediateEffect but can be a general effect type
   | 'lose_gold' // If a non-random gold loss is needed
-  | 'escape' // Placeholder for potential future use
-  | 'discard_gold' // Placeholder for potential future use
   | 'objective_boss_condition'
   | 'objective_player_condition'
   | 'objective_discard_to_win';
