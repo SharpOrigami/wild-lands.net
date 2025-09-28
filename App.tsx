@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameState } from './hooks/useGameState.ts';
 import LandingScreen from './screens/LandingScreen.tsx';
@@ -372,57 +373,75 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!gameState || !isAssetsInitialized) return;
 
-    const isBossActive = gameState.activeEvent?.id === gameState.aiBoss?.id;
+    const player = gameState.playerDetails[PLAYER_ID];
+    const isBossEncounter = !!gameState.aiBoss && gameState.activeEvent?.id === gameState.aiBoss.id;
+
+    let musicToPlay: string | null = null;
 
     switch (gameState.status) {
       case 'landing':
         soundManager.stopMusic();
-        break;
+        return; // Early exit, no music to play
+
       case 'setup':
-        {
-            const ngPlusLevel = gameState.ngPlusLevel;
-            let setupMusic: 'music_setup' | 'music_setup_fj' | 'music_setup_as' | 'music_setup_sh' | 'music_setup_cp' = 'music_setup';
-            if (ngPlusLevel >= 50) {
-                setupMusic = 'music_setup';
-            } else if (ngPlusLevel >= 40) {
-                setupMusic = 'music_setup_cp';
-            } else if (ngPlusLevel >= 30) {
-                setupMusic = 'music_setup_sh';
-            } else if (ngPlusLevel >= 20) {
-                setupMusic = 'music_setup_as';
-            } else if (ngPlusLevel >= 10) {
-                setupMusic = 'music_setup_fj';
-            }
-            soundManager.playMusic(setupMusic);
+        const ngPlusLevel = gameState.ngPlusLevel;
+        if (ngPlusLevel >= 40 && ngPlusLevel < 50) {
+          musicToPlay = 'music_setup_cp';
+        } else if (ngPlusLevel >= 30 && ngPlusLevel < 40) {
+          musicToPlay = 'music_setup_sh';
+        } else if (ngPlusLevel >= 20 && ngPlusLevel < 30) {
+          musicToPlay = 'music_setup_as';
+        } else if (ngPlusLevel >= 10 && ngPlusLevel < 20) {
+          musicToPlay = 'music_setup_fj';
+        } else {
+          musicToPlay = 'music_setup';
         }
         break;
-      case 'generating_boss_intro':
-      case 'showing_boss_intro':
-        soundManager.playMusic('music_main');
+
+      case 'finished':
+        if (player && player.health > 0) {
+          musicToPlay = 'music_victory';
+        } else {
+          musicToPlay = 'music_defeat';
+        }
         break;
+      
+      case 'deck_review':
+        musicToPlay = 'music_victory';
+        break;
+
       case 'playing':
       case 'playing_initial_reveal':
-        if (isBossActive) {
-          soundManager.playMusic('music_boss');
+        if (isBossEncounter) {
+          musicToPlay = 'music_boss';
         } else {
-          soundManager.playMusic('music_main');
+          musicToPlay = 'music_main';
         }
         break;
-      case 'deck_review':
-        soundManager.playMusic('music_victory');
+
+      case 'generating_boss_intro':
+      case 'showing_boss_intro':
+        // These are prelude-to-gameplay states, main music is appropriate
+        musicToPlay = 'music_main';
         break;
-      case 'finished':
-        if (gameState.playerDetails[PLAYER_ID]?.health > 0) {
-          soundManager.playMusic('music_victory');
-        } else {
-          soundManager.playMusic('music_defeat');
-        }
-        break;
+      
       default:
         soundManager.stopMusic();
-        break;
+        return;
     }
-  }, [gameState?.status, gameState?.activeEvent?.id, gameState?.aiBoss?.id, isAssetsInitialized, gameState?.ngPlusLevel]);
+
+    if (musicToPlay) {
+      soundManager.playMusic(musicToPlay as any);
+    }
+    
+  }, [
+    gameState?.status,
+    gameState?.playerDetails[PLAYER_ID]?.health,
+    gameState?.ngPlusLevel,
+    gameState?.activeEvent?.id,
+    gameState?.aiBoss?.id,
+    isAssetsInitialized,
+  ]);
   
   useEffect(() => {
     if (gameState?.status !== 'finished') {

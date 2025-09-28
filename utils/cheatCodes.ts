@@ -4,27 +4,36 @@ import { Character, CardData } from '../types.ts';
  * Defines the types of game events that can trigger a special catchphrase.
  */
 export type CheatPhraseCategory =
-  | 'playerAttack'
-  | 'playerAttackHuman'
-  | 'playerAttackAnimal'
-  | 'threatDefeated'
-  | 'threatDefeatedHuman'
-  | 'threatDefeatedAnimal'
+  | 'bountySold'
+  | 'campfireBuilt'
+  | 'equipCheatItem'
+  | 'eventRevealBear'
+  | 'eventRevealSnake'
+  | 'eventRevealThreat'
   | 'goldFound'
+  | 'illnessContracts'
+  | 'illnessContractsHolliday'
   | 'itemBought'
+  | 'itemSold'
   | 'itemTaken'
+  | 'laudanumAbuse'
+  | 'newDay'
+  | 'playerAttack'
+  | 'playerAttackAnimal'
+  | 'playerAttackBear'
+  | 'playerAttackHorror'
+  | 'playerAttackHuman'
+  | 'playerAttackSnake'
   | 'playerDamage'
   | 'playerHeal'
-  | 'laudanumAbuse'
-  | 'bountySold'
-  | 'illnessContractsHolliday'
-  | 'playerAttackBear'
-  | 'eventRevealBear'
-  | 'playerAttackSnake'
-  | 'eventRevealSnake'
-  | 'playerAttackHorror'
-  | 'equipCheatItem'
-  | 'useCheatItem';
+  | 'scoutAhead'
+  | 'threatDefeated'
+  | 'threatDefeatedAnimal'
+  | 'threatDefeatedHuman'
+  | 'trapCaught'
+  | 'trapSet'
+  | 'useCheatItem'
+  | 'itemEquipped';
 
 /**
  * Defines the effects of a pop culture cheat code.
@@ -72,8 +81,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 200,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'custom_clint_poncho', name: "Man with No Name's Poncho", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 7, persistent: true }, description: "This dusty poncho has seen a lot. It offers more than just protection from the sun.", sellValue: 25, isCheat: true, illustrationId: 'upgrade_plain_duster_t1' },
-        { id: 'item_six_shooter_clint', name: "Peacemaker", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "A revolver that has settled many disputes.", sellValue: 20, isCheat: true, illustrationId: 'item_six_shooter_t1' }
+        { id: 'custom_clint_poncho', name: "Man with No Name's Poncho", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 10, persistent: true }, description: "This dusty poncho has seen a lot. It offers more than just protection from the sun.", sellValue: 25, isCheat: true, illustrationId: 'upgrade_plain_duster_t1' },
+        { id: 'item_six_shooter_clint', name: "Peacemaker", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A revolver that has settled many disputes.", sellValue: 20, isCheat: true, illustrationId: 'item_six_shooter_t1' }
       ],
       catchphrases: {
         playerAttackHuman: ["'Every gun makes its own tune.'", "'My mule don't like people laughing.'", "'When a man with a .45 meets a man with a rifle, you said, the man with a pistol's a dead man. Let's see if that's true.'"],
@@ -93,6 +102,155 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       }
     },
   },
+{
+  name: "big balls jimmy",
+  requiredCharacterId: 'gunslinger',
+  effects: {
+    addGold: 100,
+    catchphrases: {
+      newDay: [
+          "Ugh, my head feels like a badger's nesting in it. Anyone got a breakfast sandwich?",
+          "Is it morning? Feels like it. Smells like it. Tastes like... regret.",
+          "Time to rise and grind! Or just... rise. Grinding is hard.",
+          "Okay, new day. Where did I leave my pants?",
+          "Big Balls Jimmy in the hizzy, B!",
+      ],
+      eventRevealThreat: [
+          "Whoa, a {enemyName}! Should we... uh... reason with it? With fists?",
+          "Is that thing friendly? It's not smiling. That's a bad sign.",
+          "Alright, stay cool, Jimmy. It can probably smell fear. And the week-old jerky in my pocket.",
+          "It's just a {enemyName}. Big deal. I've seen scarier things in my bong water.",
+          "Did someone order a knuckle sandwich? 'Cause I think this guy did, and I'm all out of bread.",
+      ],
+      playerAttack: [
+          "Eat this! Whatever this is! It's pointy!",
+          "Take that! And that! I'm like, a whirlwind of... mild violence!",
+          "This is for all the breakfast sandwiches you've never made me!",
+          "I'm gonna hit you so hard your kids'll be born dizzy!",
+          "One-hitter quitter! That's me!",
+          "Big Balls Jimmy comin' at ya!",
+      ],
+      playerAttackHuman: [
+          "Hey man, chill out! Or, uh, don't! Whatever!",
+          "Gonna send you to sleepy-town, fella.",
+          "This is gonna hurt you more than it hurts me... probably. I dunno.",
+          "Whoa, easy there, buddy. Let's talk this out... with my fists!",
+          "You're harshin' my mellow, dude."
+      ],
+      playerAttackAnimal: [
+          "Whoa, a fuzzy thing! Is it friendly? Guess not!",
+          "Look, I don't wanna do this, but you're getting fur all over my vibe.",
+          "It's comin' right for us! Like in that movie!",
+          "Bad doggy! Or... bad whatever-you-are!",
+          "Hey, I was gonna eat that! ...Wait, what was I gonna eat?"
+      ],
+      playerDamage: [
+          "Ow! Right in my munchies-hole!",
+          "Dude! Not the face! This is my money-maker!",
+          "My everything hurts! Even my hair!",
+          "That's it! You're uninvited to my birthday party!",
+          "I'm seeing colors! Like, groovy colors, man.",
+          "You have made a powerful enemy this day!",
+      ],
+      playerHeal: [
+          "Ahh, that's like a bacon, egg, and cheese for the soul.",
+          "Tastes like chocolatey goodness! And not dying!",
+          "My health bar is green again! That's my favorite color! Besides, like, pizza.",
+          "Hooray! I feel... less full of holes!",
+          "That's the good stuff. Now where's the chocolate milk?",
+      ],
+      threatDefeated: [
+          "Did I win? I won! I'm the king of the world! Or at least this patch of dirt.",
+          "He's taking a nap. A dirt nap! ... Is it lunch time?",
+          "Phew. That was, like, super intense. I need a nap.",
+          "Big Balls Jimmy strikes again! You're welcome, world.",
+          "And that's how you do that. Probably. I wasn't really watching.",
+      ],
+      threatDefeatedHuman: [
+          "He's takin' a dirt nap. Sweet dreams, dude.",
+          "Whoops. My bad. ...Anyone got snacks?",
+          "Well, that's one way to solve a disagreement.",
+          "He's all tuckered out. Nighty-night.",
+          "And... scene. That was intense. I need a burrito."
+      ],
+      threatDefeatedAnimal: [
+          "Aww, poor little guy. He was just hangry.",
+          "Did I win? I think I won. Cool.",
+          "It's just sleeping, right? ...Right?",
+          "Phew. Close one. Now, where was I? Oh yeah, naps.",
+          "Okay, nature. You can have this one back. I'm good."
+      ],
+      goldFound: [
+          "Floor gold! The best kind of gold! Now, where's the nearest Taco Hut?",
+          "Dude! I'm rich! I can buy, like, ten whole breakfast sandwiches!",
+          "This is way better than that time I found a half-eaten burrito.",
+          "Shiny! I'm gonna make a necklace out of it!",
+          "This almost makes up for the... uh... fighting and stuff.",
+      ],
+      itemBought: [
+          "One {itemName}, please. Does this work on bears? It looks like it works on bears.",
+          "I'll take it! It's so... pointy!",
+          "Sweet! This {itemName} is way better than the one I found in a dumpster.",
+          "This is for... uh... adventuring stuff. Yeah, that's it."
+      ],
+      itemSold: [
+          "This thing is harshing my mellow. It's gotta go.",
+          "This {itemName} is too complicated. It has too many... parts.",
+          "I'd rather have burrito money. Sold!",
+          "Someone else can have this junk. I'm out.",
+          "Here's a furry thing. It's kinda gross, but you said you'd pay for it.",
+          "Is this worth, like, a lifetime supply of pizza?",
+          "This used to be an animal. Now it's money. Weird."
+      ],
+      bountySold: [
+           "Whoa, I was supposed to bring this guy in? My bad. Here's the... proof.",
+           "This guy was a real jerk. You're welcome.",
+           "Here's your... uh... whatever. Now, about that reward..."
+      ],
+      illnessContracts: [
+          "Whoa, my insides feel like a lava lamp.",
+          "I've got the... the wibbly-wobblies. Is that a thing?",
+          "Dude, I think that berry was, like, not a food berry.",
+          "I feel like I licked a weird toad.",
+      ],
+      trapSet: [
+          "This is my surprise party hole. The surprise is, there's a hole with pointy things.",
+          "Hope a sandwich falls in here.",
+          "Okay, little trap thingy, do your... trappy thing.",
+          "It's a trap! Get it? 'Cause it's... a trap."
+      ],
+      trapCaught: [
+          "My hole-friend brought me a new friend! ...This one's kinda bitey.",
+          "Yes! Free lunch! ...Wait, can I eat this?",
+          "Whoa, it worked! I'm like, a genius or something.",
+          "Aww, look at the little guy. He's so... stuck."
+      ],
+      laudanumAbuse: [
+          "Whoa, man. I'm not even hurt, but this stuff is... groovy.",
+          "My health bar was full, but my chill bar was totally empty. We're good now.",
+          "The whole world is starting to look like a giant breakfast sandwich... a really, really tasty one.",
+          "I can taste colors now. This one tastes like... purple.",
+          "This makes the scary trees look like... friendly, fuzzy broccoli. Yeah, broccoli.",
+          "Did the bottle just wink at me? I think we're best friends now.",
+          "My pain level was zero, but my boredom level was, like, a million. Problem solved.",
+          "Okay, everything's in slow motion now. That's gotta make me, like, super good at dodging, right?",
+          "This stuff is like a warm blanket for your brain. A really fuzzy, weird-smelling blanket.",
+      ],
+      itemEquipped: [
+          "Lookin' sharp! And... pointy!",
+          "This totally completes my outfit. I'm, like, an action hero now.",
+          "Sweet! New gear! Does it have pockets for snacks?",
+          "Time to accessorize... with pain!"
+      ],
+      campfireBuilt: [
+          "Fire! Heh-heh. Fire.",
+          "Let's get toasty. Anyone bring marshmallows?",
+          "This is way better than rubbing two sticks together. That's, like, effort.",
+          "Behold! The power of... fire! Now, where's the TV?"
+      ]
+    }
+  }
+},
   {
     name: "arthur morgan",
     requiredCharacterId: 'gunslinger',
@@ -100,8 +258,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 100,
       addMaxHealth: 1,
       addCustomCards: [
-        { id: 'item_rifle_arthur', name: "Arthur's Rifle", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "A reliable Lancaster Repeater. Has seen a lot of use.", sellValue: 25, isCheat: true, illustrationId: 'item_rifle_t1' },
-        { id: 'custom_arthur_journal', name: "Arthur's Journal", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "A moment of reflection brings clarity and soothes the body. Draw 2 cards and heal 2 HP.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_medical_journal', immediateEffect: { type: 'heal', amount: 2 } }
+        { id: 'item_rifle_arthur', name: "Arthur's Rifle", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "A reliable Lancaster Repeater. Has seen a lot of use.", sellValue: 25, isCheat: true, illustrationId: 'item_rifle_t1' },
+        { id: 'custom_arthur_journal', name: "Arthur's Journal", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "A moment of reflection brings clarity and soothes the body. Draw 2 cards and heal 4 HP.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_medical_journal', immediateEffect: { type: 'heal', amount: 4 } }
       ],
       catchphrases: {
         playerAttackHuman: ["'You got a kind face... The kind I like to punch!'", "'Outta the damn way!'", "'Sure.' He opens fire.", "'You've got a price on your head, friend.'", "'This ain't gonna be pretty.'"],
@@ -128,8 +286,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
        addGold: 150,
        addMaxHealth: 3,
        addCustomCards: [
-        { id: 'item_six_shooter_rooster', name: "Rooster's Colt Dragoon", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "A heavy, reliable revolver. Smells of whiskey.", sellValue: 20, isCheat: true, illustrationId: 'item_six_shooter_t1' },
-        { id: 'custom_rooster_whiskey', name: "Bottle of Whiskey", type: 'Provision', effect: { type: 'heal', amount: 6 }, description: "Liquid courage for medicinal purposes. Heal 6 HP and draw 1 card.", sellValue: 5, isCheat: true, illustrationId: 'provision_laudanum_t1', immediateEffect: { type: 'draw', amount: 1 } },
+        { id: 'item_six_shooter_rooster', name: "Rooster's Colt Dragoon", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A heavy, reliable revolver. Smells of whiskey.", sellValue: 20, isCheat: true, illustrationId: 'item_six_shooter_t1' },
+        { id: 'custom_rooster_whiskey', name: "Bottle of Whiskey", type: 'Provision', effect: { type: 'heal', amount: 8 }, description: "Liquid courage for medicinal purposes. Heal 8 HP and draw 2 cards.", sellValue: 5, isCheat: true, illustrationId: 'provision_laudanum_t1', immediateEffect: { type: 'draw', amount: 2 } },
       ],
       catchphrases: {
         playerAttackHuman: ["'Fill your hand, you son of a bitch!'", "'I can do nothin' for you, son.'", "'I call that bold talk for a one-eyed fat man!'"],
@@ -156,8 +314,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 19,
       increaseDifficulty: 1,
        addCustomCards: [
-        { id: 'item_six_shooter_roland1', name: "Sandalwood Revolver", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "One of a pair, forged from the steel of Excalibur. It has seen other worlds.", sellValue: 50, isCheat: true, illustrationId: 'item_six_shooter_t1' },
-        { id: 'item_six_shooter_roland2', name: "Sandalwood Revolver", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "The other of a pair. The wood grips are worn smooth from use.", sellValue: 50, isCheat: true, illustrationId: 'item_six_shooter_t1' },
+        { id: 'item_six_shooter_roland1', name: "Sandalwood Revolver", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "One of a pair, forged from the steel of Excalibur. It has seen other worlds.", sellValue: 50, isCheat: true, illustrationId: 'item_six_shooter_t1' },
+        { id: 'item_six_shooter_roland2', name: "Sandalwood Revolver", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "The other of a pair. The wood grips are worn smooth from use.", sellValue: 50, isCheat: true, illustrationId: 'item_six_shooter_t1' },
       ],
       catchphrases: {
         playerAttackHuman: ["'I do not aim with my hand; he who aims with his hand has forgotten the face of his father. I aim with my eye.'", "'I do not shoot with my hand; I shoot with my mind.'", "'I do not kill with my gun; I kill with my heart.'", "'Ka is a wheel, and your part in it is over.'"],
@@ -185,8 +343,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 666,
       increaseDifficulty: 1,
       addCustomCards: [
-        { id: 'item_six_iron_mib', name: "LeMat Revolver", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A custom revolver for a man who gets what he wants.", sellValue: 30, isCheat: true, illustrationId: 'item_six_iron_t2' },
-        { id: 'custom_mib_maze', name: "The Maze", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "This game is meant for you. Draw 2 cards.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_treasure_map' }
+        { id: 'item_six_iron_mib', name: "LeMat Revolver", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "A custom revolver for a man who gets what he wants.", sellValue: 30, isCheat: true, illustrationId: 'item_six_iron_t2' },
+        { id: 'custom_mib_maze', name: "The Maze", type: 'Action', effect: { type: 'draw', amount: 3 }, description: "This game is meant for you. Draw 3 cards.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_treasure_map' }
       ],
       catchphrases: {
         playerAttackHuman: ["'This world is a story. And I'm here to write my own ending.'", "'The game begins now.'", "'Have you ever questioned the nature of your reality?'", "'Winning doesn't mean anything unless someone else loses.'"],
@@ -213,8 +371,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 150,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'item_hunting_rifle_angel', name: "Angel Eyes' Rifle", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A rifle for seeing jobs through to the end.", sellValue: 25, isCheat: true, illustrationId: 'item_hunting_rifle_t1' },
-        { id: 'custom_angel_knife', name: "Bowie Knife", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "For close work.", sellValue: 10, isCheat: true, illustrationId: 'item_sharp_knife_t1' },
+        { id: 'item_hunting_rifle_angel', name: "Angel Eyes' Rifle", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "A rifle for seeing jobs through to the end.", sellValue: 25, isCheat: true, illustrationId: 'item_hunting_rifle_t1' },
+        { id: 'custom_angel_knife', name: "Bowie Knife", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "For close work.", sellValue: 10, isCheat: true, illustrationId: 'item_sharp_knife_t1' },
       ],
       catchphrases: {
         playerAttackHuman: ["'When I'm paid, I always see the job through.'", "'Even a filthy beggar like that has a price.'", "'It's a dirty job, but someone has to do it.'"],
@@ -242,8 +400,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 100,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'item_six_shooter_ruth', name: "The Hangman's Revolver", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "This gun has seen its share of bounties brought to justice.", sellValue: 20, isCheat: true, illustrationId: 'item_six_shooter_t1' },
-        { id: 'custom_ruth_warrant', name: "Bounty Warrant", type: 'Item', effect: { type: 'gold', amount: 25 }, description: "A legal document worth a pretty penny when cashed in.", sellValue: 25, isCheat: true, illustrationId: 'generic_bounty_proof' }
+        { id: 'item_six_shooter_ruth', name: "The Hangman's Revolver", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "This gun has seen its share of bounties brought to justice.", sellValue: 20, isCheat: true, illustrationId: 'item_six_shooter_t1' },
+        { id: 'custom_ruth_warrant', name: "Bounty Warrant", type: 'Item', effect: { type: 'gold', amount: 50 }, description: "A legal document worth a pretty penny when cashed in.", sellValue: 50, isCheat: true, illustrationId: 'generic_bounty_proof' }
       ],
       catchphrases: {
         playerAttackHuman: ["'Got me a bounty worth ten thousand dollars!'", "'No one said this job was supposed to be easy.'", "'When the handbill says 'dead or alive', the rest of us shoot you in the back from up on top of a perch somewhere and bring you in dead over a saddle.'", "'You only need to hang mean bastards, but mean bastards you need to hang!'"],
@@ -270,8 +428,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 100,
       addMaxHealth: 3,
       addCustomCards: [
-        { id: 'item_six_iron_earp', name: "Buntline Special", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A long-barreled revolver for a long-tailed lawman.", sellValue: 30, isCheat: true, illustrationId: 'item_six_iron_t2' },
-        { id: 'custom_earp_badge', name: "U.S. Marshal Badge", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 1, persistent: true }, description: "This badge ain't just for show.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_lucky_bullet' }
+        { id: 'item_six_iron_earp', name: "Buntline Special", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "A long-barreled revolver for a long-tailed lawman.", sellValue: 30, isCheat: true, illustrationId: 'item_six_iron_t2' },
+        { id: 'custom_earp_badge', name: "U.S. Marshal Badge", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 2, persistent: true }, description: "This badge ain't just for show.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_lucky_bullet' }
       ],
       catchphrases: {
         playerAttackHuman: ["'You tell 'em I'm comin'! And hell's comin' with me!'", "'You called down the thunder, well now you've got it!'", "'Skin that smoke-wagon and see what happens.'", "'Are you gonna do somethin' or just stand there and bleed?'"],
@@ -298,8 +456,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 200,
       addMaxHealth: 1,
       addCustomCards: [
-        { id: 'item_rifle_oakley', name: "Sharpshooter's Rifle", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "A light, accurate rifle. It never misses.", sellValue: 30, isCheat: true, illustrationId: 'item_rifle_t1' },
-        { id: 'custom_oakley_medal', name: "Exhibition Medal", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'firearm_boost', amount: 2, persistent: true }, description: "A medal for marksmanship. It brings a steady hand.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_lucky_bullet' },
+        { id: 'item_rifle_oakley', name: "Sharpshooter's Rifle", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A light, accurate rifle. It never misses.", sellValue: 30, isCheat: true, illustrationId: 'item_rifle_t1' },
+        { id: 'custom_oakley_medal', name: "Exhibition Medal", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'firearm_boost', amount: 3, persistent: true }, description: "A medal for marksmanship. It brings a steady hand.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_lucky_bullet' },
       ],
       catchphrases: {
         playerAttackHuman: ["'I'm not just a showgirl.' She takes aim at the man.", "'This is no exhibition.' She fires at the man.", "'Anything you can do, I can do better.'", "'I don't miss.'"],
@@ -327,8 +485,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addMaxHealth: 3,
       increaseDifficulty: 1,
       addCustomCards: [
-        { id: 'item_sawed_off_ash', name: "Boomstick", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A twelve-gauge, double-barreled Remington. S-Mart's top of the line.", sellValue: 20, isCheat: true, illustrationId: 'item_sawed_off_t1_sh' },
-        { id: 'item_sharp_knife_ash', name: "Chainsaw Hand", type: 'Item', effect: { type: 'weapon', attack: 9, subtype: 'sword' }, description: "Groovy.", sellValue: 20, isCheat: true, illustrationId: 'item_sharp_knife_t2_sh' },
+        { id: 'item_sawed_off_ash', name: "Boomstick", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "A twelve-gauge, double-barreled Remington. S-Mart's top of the line.", sellValue: 20, isCheat: true, illustrationId: 'item_sawed_off_t1_sh' },
+        { id: 'item_sharp_knife_ash', name: "Chainsaw Hand", type: 'Item', effect: { type: 'weapon', attack: 11, subtype: 'sword' }, description: "Groovy.", sellValue: 20, isCheat: true, illustrationId: 'item_sharp_knife_t2_sh' },
       ],
       catchphrases: {
         playerAttackHuman: ["'Look, pal, you ain't leadin' but two things right now: Jack and shit. And Jack left town.'", "'You primitive screwheads!'", "'Good. Bad. I'm the guy with the gun.' He attacks."],
@@ -357,8 +515,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 99,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'custom_durst_cap', name: "Red Yankee Cap", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 3, persistent: true }, description: "A backwards baseball cap. For when you just wanna break stuff.", sellValue: 7, isCheat: true, illustrationId: 'upgrade_squirrel_fur_cap_cp' },
-        { id: 'custom_durst_water', name: "Hot Dog Flavored Water", type: 'Provision', effect: { type: 'heal', amount: 4 }, description: "It's all about the he-said she-said. Heals 4 HP and lets you draw a card.", sellValue: 1, isCheat: true, illustrationId: 'provision_laudanum_t1', immediateEffect: { type: 'draw', amount: 1 } }
+        { id: 'custom_durst_cap', name: "Red Yankee Cap", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 6, persistent: true }, description: "A backwards baseball cap. For when you just wanna break stuff.", sellValue: 7, isCheat: true, illustrationId: 'upgrade_squirrel_fur_cap_cp' },
+        { id: 'custom_durst_water', name: "Hot Dog Flavored Water", type: 'Provision', effect: { type: 'heal', amount: 6 }, description: "It's all about the he-said she-said. Heals 6 HP and lets you draw 2 cards.", sellValue: 1, isCheat: true, illustrationId: 'provision_laudanum_t1', immediateEffect: { type: 'draw', amount: 2 } }
       ],
       catchphrases: {
         playerAttackHuman: ["'I'll skin your ass raw!' He attacks the man!", "'Give me somethin' to break!' He lunges at the human.", "'It's all about the he-said, she-said bullshit!' He attacks."],
@@ -385,8 +543,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 50,
       addMaxHealth: 10,
       addCustomCards: [
-        { id: 'item_rifle_robocop', name: "Auto-9", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "A machine pistol with a three-round burst. Highly effective.", sellValue: 40, isCheat: true, illustrationId: 'item_six_iron_t2_cp' },
-        { id: 'custom_robocop_armor', name: "OCP Armor", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 2, persistent: true, max_health: 5 }, description: "Titanium armor with Kevlar laminate. Increases Max Health by 5 and reduces incoming damage by 2.", sellValue: 30, isCheat: true, illustrationId: 'upgrade_iron_will_cp' },
+        { id: 'item_rifle_robocop', name: "Auto-9", type: 'Item', effect: { type: 'weapon', attack: 13 }, description: "A machine pistol with a three-round burst. Highly effective.", sellValue: 40, isCheat: true, illustrationId: 'item_six_iron_t2_cp' },
+        { id: 'custom_robocop_armor', name: "OCP Armor", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 3, persistent: true, max_health: 7 }, description: "Titanium armor with Kevlar laminate. Increases Max Health by 7 and reduces incoming damage by 3.", sellValue: 30, isCheat: true, illustrationId: 'upgrade_iron_will_cp' },
       ],
       catchphrases: {
         playerAttackHuman: ["'Your move, creep.'", "'Dead or alive, you're coming with me.'", "'Come quietly or there will be... trouble.'", "'You are under arrest.'", "'Serve the public trust. Protect the innocent. Uphold the law.'"],
@@ -414,9 +572,9 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 93,
       addMaxHealth: 0,
       addCustomCards: [
-        { id: 'custom_fry_jacket', name: "Red Bomber Jacket", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 5, persistent: true }, description: "A super sweet jacket. Red. It's not armor, but it makes you feel a little tougher.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_plain_duster_t2_cp' },
-        { id: 'custom_fry_tonic', name: "Can of Slurm", type: 'Provision', effect: { type: 'heal', amount: 2 }, description: "It's highly addictive! Heals 2 HP and lets you draw 3 cards.", sellValue: 1, isCheat: true, illustrationId: 'custom_fry_tonic', immediateEffect: { type: 'draw', amount: 3 }},
-        { id: 'custom_fry_clover', name: "Seven-Leaf Clover", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 7, persistent: true }, description: "Brings 20th-century luck to this backwards time period. Increases sell value of all items by 7.", sellValue: 777, isCheat: true, illustrationId: 'custom_fry_clover' }
+        { id: 'custom_fry_jacket', name: "Red Bomber Jacket", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 8, persistent: true }, description: "A super sweet jacket. Red. It's not armor, but it makes you feel a little tougher.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_plain_duster_t2_cp' },
+        { id: 'custom_fry_tonic', name: "Can of Slurm", type: 'Provision', effect: { type: 'heal', amount: 4 }, description: "It's highly addictive! Heals 4 HP and lets you draw 3 cards.", sellValue: 1, isCheat: true, illustrationId: 'custom_fry_tonic', immediateEffect: { type: 'draw', amount: 3 }},
+        { id: 'custom_fry_clover', name: "Seven-Leaf Clover", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 10, persistent: true }, description: "Brings 20th-century luck to this backwards time period. Increases sell value of all items by 10.", sellValue: 777, isCheat: true, illustrationId: 'custom_fry_clover' }
       ],
       catchphrases: {
         playerAttackHuman: ["'I'm not a fighter! I'm a delivery boy!'", "'Wooo!' He flails wildly.", "'Hey, you're not a robot! Or a brain!'"],
@@ -444,8 +602,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 50,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'custom_tuco_noose', name: "Tuco's Noose", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "A rope that's seen better days, and worse necks.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_bandolier_t1' },
-        { id: 'custom_tuco_supplies', name: "Stolen Supplies", type: 'Provision', effect: { type: 'heal', amount: 5 }, description: "Liberated from a less-deserving owner.", sellValue: 1, isCheat: true, illustrationId: 'provision_hardtack' }
+        { id: 'custom_tuco_noose', name: "Tuco's Noose", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "A rope that's seen better days, and worse necks.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_bandolier_t1' },
+        { id: 'custom_tuco_supplies', name: "Stolen Supplies", type: 'Provision', effect: { type: 'heal', amount: 8 }, description: "Liberated from a less-deserving owner.", sellValue: 1, isCheat: true, illustrationId: 'provision_hardtack' }
       ],
       catchphrases: {
         playerAttackHuman: ["'When you have to shoot, shoot. Don't talk.'", "'I'll kill you for that!'", "'There are two kinds of spurs, my friend. Those that come in by the door, and those that come in by the window.'"],
@@ -471,8 +629,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 50,
       addMaxHealth: 3,
       addCustomCards: [
-        { id: 'custom_crockett_rifle', name: "Old Betsy", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "A trusty rifle that's seen the far side of the frontier.", sellValue: 25, isCheat: true, illustrationId: 'item_rifle_t1' },
-        { id: 'custom_crockett_cap', name: "Coonskin Cap", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_negation', max_health: 4, persistent: true }, description: "King of the Wild Frontier.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_raccoon_skin_hat' },
+        { id: 'custom_crockett_rifle', name: "Old Betsy", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "A trusty rifle that's seen the far side of the frontier.", sellValue: 25, isCheat: true, illustrationId: 'item_rifle_t1' },
+        { id: 'custom_crockett_cap', name: "Coonskin Cap", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_negation', max_health: 6, persistent: true }, description: "King of the Wild Frontier.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_raccoon_skin_hat' },
       ],
       catchphrases: {
         playerAttackHuman: ["'Be sure you're right, then go ahead.' He attacks the man.", "'I'm half-horse, half-alligator and a little attached with a snapping turtle.' He attacks the human.", "'I can whip my weight in wildcats.' He attacks the man."],
@@ -483,7 +641,7 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         playerDamage: ["'Heaven is a great deal bigger than the earth.'", "'Let your tongue speak what your heart thinks.'"],
         goldFound: ["Finds {goldAmount} Gold. 'A little something for the journey.'", "'This will help me on my way.'"],
         equipCheatItem: {
-          'custom_crockett_rifle': ["He shoulders Old Betsy. 'A trusty friend.'"],
+          'custom_crockett_rifle': ["He shoulders Old Betsy. 'A good rifle is a good friend.'"],
           'custom_crockett_cap': ["He puts on the Coonskin Cap. 'King of the wild frontier.'"]
         },
         useCheatItem: {
@@ -499,8 +657,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 100,
       addMaxHealth: 1,
       addCustomCards: [
-        { id: 'custom_lewis_journal', name: "Lewis's Journal", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'provision_heal_boost', amount: 3, persistent: true }, description: "A detailed account of the flora and fauna of the West.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_medical_journal' },
-        { id: 'custom_lewis_scout', name: "Corps of Discovery", type: 'Action', effect: { type: 'scout' }, description: "Charting the unknown territory ahead reveals new opportunities. Scout and draw 1 card.", sellValue: 5, isCheat: true, illustrationId: 'action_scout_ahead', immediateEffect: { type: 'draw', amount: 1 } }
+        { id: 'custom_lewis_journal', name: "Lewis's Journal", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'provision_heal_boost', amount: 4, persistent: true }, description: "A detailed account of the flora and fauna of the West.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_medical_journal' },
+        { id: 'custom_lewis_scout', name: "Corps of Discovery", type: 'Action', effect: { type: 'scout' }, description: "Charting the unknown territory ahead reveals new opportunities. Scout and draw 2 cards.", sellValue: 5, isCheat: true, illustrationId: 'action_scout_ahead', immediateEffect: { type: 'draw', amount: 2 } }
       ],
       catchphrases: {
         playerAttackHuman: ["'An obstacle to the expedition.' He attacks the man.", "'We proceed on.'", "'A regrettable but necessary action.'"],
@@ -514,7 +672,7 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
           'custom_lewis_journal': ["He equips his Journal. 'For the purposes of scientific discovery.'"]
         },
         useCheatItem: {
-          'custom_lewis_scout': ["He uses his knowledge from the Corps of Discovery to scout the path."],
+          'custom_lewis_scout': ["He uses his knowledge from the Corps of Discovery to scout the path ahead."],
           'custom_lewis_journal': ["He makes an entry in his journal about a new discovery."]
         }
       }
@@ -527,8 +685,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 100,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'custom_clark_map', name: "Clark's Map", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 5, persistent: true }, description: "A masterfully drawn map of the new frontier.", sellValue: 15, isCheat: true, illustrationId: 'upgrade_treasure_map' },
-        { id: 'item_six_shooter_clark', name: "Clark's Revolver", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "A reliable sidearm for a cartographer in a dangerous land.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' }
+        { id: 'custom_clark_map', name: "Clark's Map", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 8, persistent: true }, description: "A masterfully drawn map of the new frontier.", sellValue: 15, isCheat: true, illustrationId: 'upgrade_treasure_map' },
+        { id: 'item_six_shooter_clark', name: "Clark's Revolver", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "A reliable sidearm for a cartographer in a dangerous land.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' }
       ],
       catchphrases: {
         playerAttackHuman: ["'A necessary action for the expedition.' He attacks the man.", "'Hostile natives. A regrettable necessity.'", "'We must clear a path.'"],
@@ -555,8 +713,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 20,
       increaseDifficulty: 1,
       addCustomCards: [
-        { id: 'custom_musashi_katana_1', name: "Musashi's Katana", type: 'Item', effect: { type: 'weapon', attack: 9, subtype: 'sword' }, description: "One of a pair. The Way of the warrior is the resolute acceptance of death.", sellValue: 20, isCheat: true, illustrationId: 'item_katana_t1_fj' },
-        { id: 'custom_musashi_katana_2', name: "Musashi's Wakizashi", type: 'Item', effect: { type: 'weapon', attack: 7, subtype: 'sword' }, description: "The companion blade. To know the Way is to see it in all things.", sellValue: 15, isCheat: true, illustrationId: 'item_wakizashi_t1_fj' },
+        { id: 'custom_musashi_katana_1', name: "Musashi's Katana", type: 'Item', effect: { type: 'weapon', attack: 11, subtype: 'sword' }, description: "One of a pair. The Way of the warrior is the resolute acceptance of death.", sellValue: 20, isCheat: true, illustrationId: 'item_katana_t1_fj' },
+        { id: 'custom_musashi_katana_2', name: "Musashi's Wakizashi", type: 'Item', effect: { type: 'weapon', attack: 9, subtype: 'sword' }, description: "The companion blade. To know the Way is to see it in all things.", sellValue: 15, isCheat: true, illustrationId: 'item_wakizashi_t1_fj' },
       ],
       catchphrases: {
         playerAttackHuman: ["'There is nothing outside of yourself.' He strikes the man with two blades.", "The Way of the warrior is the resolute acceptance of death. He attacks the human.", "'In battle, if you make your opponent flinch, you have already won.' He attacks the man."],
@@ -584,8 +742,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 50,
       increaseDifficulty: 1,
       addCustomCards: [
-        { id: 'custom_sakai_katana', name: "Sakai Clan Katana", type: 'Item', effect: { type: 'weapon', attack: 10, subtype: 'sword' }, description: "The storm is coming.", sellValue: 30, isCheat: true, illustrationId: 'item_katana_t1_fj' },
-        { id: 'custom_sakai_tanto', name: "Ghost's Tanto", type: 'Item', effect: { type: 'weapon', attack: 6, subtype: 'sword' }, description: "For when honor is not enough.", sellValue: 15, isCheat: true, illustrationId: 'item_knife_t1_fj' },
+        { id: 'custom_sakai_katana', name: "Sakai Clan Katana", type: 'Item', effect: { type: 'weapon', attack: 12, subtype: 'sword' }, description: "The storm is coming.", sellValue: 30, isCheat: true, illustrationId: 'item_katana_t1_fj' },
+        { id: 'custom_sakai_tanto', name: "Ghost's Tanto", type: 'Item', effect: { type: 'weapon', attack: 8, subtype: 'sword' }, description: "For when honor is not enough.", sellValue: 15, isCheat: true, illustrationId: 'item_knife_t1_fj' },
       ],
       catchphrases: {
         playerAttackHuman: ["'I am the Ghost.' He attacks the man.", "'You have no honor.' He attacks the human.", "'For the people of Tsushima!' He attacks the man.", "'My storm will claim you.'"],
@@ -613,8 +771,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 150,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'item_elephant_gun_quatermain', name: "Quatermain's Elephant Gun", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "A heavy rifle for the biggest of game.", sellValue: 40, isCheat: true, illustrationId: 'item_elephant_gun_t1_as' },
-        { id: 'custom_quatermain_map', name: "Map to King Solomon's Mines", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 15, persistent: true }, description: "A map to legendary riches.", sellValue: 50, isCheat: true, illustrationId: 'upgrade_treasure_map_as' }
+        { id: 'item_elephant_gun_quatermain', name: "Quatermain's Elephant Gun", type: 'Item', effect: { type: 'weapon', attack: 13 }, description: "A heavy rifle for the biggest of game.", sellValue: 40, isCheat: true, illustrationId: 'item_elephant_gun_t1_as' },
+        { id: 'custom_quatermain_map', name: "Map to King Solomon's Mines", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 20, persistent: true }, description: "A map to legendary riches.", sellValue: 50, isCheat: true, illustrationId: 'upgrade_treasure_map_as' }
       ],
       catchphrases: {
         playerAttackHuman: ["He levels his elephant gun. 'There is no hunting like the hunting of man.'", "'The league of extraordinary gentlemen send their regards.' He attacks the man.", "'A messy business, this.' He attacks the human."],
@@ -642,8 +800,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addMaxHealth: 1,
       increaseDifficulty: 1,
       addCustomCards: [
-        { id: 'item_webley_revolver_indy', name: "Indy's Revolver", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "Good for arguments where swords are involved.", sellValue: 20, isCheat: true, illustrationId: 'item_webley_revolver_t1_as'},
-        { id: 'custom_indy_whip', name: "Bullwhip", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "Not just for swinging across chasms.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_bandolier_t1'}
+        { id: 'item_webley_revolver_indy', name: "Indy's Revolver", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "Good for arguments where swords are involved.", sellValue: 20, isCheat: true, illustrationId: 'item_webley_revolver_t1_as'},
+        { id: 'custom_indy_whip', name: "Bullwhip", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "Not just for swinging across chasms.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_bandolier_t1'}
       ],
       catchphrases: {
         playerAttackHuman: ["A quick shot from the revolver. 'Trust me.'", "'X never, ever marks the spot!' He attacks the man.", "'They're trying to kill us!' He attacks the human.", "'You want to talk to God? Let's go see him together.'"],
@@ -674,8 +832,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 500,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'item_six_shooter_lara1', name: "Dual Pistols", type: 'Item', effect: {type: 'weapon', attack: 9}, description: "A pair of iconic pistols. For when you mean business.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' },
-        { id: 'item_six_shooter_lara2', name: "Dual Pistols", type: 'Item', effect: {type: 'weapon', attack: 9}, description: "A pair of iconic pistols. For when you mean business.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' }
+        { id: 'item_six_shooter_lara1', name: "Dual Pistols", type: 'Item', effect: {type: 'weapon', attack: 11}, description: "A pair of iconic pistols. For when you mean business.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' },
+        { id: 'item_six_shooter_lara2', name: "Dual Pistols", type: 'Item', effect: {type: 'weapon', attack: 11}, description: "A pair of iconic pistols. For when you mean business.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' }
       ],
       catchphrases: {
         playerAttackHuman: ["'I make my own luck.' She attacks the man.", "'I've simplified your payroll.' She attacks the human.", "'From this moment, every breath you take is a gift from me.' She attacks the man."],
@@ -703,8 +861,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 100,
       increaseDifficulty: 1,
       addCustomCards: [
-        { id: 'item_six_shooter_drake', name: "Nate's Pistol", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "A well-used sidearm that's seen better days, but never fails.", sellValue: 10, isCheat: true, illustrationId: 'item_six_shooter_t1' },
-        { id: 'custom_drake_grapple', name: "Grappling Hook", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "For reaching high places, or getting out of trouble. Draw 2 cards.", sellValue: 5, isCheat: true, illustrationId: 'action_scout_ahead' }
+        { id: 'item_six_shooter_drake', name: "Nate's Pistol", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "A well-used sidearm that's seen better days, but never fails.", sellValue: 10, isCheat: true, illustrationId: 'item_six_shooter_t1' },
+        { id: 'custom_drake_grapple', name: "Grappling Hook", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "For reaching high places, or getting out of trouble. Draw 2 cards and heal 2 HP.", sellValue: 5, isCheat: true, illustrationId: 'action_scout_ahead', immediateEffect: { type: 'heal', amount: 2 } }
       ],
       catchphrases: {
         playerAttackHuman: ["'Here goes nothing!' He opens fire on the man.", "'Sic Parvis Magna.' He attacks the human.", "'Look out! Grenade!' (There is no grenade) He attacks the man."],
@@ -731,8 +889,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 100,
       addMaxHealth: 4,
       addCustomCards: [
-        { id: 'item_webley_revolver_rick1', name: "Rick's Pistol", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "One of a pair. Good for shooting mummies.", sellValue: 20, isCheat: true, illustrationId: 'item_webley_revolver_t1_as' },
-        { id: 'item_webley_revolver_rick2', name: "Rick's Other Pistol", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "The other of a pair. Has more sand in it.", sellValue: 20, isCheat: true, illustrationId: 'item_webley_revolver_t2_as' },
+        { id: 'item_webley_revolver_rick1', name: "Rick's Pistol", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "One of a pair. Good for shooting mummies.", sellValue: 20, isCheat: true, illustrationId: 'item_webley_revolver_t1_as' },
+        { id: 'item_webley_revolver_rick2', name: "Rick's Other Pistol", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "The other of a pair. Has more sand in it.", sellValue: 20, isCheat: true, illustrationId: 'item_webley_revolver_t2_as' },
       ],
       catchphrases: {
         playerAttackHuman: ["'Looks to me like I've got all the horses!' He attacks the man.", "'Here I come, you filthy dogs!' He attacks the human.", "'Rescue the damsel in distress, kill the bad guy, and save the world.' He attacks the man."],
@@ -760,8 +918,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 1000,
       addMaxHealth: 5,
       addCustomCards: [
-        { id: 'custom_jensen_typhoon', name: "Typhoon System", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "Explosive ordnance for crowd control. Draws 2 cards.", sellValue: 20, isCheat: true, illustrationId: 'provision_stamina_tonic_t1_cp' },
-        { id: 'item_sharp_knife_jensen', name: "Arm Blades", type: 'Item', effect: { type: 'weapon', attack: 9, subtype: 'sword' }, description: "Retractable nanoceramic blades. Lethal and silent.", sellValue: 25, isCheat: true, illustrationId: 'item_sharp_knife_t1_cp' },
+        { id: 'custom_jensen_typhoon', name: "Typhoon System", type: 'Action', effect: { type: 'draw', amount: 3 }, description: "Explosive ordnance for crowd control. Draws 3 cards and heals 3 HP.", sellValue: 20, isCheat: true, illustrationId: 'provision_stamina_tonic_t1_cp', immediateEffect: { type: 'heal', amount: 3 } },
+        { id: 'item_sharp_knife_jensen', name: "Arm Blades", type: 'Item', effect: { type: 'weapon', attack: 11, subtype: 'sword' }, description: "Retractable nanoceramic blades. Lethal and silent.", sellValue: 25, isCheat: true, illustrationId: 'item_sharp_knife_t1_cp' },
       ],
       catchphrases: {
         playerAttackHuman: ["'This is how it has to be.' He attacks the man.", "'If you want to make enemies, try to change something.' He attacks the human.", "'They're just men. Flesh and blood. And I'm going to make them bleed.' He attacks the man."],
@@ -790,8 +948,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addMaxHealth: -5,
       increaseDifficulty: 1,
       addCustomCards: [
-        { id: 'item_six_shooter_holliday', name: "Doc's Nickel-Plated Revolver", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "A gentleman's weapon for a deadly game.", sellValue: 25, isCheat: true, illustrationId: 'item_six_shooter_t1' },
-        { id: 'custom_holliday_satchel', name: "Gambler's Satchel", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "Take another card and heal 1 HP. You're in your prime.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_leather_satchel_t1', immediateEffect: { type: 'heal', amount: 1 } },
+        { id: 'item_six_shooter_holliday', name: "Doc's Nickel-Plated Revolver", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A gentleman's weapon for a deadly game.", sellValue: 25, isCheat: true, illustrationId: 'item_six_shooter_t1' },
+        { id: 'custom_holliday_satchel', name: "Gambler's Satchel", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "Take another card and heal 3 HP. You're in your prime.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_leather_satchel_t1', immediateEffect: { type: 'heal', amount: 3 } },
       ],
       catchphrases: { 
         playerAttackHuman: ["'I'm your huckleberry.'", "'Say when.'", "'Why, Johnny Ringo, you look like somebody just walked over your grave.'"], 
@@ -819,8 +977,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 50,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'custom_quinn_kit', name: "Doctor's Kit", type: 'Provision', effect: { type: 'heal', amount: 8, cures: true }, description: "A proper medical kit for a proper doctor.", sellValue: 15, isCheat: true, illustrationId: 'provision_miracle_cure_t1' },
-        { id: 'custom_quinn_journal', name: "Medical Journal", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'provision_heal_boost', amount: 2, persistent: true }, description: "Knowledge is the best medicine.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_medical_journal' }
+        { id: 'custom_quinn_kit', name: "Doctor's Kit", type: 'Provision', effect: { type: 'heal', amount: 12, cures: true }, description: "A proper medical kit for a proper doctor.", sellValue: 15, isCheat: true, illustrationId: 'provision_miracle_cure_t1' },
+        { id: 'custom_quinn_journal', name: "Medical Journal", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'provision_heal_boost', amount: 3, persistent: true }, description: "Knowledge is the best medicine.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_medical_journal' }
       ],
       catchphrases: {
         playerHeal: ["'The body has a remarkable ability to heal itself, if given a chance.'", "'A doctor's work is never done.'", "'This is a simple poultice of herbs.'"],
@@ -846,8 +1004,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 100,
       addMaxHealth: 3,
       addCustomCards: [
-        { id: 'custom_nightingale_kit', name: "Nurse's Kit", type: 'Provision', effect: { type: 'heal', amount: 10, cures: true }, description: "A kit filled with clean bandages and radical ideas about hygiene.", sellValue: 20, isCheat: true, illustrationId: 'provision_miracle_cure_t1' },
-        { id: 'custom_nightingale_journal', name: "Notes on Nursing", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'provision_heal_boost', amount: 3, persistent: true }, description: "Knowledge is the best medicine.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_medical_journal' },
+        { id: 'custom_nightingale_kit', name: "Nurse's Kit", type: 'Provision', effect: { type: 'heal', amount: 15, cures: true }, description: "A kit filled with clean bandages and radical ideas about hygiene.", sellValue: 20, isCheat: true, illustrationId: 'provision_miracle_cure_t1' },
+        { id: 'custom_nightingale_journal', name: "Notes on Nursing", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'provision_heal_boost', amount: 4, persistent: true }, description: "Knowledge is the best medicine.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_medical_journal' },
       ],
       catchphrases: {
         playerHeal: ["'The very first requirement in a hospital is that it should do the sick no harm.'", "'The first rule of nursing is to keep the air within as pure as the air without.'", "'Let us never consider ourselves finished nurses... we must be learning all of our lives.'"],
@@ -871,8 +1029,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 150,
       addMaxHealth: 3,
       addCustomCards: [
-        { id: 'item_six_shooter_livesey', name: "Doctor's Pistol", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "A steady hand is good for more than just surgery.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' },
-        { id: 'custom_livesey_rum', name: "A Grog of Rum", type: 'Provision', effect: { type: 'heal', amount: 6 }, description: "A surprisingly effective restorative.", sellValue: 5, isCheat: true, illustrationId: 'provision_laudanum_t1' },
+        { id: 'item_six_shooter_livesey', name: "Doctor's Pistol", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "A steady hand is good for more than just surgery.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' },
+        { id: 'custom_livesey_rum', name: "A Grog of Rum", type: 'Provision', effect: { type: 'heal', amount: 10 }, description: "A surprisingly effective restorative.", sellValue: 5, isCheat: true, illustrationId: 'provision_laudanum_t1' },
       ],
       catchphrases: {
         threatDefeatedHuman: ["'If you keep on drinking rum, the world will soon be quit of a very dirty scoundrel!'", "'Fifteen men on a dead man's chest... Yo-ho-ho and a bottle of rum!'", "'If you were sent by Long John, I'll have you know I'm a magistrate.'"],
@@ -899,8 +1057,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 10,
       increaseDifficulty: 2,
       addCustomCards: [
-        { id: 'custom_kenshin_sakabato', name: "Sakabatō", type: 'Item', effect: { type: 'weapon', attack: 9, subtype: 'sword' }, description: "A reverse-blade sword. A weapon that cannot kill, in the hands of one who has killed too many.", sellValue: 20, isCheat: true, illustrationId: 'item_katana_t2_fj' },
-        { id: 'custom_kenshin_vow', name: "Vow of Non-Killing", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 2, persistent: true }, description: "A vow to never take another life strengthens the spirit against all harm.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_iron_will_fj' }
+        { id: 'custom_kenshin_sakabato', name: "Sakabatō", type: 'Item', effect: { type: 'weapon', attack: 11, subtype: 'sword' }, description: "A reverse-blade sword. A weapon that cannot kill, in the hands of one who has killed too many.", sellValue: 20, isCheat: true, illustrationId: 'item_katana_t2_fj' },
+        { id: 'custom_kenshin_vow', name: "Vow of Non-Killing", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 3, persistent: true }, description: "A vow to never take another life strengthens the spirit against all harm.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_iron_will_fj' }
       ],
       catchphrases: {
         playerAttackHuman: ["'Oro?' He strikes with the back of his blade.", "A Hiten Mitsurugi-ryū technique!", "'A sword is a tool to protect. A tool to save lives.'", "'I will not kill, but I will not let you kill either.'"],
@@ -928,8 +1086,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 100,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'item_six_iron_warren', name: "Warren's Revolver", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "A reliable sidearm from a man who's seen it all.", sellValue: 25, isCheat: true, illustrationId: 'item_six_iron_t2' },
-        { id: 'custom_warren_pipe', name: "Warren's Pipe", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "A moment to think can reveal a path forward. Draw 2 cards.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_medical_journal' }
+        { id: 'item_six_iron_warren', name: "Warren's Revolver", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "A reliable sidearm from a man who's seen it all.", sellValue: 25, isCheat: true, illustrationId: 'item_six_iron_t2' },
+        { id: 'custom_warren_pipe', name: "Warren's Pipe", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "A moment to think can reveal a path forward. Draw 2 cards and heal 2 HP.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_medical_journal', immediateEffect: { type: 'heal', amount: 2 } }
       ],
       catchphrases: {
         playerAttackHuman: ["'The only time black folks are safe, is when white folks are disarmed.'", "'Got room for one more?'", "'This is for you, Jody.'"],
@@ -957,8 +1115,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 30,
       addMaxHealth: 3,
       addCustomCards: [
-        { id: 'custom_boone_rifle', name: "Old Betsy", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "A trusty rifle that's seen the far side of the frontier.", sellValue: 25, isCheat: true, illustrationId: 'item_hunting_rifle_t1' },
-        { id: 'custom_boone_coat', name: "Deerskin Coat", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 5, persistent: true }, description: "Made for walking quietly through the woods.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_deer_skin_coat_t1' },
+        { id: 'custom_boone_rifle', name: "Old Betsy", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "A trusty rifle that's seen the far side of the frontier.", sellValue: 25, isCheat: true, illustrationId: 'item_hunting_rifle_t1' },
+        { id: 'custom_boone_coat', name: "Deerskin Coat", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 8, persistent: true }, description: "Made for walking quietly through the woods.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_deer_skin_coat_t1' },
       ],
       catchphrases: {
         playerAttackHuman: ["'Be sure you're right, then go ahead.' He attacks the man.", "'I'm half-horse, half-alligator and a little attached with a snapping turtle.' He attacks the human.", "'I can whip my weight in wildcats.' He attacks the man."],
@@ -985,22 +1143,16 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 40,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'item_rifle_carson', name: "Hawken Rifle", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "A rifle that's seen the whole frontier.", sellValue: 20, isCheat: true, illustrationId: 'item_rifle_t1' },
-        { id: 'item_sharp_knife_carson', name: "Scout's Knife", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "A reliable blade for a man of the mountains.", sellValue: 10, isCheat: true, illustrationId: 'item_sharp_knife_t1' },
+        { id: 'item_rifle_carson', name: "Hawken Rifle", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A rifle that's seen the whole frontier.", sellValue: 20, isCheat: true, illustrationId: 'item_rifle_t1' },
+        { id: 'item_sharp_knife_carson', name: "Scout's Knife", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "A reliable blade for a man of the mountains.", sellValue: 10, isCheat: true, illustrationId: 'item_sharp_knife_t1' },
       ],
       catchphrases: {
-        playerAttackHuman: ["'This is how it's done in the mountains.'", "'A simple, effective solution.'", "'Some men just need puttin' down.'"],
-        playerAttackAnimal: ["'This is how it's done in the mountains.'", "'A simple, effective solution.'", "'For the cookpot.'"],
-        threatDefeatedHuman: ["He nods grimly. 'The trail is clear.'", "'I've seen the elephant.'", "'A man must live with the choices he makes.'", "'Another soul lost to the frontier.'"],
-        threatDefeatedAnimal: ["He nods grimly. 'The trail is clear.'", "'The mountains provide.'", "'A fine pelt.'"],
+        playerAttack: ["'This is how it's done in the mountains.'", "'A simple, effective solution.'", "'Some men just need puttin' down.'"],
+        threatDefeated: ["He nods grimly. 'The trail is clear.'", "'I've seen the elephant.'", "'A man must live with the choices he makes.'", "'Another soul lost to the frontier.'"],
         itemTaken: ["'This will be useful.'", "'The land provides for those who know how to look.'"],
         playerDamage: ["'A scrape. Nothing more.'", "'The mountains test your resolve.'"],
-        equipCheatItem: {
-          'item_rifle_carson': ["The Hawken rifle feels right in his hands."],
-          'item_sharp_knife_carson': ["The Scout's Knife is a tool for survival."]
-        },
         useCheatItem: {
-          'item_rifle_carson': ["The Hawken Rifle fires, a familiar sound in the wilderness."],
+          'item_rifle_carson': ["The Hawken rifle fires, a familiar sound in the wilderness."],
           'item_sharp_knife_carson': ["A quick, efficient cut from the Scout's Knife."]
         }
       }
@@ -1014,8 +1166,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addMaxHealth: 5,
       increaseDifficulty: 1,
       addCustomCards: [
-        { id: 'item_long_bow_artemis', name: "Bow of the Huntress", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "A silver bow that never misses its mark.", sellValue: 30, isCheat: true, illustrationId: 'item_long_bow_t1' },
-        { id: 'custom_artemis_arrowhead', name: "Moonstone Arrowhead", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'bow_boost', amount: 3, persistent: true }, description: "An arrowhead that glows with a faint lunar light.", sellValue: 15, isCheat: true, illustrationId: 'upgrade_lucky_arrowhead' },
+        { id: 'item_long_bow_artemis', name: "Bow of the Huntress", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "A silver bow that never misses its mark.", sellValue: 30, isCheat: true, illustrationId: 'item_long_bow_t1' },
+        { id: 'custom_artemis_arrowhead', name: "Moonstone Arrowhead", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'bow_boost', amount: 4, persistent: true }, description: "An arrowhead that glows with a faint lunar light.", sellValue: 15, isCheat: true, illustrationId: 'upgrade_lucky_arrowhead' },
       ],
       catchphrases: {
         playerAttackHuman: ["'Let the hunt commence!'", "'By the light of the full moon!'", "'The huntress does not fail.'", "'A mortal's folly.'"],
@@ -1041,8 +1193,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 0,
       increaseDifficulty: 2,
       addCustomCards: [
-        { id: 'item_sharp_knife_bloodborne', name: "Saw Cleaver", type: 'Item', effect: { type: 'weapon', attack: 10, subtype: 'sword' }, description: "A trick weapon from Yharnam. Unfolds for extended reach.", sellValue: 25, isCheat: true, illustrationId: 'item_sharp_knife_t1_sh' },
-        { id: 'item_six_shooter_hunter', name: "Hunter's Pistol", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "A firearm used for parrying beasts, not for damage.", sellValue: 10, isCheat: true, illustrationId: 'item_six_shooter_t1_sh' },
+        { id: 'item_sharp_knife_bloodborne', name: "Saw Cleaver", type: 'Item', effect: { type: 'weapon', attack: 12, subtype: 'sword' }, description: "A trick weapon from Yharnam. Unfolds for extended reach.", sellValue: 25, isCheat: true, illustrationId: 'item_sharp_knife_t1_sh' },
+        { id: 'item_six_shooter_hunter', name: "Hunter's Pistol", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "A firearm used for parrying beasts, not for damage.", sellValue: 10, isCheat: true, illustrationId: 'item_six_shooter_t1_sh' },
       ],
       catchphrases: {
         playerAttackHuman: ["'A hunter must hunt.'", "He strikes with visceral speed.", "'You are no beast, but you are a threat.'"],
@@ -1071,8 +1223,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 20,
       addMaxHealth: 4,
       addCustomCards: [
-        { id: 'item_hunting_rifle_jeremiah', name: ".50 Caliber Hawken", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A heavy rifle for a mountain man.", sellValue: 35, isCheat: true, illustrationId: 'item_hunting_rifle_t1' },
-        { id: 'custom_jeremiah_coat', name: "Mountain Man's Coat", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 5, persistent: true }, description: "Made from... well, you don't ask.", sellValue: 15, isCheat: true, illustrationId: 'upgrade_bearskin_coat' },
+        { id: 'item_hunting_rifle_jeremiah', name: ".50 Caliber Hawken", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "A heavy rifle for a mountain man.", sellValue: 35, isCheat: true, illustrationId: 'item_hunting_rifle_t1' },
+        { id: 'custom_jeremiah_coat', name: "Mountain Man's Coat", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 8, persistent: true }, description: "Made from... well, you don't ask.", sellValue: 15, isCheat: true, illustrationId: 'upgrade_bearskin_coat' },
       ],
       catchphrases: {
         playerAttackHuman: ["'You've come far, pilgrim.' He attacks the man.", "'Watch your topknot.' He attacks the human.", "'Ain't this somethin'?'"],
@@ -1100,8 +1252,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addMaxHealth: -10,
       increaseDifficulty: 1,
       addCustomCards: [
-        { id: 'custom_glass_hide', name: "Grizzly Hide", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 10, persistent: true }, description: "A heavy hide that serves as a grim reminder.", sellValue: 20, isCheat: true, illustrationId: 'upgrade_bearskin_coat' },
-        { id: 'custom_glass_revenge', name: "Revenant's Fury", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "Fueled by sheer will. Draw 2 cards.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_iron_will' },
+        { id: 'custom_glass_hide', name: "Grizzly Hide", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 12, persistent: true }, description: "A heavy hide that serves as a grim reminder.", sellValue: 20, isCheat: true, illustrationId: 'upgrade_bearskin_coat' },
+        { id: 'custom_glass_revenge', name: "Revenant's Fury", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "Fueled by sheer will. Draw 2 cards and heal 2 HP.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_iron_will', immediateEffect: { type: 'heal', amount: 2 } },
       ],
       catchphrases: {
         playerAttackHuman: ["'As long as you can still grab a breath, you fight.'", "'Revenge is in God's hands... not mine.' But he attacks anyway.", "'They don't hear your voice! They just see the color of your face.'", "'You are just another man who left me to die.'"],
@@ -1129,9 +1281,9 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 50,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'custom_bridger_trap1', name: "Bridger's Large Trap", type: 'Item', effect: { type: 'trap', size: 'large', breakDamage: 6 }, description: "A trap for a man who knows what's out there.", sellValue: 10, isCheat: true, illustrationId: 'item_large_trap_t1' },
-        { id: 'custom_bridger_trap2', name: "Bridger's Medium Trap", type: 'Item', effect: { type: 'trap', size: 'medium', breakDamage: 4 }, description: "A versatile trap for the trail.", sellValue: 8, isCheat: true, illustrationId: 'item_medium_trap_t1' },
-        { id: 'custom_bridger_scout', name: "Mountain Man's Knowledge", type: 'Action', effect: { type: 'scout' }, description: "He knows these lands like the back of his hand. Scout and draw 1 card.", sellValue: 5, isCheat: true, illustrationId: 'action_scout_ahead', immediateEffect: { type: 'draw', amount: 1 } },
+        { id: 'custom_bridger_trap1', name: "Bridger's Large Trap", type: 'Item', effect: { type: 'trap', size: 'large', breakDamage: 8 }, description: "A trap for a man who knows what's out there.", sellValue: 10, isCheat: true, illustrationId: 'item_large_trap_t1' },
+        { id: 'custom_bridger_trap2', name: "Bridger's Medium Trap", type: 'Item', effect: { type: 'trap', size: 'medium', breakDamage: 6 }, description: "A versatile trap for the trail.", sellValue: 8, isCheat: true, illustrationId: 'item_medium_trap_t1' },
+        { id: 'custom_bridger_scout', name: "Mountain Man's Knowledge", type: 'Action', effect: { type: 'scout' }, description: "He knows these lands like the back of his hand. Scout and draw 2 cards.", sellValue: 5, isCheat: true, illustrationId: 'action_scout_ahead', immediateEffect: { type: 'draw', amount: 2 } },
       ],
       catchphrases: {
         playerAttack: ["'This is how it's done in the mountains.'", "'A simple, effective solution.'"],
@@ -1154,8 +1306,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 50,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'item_six_iron_preacher', name: "Pale Rider's Revolver", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "A gun that deals in judgment.", sellValue: 30, isCheat: true, illustrationId: 'item_six_iron_t2' },
-        { id: 'custom_preacher_symbol', name: "Holy Symbol", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 1, persistent: true }, description: "A symbol of faith that offers some protection from the evils of this world.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_lucky_bullet' }
+        { id: 'item_six_iron_preacher', name: "Pale Rider's Revolver", type: 'Item', effect: { type: 'weapon', attack: 12 }, description: "A gun that deals in judgment.", sellValue: 30, isCheat: true, illustrationId: 'item_six_iron_t2' },
+        { id: 'custom_preacher_symbol', name: "Holy Symbol", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 2, persistent: true }, description: "A symbol of faith that offers some protection from the evils of this world.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_lucky_bullet' }
       ],
       catchphrases: {
         playerAttack: ["'And I looked, and behold a pale horse: and his name that sat on him was Death, and Hell followed with him.'", "'There's a lot of sinners hereabouts.'", "'Nothing like a nice piece of hickory.'"],
@@ -1179,8 +1331,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 25,
       addMaxHealth: 3,
       addCustomCards: [
-        { id: 'custom_padre_bible', name: "Padre's Bible", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 3, persistent: true }, description: "Its words offer comfort, its cover offers protection.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_tattered_bible' },
-        { id: 'custom_padre_water', name: "Flask of Holy Water", type: 'Provision', effect: { type: 'heal', amount: 5, cures: true }, description: "A blessing against the evils of this world.", sellValue: 10, isCheat: true, illustrationId: 'provision_water_t1' },
+        { id: 'custom_padre_bible', name: "Padre's Bible", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 4, persistent: true }, description: "Its words offer comfort, its cover offers protection.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_tattered_bible' },
+        { id: 'custom_padre_water', name: "Flask of Holy Water", type: 'Provision', effect: { type: 'heal', amount: 8, cures: true }, description: "A blessing against the evils of this world.", sellValue: 10, isCheat: true, illustrationId: 'provision_water_t1' },
       ],
       catchphrases: {
         playerHeal: ["'Let us pray.'", "'Bless you, my child.'", "'The Lord is my shepherd.'", "'Through Him, all things are possible.'"],
@@ -1203,8 +1355,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 150,
       increaseDifficulty: 2,
       addCustomCards: [
-        { id: 'custom_frollo_dagger', name: "Dagger of Judgment", type: 'Item', effect: { type: 'weapon', attack: 8, subtype: 'sword' }, description: "A silver dagger, cold to the touch. For delivering righteous judgment to the wicked and unworthy.", sellValue: 13, isCheat: true, illustrationId: 'item_sharp_knife_t1_sh' },
-        { id: 'custom_frollo_ring', name: "Ring of the Archdeacon", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 2, persistent: true }, description: "The symbol of his holy office. It protects the body, but offers no comfort to the soul.", sellValue: 66, isCheat: true, illustrationId: 'item_jewelry_sh' }
+        { id: 'custom_frollo_dagger', name: "Dagger of Judgment", type: 'Item', effect: { type: 'weapon', attack: 10, subtype: 'sword' }, description: "A silver dagger, cold to the touch. For delivering righteous judgment to the wicked and unworthy.", sellValue: 13, isCheat: true, illustrationId: 'item_sharp_knife_t1_sh' },
+        { id: 'custom_frollo_ring', name: "Ring of the Archdeacon", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_reduction', amount: 3, persistent: true }, description: "The symbol of his holy office. It protects the body, but offers no comfort to the soul.", sellValue: 66, isCheat: true, illustrationId: 'item_jewelry_sh' }
       ],
       catchphrases: {
         playerAttack: ["'The wicked shall not go unpunished!'", "'I am a righteous man!'", "'And He shall smite the wicked and plunge them into the fiery pit!'", "'Choose me... or the fire!'"],
@@ -1231,8 +1383,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 75,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'item_sawed_off_book', name: "Shepherd's Shotgun", type: 'Item', effect: { type: 'weapon', attack: 8 }, description: "For protecting the flock.", sellValue: 20, isCheat: true, illustrationId: 'item_sawed_off_t1' },
-        { id: 'custom_book_medkit', name: "Shepherd's Medkit", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'provision_heal_boost', amount: 2, persistent: true }, description: "A shepherd tends to his flock.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_medical_journal' },
+        { id: 'item_sawed_off_book', name: "Shepherd's Shotgun", type: 'Item', effect: { type: 'weapon', attack: 10 }, description: "For protecting the flock.", sellValue: 20, isCheat: true, illustrationId: 'item_sawed_off_t1' },
+        { id: 'custom_book_medkit', name: "Shepherd's Medkit", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'provision_heal_boost', amount: 3, persistent: true }, description: "A shepherd tends to his flock.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_medical_journal' },
       ],
       catchphrases: {
         playerAttack: ["'A shepherd's job is simple: to find a pasture and feed his flock.'", "'Though I walk through the valley of the shadow of death, I will fear no evil.'", "'I'm just a Shepherd.' He opens fire."],
@@ -1379,8 +1531,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 25,
       addMaxHealth: 1,
       addCustomCards: [
-        { id: 'custom_pocket_pan', name: "Mr. Pocket's Gold Pan", type: 'Item', effect: { type: 'gold', amount: 15 }, description: "This pan has seen the color of gold more than most.", sellValue: 5, isCheat: true, illustrationId: 'item_gold_pan' },
-        { id: 'custom_pocket_nugget', name: "Pocket Nugget", type: 'Item', effect: { type: 'gold' }, sellValue: 30, description: "A fine specimen.", isCheat: true, illustrationId: 'item_gold_nugget' },
+        { id: 'custom_pocket_pan', name: "Mr. Pocket's Gold Pan", type: 'Item', effect: { type: 'gold', amount: 25 }, description: "This pan has seen the color of gold more than most.", sellValue: 5, isCheat: true, illustrationId: 'item_gold_pan' },
+        { id: 'custom_pocket_nugget', name: "Pocket Nugget", type: 'Item', effect: { type: 'gold' }, sellValue: 50, description: "A fine specimen.", isCheat: true, illustrationId: 'item_gold_nugget' },
       ],
       catchphrases: {
         goldFound: ["'There's gold in that river!'", "'It's a pocket! A pocket full of gold!'", "'I'm rich! I'm rich!'"],
@@ -1402,10 +1554,10 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 30,
       addMaxHealth: 2,
       addCustomCards: [
-        { id: 'item_six_shooter_jane', name: "Jane's Revolver", type: 'Item', effect: { type: 'weapon', attack: 7 }, description: "A well-used revolver for a woman of the plains.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' },
-        { id: 'custom_jane_meat1', name: "Dried Meat", type: 'Provision', effect: { type: 'heal', amount: 3 }, description: "Sustenance for the long road.", sellValue: 2, isCheat: true, illustrationId: 'provision_dried_meat' },
-        { id: 'custom_jane_meat2', name: "Dried Meat", type: 'Provision', effect: { type: 'heal', amount: 3 }, description: "Sustenance for the long road.", sellValue: 2, isCheat: true, illustrationId: 'provision_dried_meat' },
-        { id: 'custom_jane_laudanum', name: "Laudanum", type: 'Provision', effect: { type: 'heal', amount: 5 }, description: "For the aches and pains of a hard life.", sellValue: 7, isCheat: true, illustrationId: 'provision_laudanum_t1', immediateEffect: { type: 'draw', amount: 1 } },
+        { id: 'item_six_shooter_jane', name: "Jane's Revolver", type: 'Item', effect: { type: 'weapon', attack: 9 }, description: "A well-used revolver for a woman of the plains.", sellValue: 15, isCheat: true, illustrationId: 'item_six_shooter_t1' },
+        { id: 'custom_jane_meat1', name: "Dried Meat", type: 'Provision', effect: { type: 'heal', amount: 5 }, description: "Sustenance for the long road.", sellValue: 2, isCheat: true, illustrationId: 'provision_dried_meat' },
+        { id: 'custom_jane_meat2', name: "Dried Meat", type: 'Provision', effect: { type: 'heal', amount: 5 }, description: "Sustenance for the long road.", sellValue: 2, isCheat: true, illustrationId: 'provision_dried_meat' },
+        { id: 'custom_jane_laudanum', name: "Laudanum", type: 'Provision', effect: { type: 'heal', amount: 7 }, description: "For the aches and pains of a hard life. Draw 2 cards.", sellValue: 7, isCheat: true, illustrationId: 'provision_laudanum_t1', immediateEffect: { type: 'draw', amount: 2 } },
       ],
       catchphrases: {
         playerAttack: ["'I'm a woman of the plains, and I fear no man.'", "'If you've got troubles, I've got a gun.'", "'This calls for a drink.'"],
@@ -1432,8 +1584,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 100,
       addMaxHealth: 1,
       addCustomCards: [
-        { id: 'custom_huston_pan', name: "Prospector's Pan", type: 'Item', effect: { type: 'gold', amount: 12 }, description: "A pan that's seen many a hopeful sunrise.", sellValue: 10, isCheat: true, illustrationId: 'item_gold_pan' },
-        { id: 'custom_huston_pickaxe', name: "Pickaxe", type: 'Item', effect: { type: 'weapon', attack: 4 }, description: "For breaking rocks, or heads.", sellValue: 5, isCheat: true, illustrationId: 'item_sharp_knife_t1' }
+        { id: 'custom_huston_pan', name: "Prospector's Pan", type: 'Item', effect: { type: 'gold', amount: 20 }, description: "A pan that's seen many a hopeful sunrise.", sellValue: 10, isCheat: true, illustrationId: 'item_gold_pan' },
+        { id: 'custom_huston_pickaxe', name: "Pickaxe", type: 'Item', effect: { type: 'weapon', attack: 6 }, description: "For breaking rocks, or heads.", sellValue: 5, isCheat: true, illustrationId: 'item_sharp_knife_t1' }
       ],
       catchphrases: {
         goldFound: ["'Hey you fellas, have you got a few pennies for a fellow American down on his luck?'", "'Gold is a devilish sort of thing. It makes you crazy.'"],
@@ -1445,7 +1597,7 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
           'custom_huston_pickaxe': ["He hefts the pickaxe. 'This'll do the job.'"]
         },
         useCheatItem: {
-          'custom_huston_pan': ["He uses the pan, his eyes gleaming with hope. 'Come on, just a little color.'"],
+          'custom_huston_pan': ["He swirls the pan with a practiced hand. 'Come on, just a little color.'"],
           'custom_huston_pickaxe': ["He swings the pickaxe with surprising force."]
         }
       }
@@ -1458,8 +1610,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 50,
       addMaxHealth: 1,
       addCustomCards: [
-        { id: 'custom_pete_nugget1', name: "Large Gold Nugget", type: 'Item', effect: { type: 'gold' }, sellValue: 35, description: "It's a motherlode!", isCheat: true, illustrationId: 'item_gold_nugget_t2' },
-        { id: 'custom_pete_nugget2', name: "Large Gold Nugget", type: 'Item', effect: { type: 'gold' }, sellValue: 35, description: "It's a motherlode!", isCheat: true, illustrationId: 'item_gold_nugget_t2' },
+        { id: 'custom_pete_nugget1', name: "Large Gold Nugget", type: 'Item', effect: { type: 'gold' }, sellValue: 50, description: "It's a motherlode!", isCheat: true, illustrationId: 'item_gold_nugget_t2' },
+        { id: 'custom_pete_nugget2', name: "Large Gold Nugget", type: 'Item', effect: { type: 'gold' }, sellValue: 50, description: "It's a motherlode!", isCheat: true, illustrationId: 'item_gold_nugget_t2' },
       ],
       catchphrases: {
         goldFound: ["'It's a gold rush!'", "'Yee-haw!'", "'I'm a prospector! I'm a connoisseur of dirt!'"],
@@ -1481,8 +1633,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 150,
       addMaxHealth: -2,
       addCustomCards: [
-        { id: 'custom_hosea_map', name: "Hosea's Map", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 10, persistent: true }, description: "A map to a forgotten score. Or is it?", sellValue: 50, isCheat: true, illustrationId: 'upgrade_treasure_map' },
-        { id: 'custom_hosea_book', name: "Book of Stories", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "A well-told story can reveal new opportunities. Draw 2 cards.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_medical_journal' }
+        { id: 'custom_hosea_map', name: "Hosea's Map", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 15, persistent: true }, description: "A map to a forgotten score. Or is it?", sellValue: 50, isCheat: true, illustrationId: 'upgrade_treasure_map' },
+        { id: 'custom_hosea_book', name: "Book of Stories", type: 'Action', effect: { type: 'draw', amount: 2 }, description: "A well-told story can reveal new opportunities. Draw 2 cards and heal 2 HP.", sellValue: 5, isCheat: true, illustrationId: 'upgrade_medical_journal', immediateEffect: { type: 'heal', amount: 2 } }
       ],
       catchphrases: {
         threatDefeated: ["'I wish I had acquired wisdom at less of a price.'", "'There's always a buyer for a good story.'", "'I know you. You're a good man.'", "'The trick is to be a survivor.'"],
@@ -1506,8 +1658,8 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 200,
       addMaxHealth: 1,
       addCustomCards: [
-        { id: 'custom_gus_pan', name: "Gus's Lucky Pan", type: 'Item', effect: { type: 'gold', amount: 50 }, description: "This pan's seen more color than a San Francisco saloon.", sellValue: 10, isCheat: true, illustrationId: 'item_gold_pan' },
-        { id: 'custom_gus_nugget', name: "Gus's Big Nugget", type: 'Item', effect: { type: 'gold' }, sellValue: 500, description: "The one that started it all!", isCheat: true, illustrationId: 'item_gold_nugget_t2' },
+        { id: 'custom_gus_pan', name: "Gus's Lucky Pan", type: 'Item', effect: { type: 'gold', amount: 75 }, description: "This pan's seen more color than a San Francisco saloon.", sellValue: 10, isCheat: true, illustrationId: 'item_gold_pan' },
+        { id: 'custom_gus_nugget', name: "Gus's Big Nugget", type: 'Item', effect: { type: 'gold' }, sellValue: 750, description: "The one that started it all!", isCheat: true, illustrationId: 'item_gold_nugget_t2' },
       ],
       catchphrases: {
         goldFound: ["'Yeehaw! Rich at last!'", "'Gold! Gold! Gold!'", "'I've struck it rich!'", "'This is the life!'"],

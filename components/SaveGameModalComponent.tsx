@@ -22,9 +22,9 @@ const SaveSlot: React.FC<{
   slotIndex: number;
   slotData: GameState | null;
   mode: 'save' | 'load' | 'download' | 'new';
-  currentSaveSlot: number | null | undefined;
+  currentRunId: string;
   onAction: (action: 'save' | 'load' | 'delete' | 'download' | 'new' | 'upload', index: number, file?: File) => void;
-}> = ({ slotIndex, slotData, mode, currentSaveSlot, onAction }) => {
+}> = ({ slotIndex, slotData, mode, currentRunId, onAction }) => {
   const slotName = `Save Slot ${slotIndex + 1}`;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,13 +59,10 @@ const SaveSlot: React.FC<{
   }
 
   if (mode === 'save') {
-    const canSave = !slotData || currentSaveSlot === slotIndex;
-    buttonArea = <button className="button w-full" disabled={!canSave} onClick={() => onAction('save', slotIndex)}>
-      {currentSaveSlot === slotIndex || !slotData ? 'Save' : 'Overwrite'}
+    const canSave = !slotData || !slotData.runId || slotData.runId === currentRunId;
+    buttonArea = <button className="button w-full" onClick={() => onAction('save', slotIndex)} disabled={!canSave}>
+      {slotData ? 'Overwrite' : 'Save'}
     </button>;
-    if (!canSave) {
-      buttonArea = <button className="button w-full" disabled>Cannot Overwrite</button>
-    }
   } else if (mode === 'load') {
      if (slotData) {
         buttonArea = (
@@ -95,12 +92,12 @@ const SaveSlot: React.FC<{
   // The slot should only be disabled if it's empty and in 'load' mode.
   // It should NOT be disabled in 'download' mode, even if empty, to allow for uploads.
   const isDisabled = mode === 'load' && !slotData;
-  const isCurrentGame = currentSaveSlot === slotIndex;
+  const isCurrentGame = slotData?.runId && slotData.runId === currentRunId;
 
   return (
     <div className={`flex flex-col items-center justify-between p-3 border-2 rounded-md transition-all 
       ${isDisabled ? 'bg-gray-200 border-gray-300 opacity-60' : 'bg-white border-[var(--border-color)]'}
-      ${isCurrentGame ? '!border-[var(--tarnished-gold)] !shadow-lg' : ''}
+      ${isCurrentGame ? '!border-4 !border-[var(--tarnished-gold)] !shadow-lg' : ''}
     `}>
       <h4 className="font-bold font-western text-lg mb-2">{slotName}</h4>
       <div className="flex-grow flex items-center justify-center mb-2 min-h-[80px]">
@@ -206,8 +203,8 @@ const SaveGameModalComponent: React.FC<SaveGameModalProps> = ({ isOpen, onClose,
   };
 
   const isSavePossible = () => {
-    if (gameState.saveSlotIndex !== null && gameState.saveSlotIndex !== undefined) return true; // Can always save to its own slot
-    return saves.some(s => s === null); // Can save if there is at least one empty slot
+    // A save is possible if there's any slot that is either empty, a legacy save, or contains a game with a matching runId.
+    return saves.some(slot => !slot || !slot.runId || slot.runId === gameState.runId);
   };
 
   const renderContent = () => {
@@ -262,7 +259,7 @@ const SaveGameModalComponent: React.FC<SaveGameModalProps> = ({ isOpen, onClose,
                   slotIndex={i}
                   slotData={slotData}
                   mode={view === 'delete' ? 'load' : view}
-                  currentSaveSlot={gameState.saveSlotIndex}
+                  currentRunId={gameState.runId}
                   onAction={handleAction}
                 />
               ))}

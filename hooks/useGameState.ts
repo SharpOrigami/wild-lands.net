@@ -282,6 +282,7 @@ export const useGameState = () => {
 
     // Create a clean state for the 'finished' status
     const finishedState: GameState = {
+        runId: currentState.runId,
         status: 'finished',
         ngPlusLevel: currentState.ngPlusLevel,
         log: currentState.log,
@@ -1377,6 +1378,7 @@ export const useGameState = () => {
         ngPlusLevel, cumulativeNGPlusMaxHealthBonus, stepsTaken,
     };
     const baseInitialState: GameState = {
+        runId: crypto.randomUUID(),
         status: initialStatus, playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjective: null, storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, triggerEquipAnimation: false, eventDifficultyBonus: 0, saveSlotIndex: saveSlotIndex ?? undefined,
     };
     setGameState(baseInitialState);
@@ -1462,6 +1464,7 @@ export const useGameState = () => {
         Object.keys(localStorage).forEach(key => { if (key.endsWith('_WWS')) localStorage.removeItem(key); });
         setTimeout(() => {
             const baseInitialState: GameState = {
+                runId: crypto.randomUUID(),
                 status: 'landing', playerDetails: { [PLAYER_ID]: { ...INITIAL_PLAYER_STATE_TEMPLATE, ngPlusLevel: 0, cumulativeNGPlusMaxHealthBonus: 0 } }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjective: null, storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: 0, modals: { message: { isOpen: true, title: "Game Reset", text: "An error occurred during startup, game has been reset." }, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: getThemedCardPool(0, ALL_CARDS_DATA_MAP), activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: false, showObjectiveSummaryModal: false, objectiveSummary: undefined, eventDifficultyBonus: 0,
             };
             setGameState(baseInitialState);
@@ -2178,6 +2181,7 @@ export const useGameState = () => {
 
       const rehydratedState: GameState = {
         ...savedState,
+        runId: savedState.runId || crypto.randomUUID(),
         modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
         activeGameBanner: initialGameBannerState,
         pendingPlayerDamageAnimation: null,
@@ -2237,7 +2241,11 @@ export const useGameState = () => {
 
   const uploadAndLoadGame = useCallback((uploadedGameState: GameState, slotIndex: number) => {
     // Save the uploaded state into the specified slot
-    const success = saveGameToSlot(uploadedGameState, slotIndex);
+    const stateToSave = {
+      ...uploadedGameState,
+      runId: uploadedGameState.runId || crypto.randomUUID(),
+    };
+    const success = saveGameToSlot(stateToSave, slotIndex);
     if (success) {
       _log(`Game state from file successfully saved to slot ${slotIndex + 1}.`, 'system');
       // Now, load the game from that slot, which rehydrates everything properly
@@ -2333,6 +2341,7 @@ export const useGameState = () => {
           savedState.scrollAnimationPhase = 'none';
           savedState.newlyDrawnCardIndices = undefined;
           savedState.triggerEquipAnimation = false;
+          savedState.runId = savedState.runId || crypto.randomUUID();
           
           setGameState(savedState);
         } catch (error) {

@@ -225,6 +225,7 @@ export interface ActiveGameBannerState {
 }
 
 export interface GameState {
+  runId: string;
   status: 'landing' | 'setup' | 'generating_boss_intro' | 'showing_boss_intro' | 'playing_initial_reveal' | 'playing' | 'finished' | 'deck_review';
   playerDetails: { [playerId: string]: PlayerDetails }; // Using string index for player ID
   eventDeck: CardData[];
