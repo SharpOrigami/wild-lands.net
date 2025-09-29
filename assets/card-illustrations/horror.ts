@@ -148,7 +148,7 @@ export const HORROR_ILLUSTRATIONS: { [key: string]: string } = {
   'action_scout_ahead_t2_sh': 'https://storage.googleapis.com/wild-lands-card-images/action_scout_ahead_sh.png',
   'item_gold_nugget_sh': 'https://storage.googleapis.com/wild-lands-card-images/item_gold_nugget_sh.png',
   'item_gold_nugget_t1_sh': 'https://storage.googleapis.com/wild-lands-card-images/item_gold_nugget_sh.png',
-  'item_gold_nugget_t2_sh': 'https://storage.googleapis.com/wild-lands-card-images/item_gold_nugget_t2_sh.png',
+  'item_gold_nugget_t2_sh': 'https://storage.googleapis.com/wild-lands-card-images/item_gold_nugget_sh.png',
   'item_jewelry_sh': 'https://storage.googleapis.com/wild-lands-card-images/item_jewelry_sh.png',
   'item_jewelry_t2_sh': 'https://storage.googleapis.com/wild-lands-card-images/item_jewelry_sh.png',
   'item_jewelry_t3_sh': 'https://storage.googleapis.com/wild-lands-card-images/item_jewelry_sh.png',

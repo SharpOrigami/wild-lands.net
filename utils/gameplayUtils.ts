@@ -658,31 +658,61 @@ export const applyImmediateEventAndCheckEndTurn = (
             damageInfoForAnimation = animationDetails;
 
             if (modifiablePlayer.health > 0 && eventEffect.discard_equipped && modifiablePlayer.equippedItems.length > 0) {
+                const originalEquippedItems = [...modifiablePlayer.equippedItems];
                 const itemsToDiscard: CardData[] = [];
                 const remainingEquippedItems: CardData[] = [];
                 const discardedItemNamesArr: string[] = [];
+                const satchelContentsToDiscard: CardData[] = [];
 
-                modifiablePlayer.equippedItems.forEach(item => {
+                originalEquippedItems.forEach((item, index) => {
                     if (item.id.includes('upgrade_iron_will')) {
                         remainingEquippedItems.push(item);
                     } else {
                         itemsToDiscard.push(item);
                         discardedItemNamesArr.push(item.name);
+                        
+                        if (item.effect?.subtype === 'storage') {
+                            const contents = modifiablePlayer.satchels[index] || [];
+                            if (contents.length > 0) {
+                                satchelContentsToDiscard.push(...contents);
+                            }
+                        }
+
                         if (item.effect?.subtype === 'max_health' && item.effect.amount) {
                             modifiablePlayer.maxHealth = Math.max(1, modifiablePlayer.maxHealth - item.effect.amount);
                             modifiablePlayer.health = Math.min(modifiablePlayer.health, modifiablePlayer.maxHealth);
                         } else if (item.effect?.subtype === 'damage_negation' && typeof item.effect.max_health === 'number') {
-                             modifiablePlayer.maxHealth = Math.max(1, modifiablePlayer.maxHealth - item.effect.max_health);
-                             modifiablePlayer.health = Math.min(modifiablePlayer.health, modifiablePlayer.maxHealth);
+                            modifiablePlayer.maxHealth = Math.max(1, modifiablePlayer.maxHealth - item.effect.max_health);
+                            modifiablePlayer.health = Math.min(modifiablePlayer.health, modifiablePlayer.maxHealth);
                         }
                     }
                 });
 
                 if (itemsToDiscard.length > 0) {
-                    _log(getRandomLogVariation('rockslideDiscardEquipped', { eventName: currentEventInstance.name, discardedItemNames: discardedItemNamesArr.join(', ') }, theme, modifiablePlayer, currentEventInstance, isBossEvent), 'event');
+                    _log(getRandomLogVariation('rockslideDiscardEquipped', { eventName: event.name, discardedItemNames: discardedItemNamesArr.join(', ') }, theme, modifiablePlayer, event, isBossEvent), 'event');
                     const baseItemsToDiscard = itemsToDiscard.map(i => getBaseCardByIdentifier(i)).filter(Boolean);
-                    modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, ...baseItemsToDiscard];
+                    const baseContentsToDiscard = satchelContentsToDiscard.map(c => getBaseCardByIdentifier(c)).filter(Boolean);
+                    
+                    modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, ...baseItemsToDiscard, ...baseContentsToDiscard];
+                    
+                    if (satchelContentsToDiscard.length > 0) {
+                        _log(`The contents of your satchel(s) were also lost and have been discarded.`, 'event');
+                    }
+                    
+                    const oldSatchels = { ...modifiablePlayer.satchels };
                     modifiablePlayer.equippedItems = remainingEquippedItems;
+                    
+                    const newSatchels: { [key: number]: CardData[] } = {};
+                    modifiablePlayer.equippedItems.forEach((newItem, newIndex) => {
+                        if (newItem.effect?.subtype === 'storage') {
+                            const originalIndex = originalEquippedItems.findIndex(origItem => origItem === newItem);
+                            if (originalIndex !== -1 && oldSatchels[originalIndex]) {
+                                newSatchels[newIndex] = oldSatchels[originalIndex];
+                            }
+                        }
+                    });
+                    modifiablePlayer.satchels = newSatchels;
+
                 } else if (modifiablePlayer.equippedItems.some(item => item.id.includes('upgrade_iron_will'))) {
                     _log(getRandomLogVariation('rockslideIronWillSave', { eventName: currentEventInstance.name }, theme, modifiablePlayer, currentEventInstance, isBossEvent), 'info');
                 }

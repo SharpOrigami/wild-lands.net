@@ -447,8 +447,13 @@ export function calculateHealAmount(card: CardData, playerDetails: PlayerDetails
         if (upgrade.effect?.subtype === 'provision_heal_boost') {
             healAmount += upgrade.effect.amount || 0;
         }
-        // Generalize herb boost to apply to any provision that cures a specific illness.
-        if (upgrade.effect?.subtype === 'herb_boost' && card.type === 'Provision' && card.effect?.cures_illness) {
+        
+        const isHerb = card.id.startsWith('provision_juniper') ||
+                       card.id.startsWith('provision_basil') ||
+                       card.id.startsWith('provision_peppermint') ||
+                       card.id.startsWith('provision_sage');
+
+        if (upgrade.effect?.subtype === 'herb_boost' && isHerb) {
             healAmount += upgrade.effect.amount || 0;
         }
     });
@@ -550,7 +555,9 @@ export function getFormattedEffectText(card: CardData, source: CardContext, play
 
 // This list determines which animals are not immediately aggressive upon being drawn and will flee if not attacked.
 export const NON_HOSTILE_ON_REVEAL_IDS = ['threat_skunk_t1', 'threat_rabbit_t1', 'threat_rabbit_t2', 'threat_rabbit_t3', 'threat_squirrel_t1', 'threat_squirrel_t2', 'threat_squirrel_t3', 'threat_fox_t1', 'threat_beaver_t1', 'threat_raccoon_t1', 'threat_raccoon_t2', 'threat_muskrat_t1', 'threat_opossum_t1', 'threat_gila_monster_t1', 'threat_armadillo_t1', 'threat_jackrabbit_blacktailed_t1', 'threat_porcupine_t1', 'threat_prairie_dog_t1',
-    'threat_coyote_t1_fj', 'threat_fox_t1_fj', 'threat_muskrat_t1_fj', 'threat_opossum_t1_fj', 'threat_rabbit_t1_fj', 'threat_rabbit_t2_fj', 'threat_rabbit_t3_fj', 'threat_squirrel_t1_fj', 'threat_squirrel_t2_fj', 'threat_squirrel_t3_fj', 'threat_gila_monster_t1_fj', 'threat_armadillo_t1_fj', 'threat_jackrabbit_blacktailed_t1_fj', 'threat_porcupine_t1_fj', 'threat_prairie_dog_t1_fj', 'threat_moose_t1_fj', 'threat_elk_t1_fj'];
+    'threat_coyote_t1_fj', 'threat_fox_t1_fj', 'threat_muskrat_t1_fj', 'threat_opossum_t1_fj', 'threat_rabbit_t1_fj', 'threat_rabbit_t2_fj', 'threat_rabbit_t3_fj', 'threat_squirrel_t1_fj', 'threat_squirrel_t2_fj', 'threat_squirrel_t3_fj', 'threat_gila_monster_t1_fj', 'threat_armadillo_t1_fj', 'threat_jackrabbit_blacktailed_t1_fj', 'threat_porcupine_t1_fj', 'threat_prairie_dog_t1_fj', 'threat_moose_t1_fj', 'threat_elk_t1_fj',
+    'threat_skunk_t1_as', 'threat_raccoon_t1_as', 'threat_raccoon_t2_as', 'threat_deer_t1_as', 'threat_moose_t1_as', 'threat_muskrat_t1_as', 'threat_opossum_t1_as', 'threat_rabbit_t1_as', 'threat_rabbit_t2_as', 'threat_rabbit_t3_as', 'threat_squirrel_t1_as', 'threat_squirrel_t2_as', 'threat_squirrel_t3_as', 'threat_gila_monster_t1_as', 'threat_armadillo_t1_as', 'threat_jackrabbit_blacktailed_t1_as', 'threat_pronghorn_t1_as', 'threat_porcupine_t1_as', 'threat_prairie_dog_t1_as', 'threat_javelina_t1_as', 'threat_thief_t1_as', 'threat_bandit_t1_as',
+    'threat_fox_t1_sh', ];
 
 
 export function isEventConsideredHostile(eventCard: CardData | null): boolean {

@@ -1,4 +1,3 @@
-
 import { getCacheBustedUrl } from './cardUtils.ts';
 import * as allSounds from '../assets/sounds/index.ts';
 import { hapticManager } from './hapticUtils.ts';
@@ -30,12 +29,9 @@ class SoundManager {
   private isAudioUnlocked = false;
 
   private currentMusic: string | null = null;
-  private fadeInterval: number | null = null;
-  
   private isPlayingMusic = false;
-  private isTransitioning = false;
-  private queuedMusicRequest: { name: keyof typeof allSounds.SOUND_ASSETS; fadeDuration: number } | null = null;
-
+  private queuedMusicRequest: string | null = null;
+  
   private preloadedUrls = new Set<string>();
   private assetTimeout = 300000; // 5 minutes
   
@@ -81,9 +77,9 @@ class SoundManager {
     console.log("Audio context unlocked by successful SFX playback.");
 
     if (this.queuedMusicRequest) {
-        const { name, fadeDuration } = this.queuedMusicRequest;
+        const name = this.queuedMusicRequest;
         this.queuedMusicRequest = null;
-        this.playMusic(name, fadeDuration);
+        this.playMusic(name);
     }
   }
 
@@ -98,14 +94,12 @@ class SoundManager {
 
     if (document.hidden) {
       if (this.isPlayingMusic && this.musicAudio && !this.musicAudio.paused) {
-        // Pause immediately instead of fading to prevent issues with background tab throttling.
         this.musicAudio.pause();
       }
     } else {
       if (this.musicAudio.paused && this.currentMusic) {
+        this.musicAudio.volume = this.isMusicMuted ? 0 : this.musicVolume * 0.5;
         this.musicAudio.play().catch(e => console.error("Error resuming music on visibility change:", e));
-        // Fade-in is generally safe as the tab is now active.
-        this.fade(this.musicAudio, 0, this.isMusicMuted ? 0 : this.musicVolume * 0.5, 500);
       }
     }
   }
@@ -282,131 +276,51 @@ class SoundManager {
     }
   }
 
-  public playMusic(name: keyof typeof allSounds.SOUND_ASSETS, fadeDuration = 1000) {
-    if (!this.isInitialized) return;
+  public playMusic(name: string) {
+    if (!this.isInitialized || !this.musicAudio) return;
 
     if (!this.isAudioUnlocked) {
-        this.queuedMusicRequest = { name, fadeDuration };
-        return;
-    }
-
-    if (this.currentMusic === name && this.isPlayingMusic) {
-        return;
-    }
-
-    if (this.isTransitioning) {
-        this.queuedMusicRequest = { name, fadeDuration };
+        this.queuedMusicRequest = name;
         return;
     }
     
-    this.isTransitioning = true;
-    this.queuedMusicRequest = null;
-
-    const url = allSounds.SOUND_ASSETS[name];
-    if (!url) {
-        console.warn(`Music not found: ${name}`);
-        this.isTransitioning = false;
+    // Check if the same music is already playing and not paused.
+    if (this.currentMusic === name && this.isPlayingMusic && !this.musicAudio.paused) {
         return;
     }
 
-    const startNewTrack = () => {
-        if (!this.musicAudio) {
-            this.isTransitioning = false;
-            return;
-        }
+    const url = allSounds.SOUND_ASSETS[name as keyof typeof allSounds.SOUND_ASSETS];
+    if (!url) {
+        console.warn(`Music not found: ${name}`);
+        this.stopMusic();
+        return;
+    }
 
-        this.musicAudio.pause();
-        this.currentMusic = name;
-        this.musicAudio.src = getCacheBustedUrl(url);
+    this.currentMusic = name;
+    this.musicAudio.src = getCacheBustedUrl(url);
+    this.musicAudio.volume = this.musicVolume * 0.5; // Direct set, no fade
+    this.musicAudio.muted = this.isMusicMuted;
 
-        const playPromise = this.musicAudio.play();
-
+    const playPromise = this.musicAudio.play();
+    if (playPromise !== undefined) {
         playPromise.then(() => {
             this.isPlayingMusic = true;
-            this.fade(this.musicAudio!, 0, this.isMusicMuted ? 0 : this.musicVolume * 0.5, fadeDuration, () => {
-                this.isTransitioning = false;
-                if (this.queuedMusicRequest) {
-                    const { name: nextName, fadeDuration: nextFade } = this.queuedMusicRequest;
-                    this.queuedMusicRequest = null;
-                    this.playMusic(nextName, nextFade);
-                }
-            });
         }).catch(error => {
             if (error.name !== 'AbortError') {
                 console.error(`Error playing music "${name}":`, error);
-            }
-            this.isPlayingMusic = false;
-            this.currentMusic = null;
-            this.isTransitioning = false;
-            if (this.queuedMusicRequest) {
-                 const { name: nextName, fadeDuration: nextFade } = this.queuedMusicRequest;
-                 this.queuedMusicRequest = null;
-                 this.playMusic(nextName, nextFade);
+                this.currentMusic = null;
+                this.isPlayingMusic = false;
             }
         });
-    };
-
-    if (this.isPlayingMusic && this.musicAudio && this.musicAudio.volume > 0.01) {
-        this.fade(this.musicAudio, this.musicAudio.volume, 0, fadeDuration, () => {
-            this.isPlayingMusic = false;
-            startNewTrack();
-        });
-    } else {
-        startNewTrack();
     }
   }
 
-  public stopMusic(fadeDuration = 1000) {
-    if (!this.isInitialized || !this.musicAudio || (!this.isPlayingMusic && !this.isTransitioning)) return;
+  public stopMusic() {
+    if (!this.isInitialized || !this.musicAudio) return;
     
+    this.musicAudio.pause();
     this.currentMusic = null;
-    this.queuedMusicRequest = null; 
-    
-    if (this.isTransitioning) {
-        return;
-    }
-
-    this.isTransitioning = true;
-    this.fade(this.musicAudio, this.musicAudio.volume, 0, fadeDuration, () => {
-      this.musicAudio?.pause();
-      this.isPlayingMusic = false;
-      this.isTransitioning = false;
-    });
-  }
-  
-  private fade(audio: HTMLAudioElement, from: number, to: number, duration: number, onComplete?: () => void) {
-    if (this.fadeInterval) clearInterval(this.fadeInterval);
-    
-    const steps = 50;
-    const stepDuration = duration / steps;
-    const volumeStep = (to - from) / steps;
-    audio.volume = from;
-    
-    if (Math.abs(from - to) < 0.01) {
-        audio.volume = to;
-        if (to === 0 && audio !== this.musicAudio) audio.pause();
-        if (onComplete) onComplete();
-        return;
-    }
-
-    let currentStep = 0;
-    this.fadeInterval = setInterval(() => {
-        currentStep++;
-        const newVolume = audio.volume + volumeStep;
-        if (currentStep >= steps) {
-            audio.volume = to;
-            if (to === 0 && audio !== this.musicAudio) {
-                audio.pause();
-            } else if (to === 0 && audio === this.musicAudio && this.currentMusic === null) {
-                audio.pause();
-            }
-            if (this.fadeInterval) clearInterval(this.fadeInterval);
-            this.fadeInterval = null;
-            if (onComplete) onComplete();
-        } else {
-            audio.volume = newVolume;
-        }
-    }, stepDuration) as unknown as number;
+    this.isPlayingMusic = false;
   }
   
   public setMusicVolume(volume: number) { // volume is 0-1
@@ -447,14 +361,14 @@ class SoundManager {
   }
 
   public dimMusic(factor = 0.5) {
-    if (this.musicAudio) {
-        this.fade(this.musicAudio, this.musicAudio.volume, this.isMusicMuted ? 0 : (this.musicVolume * 0.5) * factor, 500);
+    if (this.musicAudio && !this.isMusicMuted) {
+        this.musicAudio.volume = (this.musicVolume * 0.5) * factor;
     }
   }
 
   public undimMusic() {
-    if (this.musicAudio) {
-        this.fade(this.musicAudio, this.musicAudio.volume, this.isMusicMuted ? 0 : this.musicVolume * 0.5, 500);
+    if (this.musicAudio && !this.isMusicMuted) {
+        this.musicAudio.volume = this.musicVolume * 0.5;
     }
   }
 

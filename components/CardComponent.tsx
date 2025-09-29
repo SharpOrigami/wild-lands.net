@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { CardData, CardContext, PlayerDetails, Character } from '../types.ts';
 import { getCardValues, isFirearm, getAttackPowerBreakdown, isBow } from '../utils/cardUtils.ts';
@@ -243,16 +242,35 @@ const CardComponent: React.FC<CardComponentProps> = ({
   );
 
   let actionButtons: React.ReactNode[] = [];
+  let currentSatchelInventory: CardData[] = [];
+  if (context === CardContext.SATCHEL_VIEW && playerDetails) {
+      if (playerDetails.satchels && lastViewedSatchelIndex !== undefined && playerDetails.satchels[lastViewedSatchelIndex]) {
+          currentSatchelInventory = playerDetails.satchels[lastViewedSatchelIndex];
+      }
+  }
 
   if (context === CardContext.SATCHEL_VIEW && playerDetails) {
     const turnEnded = playerDetails.turnEnded;
+    const actionPayload = { satchelIndex: lastViewedSatchelIndex };
     // Sell button (will be at bottom)
     if (card.sellValue && card.sellValue > 0 && isSellable) {
-      actionButtons.push(createActionBtn(`Sell ${card.sellValue}G`, 'SELL_FROM_SATCHEL', blockTradeDueToHostileEvent || turnEnded));
+      actionButtons.push(createActionBtn(`Sell ${card.sellValue}G`, 'SELL_FROM_SATCHEL', blockTradeDueToHostileEvent || turnEnded, actionPayload));
     }
     // Play button (will be at top)
     if (card.type === 'Provision') {
-      actionButtons.push(createActionBtn('Play', 'USE_ITEM', turnEnded));
+      actionButtons.push(createActionBtn('Play', 'USE_ITEM', turnEnded, actionPayload));
+    }
+    // Next button
+    if (currentSatchelInventory.length > 1) {
+      actionButtons.push(
+        <button
+          key="satchel-next"
+          className="py-2 w-[85%] rounded-sm transition-colors duration-150 font-['Special_Elite'] uppercase text-xs lg:text-sm bg-[var(--ink-main)] text-[var(--paper-bg)] border border-[var(--paper-bg)] hover:bg-[var(--blood-red)]"
+          onClick={(e) => { e.stopPropagation(); if (onCycleSatchel) onCycleSatchel(); }}
+        >
+          Next
+        </button>
+      );
     }
   } else if (isSelected && onAction && playerDetails && !isCharacterCard && !isDisabled) {
     const turnEnded = playerDetails.turnEnded;
@@ -322,18 +340,33 @@ const CardComponent: React.FC<CardComponentProps> = ({
           actionButtons.push(createActionBtn('Discard', 'DISCARD_EQUIPPED_ITEM', playerDetails.turnEnded));
        }
        
-       // Play button (will be at the top)
+       // Play / Use Item button (will be at the top)
        if (!playerDetails.turnEnded) {
            if (card.effect?.subtype === 'storage') {
-              actionButtons.push(createActionBtn('Use from Satchel', 'USE_FROM_SATCHEL', (playerDetails.satchel?.length || 0) === 0, { itemIndexInSatchel: lastViewedSatchelIndex || 0 }));
-           } else if (card.effect && ['heal', 'weapon', 'conditional_weapon', 'campfire', 'gold', 'draw', 'fire_arrow'].includes(card.effect.type)) {
-              let useEquippedDisabled = !isPlayable;
-               if (card.effect.type === 'weapon' || card.effect.type === 'conditional_weapon' || card.effect.type === 'fire_arrow') {
-                  if (!playerDetails.activeEventForAttack || playerDetails.activeEventForAttack.health <= 0 || playerDetails.activeEventForAttack.type !== 'Event') {
-                      useEquippedDisabled = true;
-                  }
+               // Logic for Satchels
+               const satchelContents = playerDetails.satchels[indexInSource ?? -1] || [];
+               if (satchelContents.length > 0) {
+                   const topItem = satchelContents[0];
+                   // Provisions are the only items usable from a satchel currently.
+                   const isTopItemPlayable = topItem.type === 'Provision'; 
+                   const payload = {
+                       itemFromSatchel: topItem,
+                       itemIndexInSatchel: 0,
+                       satchelEquipmentIndex: indexInSource
+                   };
+                   actionButtons.push(createActionBtn('Use Item', 'USE_FROM_SATCHEL', !isTopItemPlayable, payload));
                }
-             actionButtons.push(createActionBtn('Play', 'USE_ITEM', useEquippedDisabled));
+           } else {
+               // Original logic for non-storage items
+               if (card.effect && ['heal', 'weapon', 'conditional_weapon', 'campfire', 'gold', 'draw', 'fire_arrow'].includes(card.effect.type)) {
+                   let useEquippedDisabled = !isPlayable;
+                   if (card.effect.type === 'weapon' || card.effect.type === 'conditional_weapon' || card.effect.type === 'fire_arrow') {
+                       if (!playerDetails.activeEventForAttack || playerDetails.activeEventForAttack.health <= 0 || playerDetails.activeEventForAttack.type !== 'Event') {
+                           useEquippedDisabled = true;
+                       }
+                   }
+                   actionButtons.push(createActionBtn('Play', 'USE_ITEM', useEquippedDisabled));
+               }
            }
        }
     } else if (context === CardContext.STORE) {
@@ -350,18 +383,6 @@ const CardComponent: React.FC<CardComponentProps> = ({
         ));
       }
     }
-  }
-
-  if (context === CardContext.SATCHEL_VIEW && playerDetails && playerDetails.satchel.length > 1) {
-    actionButtons.push(
-      <button
-        key="satchel-next"
-        className="py-2 w-[85%] rounded-sm transition-colors duration-150 font-['Special_Elite'] uppercase text-xs lg:text-sm bg-[var(--ink-main)] text-[var(--paper-bg)] border border-[var(--paper-bg)] hover:bg-[var(--blood-red)]"
-        onClick={(e) => { e.stopPropagation(); if (onCycleSatchel) onCycleSatchel(); }}
-      >
-        Next
-      </button>
-    );
   }
 
   const finalCardClasses = `
@@ -411,7 +432,8 @@ const CardComponent: React.FC<CardComponentProps> = ({
     );
   }
 
-  const showViewSatchelButton = context === CardContext.EQUIPPED && card.effect?.subtype === 'storage' && playerDetails && playerDetails.satchel.length > 0 && onViewSatchel;
+  const satchelContents = playerDetails?.satchels[indexInSource ?? -1] || [];
+  const showViewSatchelButton = context === CardContext.EQUIPPED && card.effect?.subtype === 'storage' && satchelContents.length > 0 && onViewSatchel;
 
 
   return (

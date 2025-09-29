@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameState } from './hooks/useGameState.ts';
 import LandingScreen from './screens/LandingScreen.tsx';
@@ -257,15 +256,24 @@ const App: React.FC = () => {
     setLifetimeStats(loadLifetimeStats());
   }, []);
   
+  // Effect 1: Initialize asset managers once on component mount.
   useEffect(() => {
-    const initAndPreload = async () => {
-      if (isAssetsInitialized || !lifetimeStats) return;
-
+    const initManagers = async () => {
+      if (isAssetsInitialized) return;
       console.log("Initializing asset managers...");
       await soundManager.init();
       setIsAssetsInitialized(true);
       console.log("Asset managers initialized.");
+    };
+    initManagers();
+  }, [isAssetsInitialized]);
 
+  // Effect 2: Preload assets after managers are initialized and lifetime stats are loaded.
+  // This now runs on every load to check for new required assets.
+  useEffect(() => {
+    if (!isAssetsInitialized || !lifetimeStats) return;
+
+    const preloadAssets = async () => {
       const storedVersion = localStorage.getItem('preloaded_app_version_WWS');
       if (storedVersion !== APP_VERSION) {
         console.log(`New app version (${APP_VERSION}) detected. Clearing asset preload cache.`);
@@ -310,7 +318,7 @@ const App: React.FC = () => {
         }
       }
     };
-    initAndPreload();
+    preloadAssets();
   }, [isAssetsInitialized, lifetimeStats]);
 
   useEffect(() => {
@@ -374,7 +382,7 @@ const App: React.FC = () => {
     if (!gameState || !isAssetsInitialized) return;
 
     const player = gameState.playerDetails[PLAYER_ID];
-    const isBossEncounter = !!gameState.aiBoss && gameState.activeEvent?.id === gameState.aiBoss.id;
+    const isBossEncounter = gameState.isBossFightActive === true;
 
     let musicToPlay: string | null = null;
 
@@ -438,8 +446,7 @@ const App: React.FC = () => {
     gameState?.status,
     gameState?.playerDetails[PLAYER_ID]?.health,
     gameState?.ngPlusLevel,
-    gameState?.activeEvent?.id,
-    gameState?.aiBoss?.id,
+    gameState?.isBossFightActive,
     isAssetsInitialized,
   ]);
   

@@ -30,6 +30,42 @@ export interface ActionHandlerResult {
   gameUpdates: Partial<GameState>;
 }
 
+const reIndexSatchelsAfterRemoval = (
+    player: PlayerDetails, 
+    removedItem: CardData, 
+    removedIndex: number,
+    helpers: ActionHandlerArgs['helpers']
+): PlayerDetails => {
+    const { _log, getBaseCardByIdentifier } = helpers;
+    const modPlayer = { ...player };
+
+    // If the removed item was a satchel, discard its contents.
+    if (removedItem.effect?.subtype === 'storage') {
+        const satchelContents = modPlayer.satchels[removedIndex] || [];
+        if (satchelContents.length > 0) {
+            const contentsToDiscard = satchelContents.map(c => getBaseCardByIdentifier(c));
+            modPlayer.playerDiscard = [...modPlayer.playerDiscard, ...contentsToDiscard];
+            _log(`Contents of discarded ${removedItem.name} (${contentsToDiscard.map(c => c.name).join(', ')}) were also discarded.`, 'info');
+        }
+    }
+
+    // Now, re-index all satchels.
+    const newSatchels: { [key: number]: CardData[] } = {};
+    for (const key in modPlayer.satchels) {
+        const oldIndex = parseInt(key, 10);
+        if (oldIndex < removedIndex) {
+            newSatchels[oldIndex] = modPlayer.satchels[key];
+        } else if (oldIndex > removedIndex) {
+            newSatchels[oldIndex - 1] = modPlayer.satchels[key];
+        }
+        // Satchel at removedIndex is intentionally skipped, either because it was removed,
+        // or because a non-satchel at that index was removed.
+    }
+    modPlayer.satchels = newSatchels;
+
+    return modPlayer;
+};
+
 export const handleShowModal = ({ player, gameState, payload, helpers }: ActionHandlerArgs): ActionHandlerResult => {
     const { modalType, title, text, confirmCallback, confirmText, choices } = payload;
     let gameUpdates: Partial<GameState> = {};
@@ -255,6 +291,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                             }
                             gameUpdates.activeEvent = null;
                             gameUpdates.blockTradeDueToHostileEvent = false;
+                            gameUpdates.isBossFightActive = false;
                             triggerBanner(`${updatedActiveEvent.name} Defeated!`, 'threat_defeated', false);
                             _log(`The final threat is defeated! End the day to claim victory.`, 'system');
                         } else {
@@ -449,6 +486,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
         } else if (source === CardContext.EQUIPPED && index !== undefined) {
             const playedEquippedCard = modPlayer.equippedItems[index];
             if (playedEquippedCard.effect?.subtype !== 'storage') {
+                modPlayer = reIndexSatchelsAfterRemoval(modPlayer, playedEquippedCard, index, helpers);
                 modPlayer.equippedItems = modPlayer.equippedItems.filter((_, i) => i !== index);
                 modPlayer.playerDiscard = [...modPlayer.playerDiscard, cardToDiscard];
                 if (playedEquippedCard.type === 'Player Upgrade' && playedEquippedCard.effect?.persistent) {
@@ -468,7 +506,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
 
     return { player: modPlayer, gameUpdates };
 };
-// ... (rest of the file is identical)
+
 export const handleEquipItem = ({ player, payload, helpers }: ActionHandlerArgs): ActionHandlerResult => {
     const { card, source, index } = payload;
     const { _log, soundManager } = helpers;
@@ -519,12 +557,27 @@ export const handleStoreProvision = ({ player, payload, helpers }: ActionHandler
 
     if (modPlayer.turnEnded) { _log("Turn ended.", "error"); return { player, gameUpdates: {} }; }
     if (!card || (source === CardContext.HAND && modPlayer.hand[index] === null)) { _log("No card to store.", "error"); return { player, gameUpdates: {} }; }
-    const satchel = modPlayer.equippedItems.find(item => item.effect?.subtype === 'storage');
-    if (!satchel || !satchel.effect?.capacity) { _log("No satchel.", "error"); return { player, gameUpdates: {} }; }
-    if (modPlayer.satchel.length >= satchel.effect.capacity) { _log("Satchel is full.", "error"); return { player, gameUpdates: {} }; }
+    
+    const satchelWithSpaceInfo = modPlayer.equippedItems
+        .map((item, idx) => ({ item, idx }))
+        .find(({ item, idx }) => 
+            item.effect?.subtype === 'storage' &&
+            item.effect.capacity &&
+            (modPlayer.satchels[idx] || []).length < item.effect.capacity
+        );
+
+    if (!satchelWithSpaceInfo) { _log("No satchel with space.", "error"); return { player, gameUpdates: {} }; }
+    
+    const { idx: satchelIndex } = satchelWithSpaceInfo;
     
     const cardToStore = getBaseCardByIdentifier(card);
-    if (cardToStore) modPlayer.satchel = [...modPlayer.satchel, cardToStore];
+    if (cardToStore) {
+        if (!modPlayer.satchels[satchelIndex]) {
+            modPlayer.satchels[satchelIndex] = [];
+        }
+        modPlayer.satchels[satchelIndex].push(cardToStore);
+    }
+
     if (source === CardContext.HAND && index !== undefined) modPlayer.hand[index] = null;
     _log(getRandomLogVariation('itemStored', { itemName: card.name }, theme, modPlayer, card), 'action');
     
@@ -532,19 +585,25 @@ export const handleStoreProvision = ({ player, payload, helpers }: ActionHandler
 };
 
 export const handleUseFromSatchel = ({ player, gameState, payload, isBossActive, helpers }: ActionHandlerArgs): ActionHandlerResult => {
-    const { itemIndexInSatchel } = payload;
+    const { itemIndexInSatchel, satchelEquipmentIndex } = payload;
     const { _log, soundManager, getBaseCardByIdentifier, applyHealToPlayer, triggerAnimation } = helpers;
     let modPlayer = { ...player };
     let gameUpdates: Partial<GameState> = {};
     const theme = getThemeName(modPlayer.ngPlusLevel);
 
     if (modPlayer.turnEnded) { _log("Turn ended.", "error"); return { player, gameUpdates }; }
-    if (modPlayer.satchel.length === 0 || itemIndexInSatchel === undefined || !modPlayer.satchel[itemIndexInSatchel]) {
+    
+    if (satchelEquipmentIndex === undefined || !modPlayer.satchels[satchelEquipmentIndex]) {
+        _log("Satchel not found.", "error");
+        return { player, gameUpdates };
+    }
+    const satchelContents = modPlayer.satchels[satchelEquipmentIndex];
+    if (satchelContents.length === 0 || itemIndexInSatchel === undefined || !satchelContents[itemIndexInSatchel]) {
         _log("Item not in satchel.", "error");
         return { player, gameUpdates };
     }
     
-    const itemToUseFromSatchel = modPlayer.satchel[itemIndexInSatchel];
+    const itemToUseFromSatchel = satchelContents[itemIndexInSatchel];
     const scaledItemFromSatchel = getScaledCard(itemToUseFromSatchel, modPlayer.ngPlusLevel);
     const isLaudanumEquivalent = scaledItemFromSatchel.id.includes('laudanum') || scaledItemFromSatchel.id.includes('morphine_syrette');
     
@@ -645,7 +704,8 @@ export const handleUseFromSatchel = ({ player, gameState, payload, isBossActive,
         }
     }
     
-    modPlayer.satchel = modPlayer.satchel.filter((_, i) => i !== itemIndexInSatchel);
+    const updatedSatchelContents = modPlayer.satchels[satchelEquipmentIndex].filter((_, i) => i !== itemIndexInSatchel);
+    modPlayer.satchels[satchelEquipmentIndex] = updatedSatchelContents;
     modPlayer.playerDiscard = [...modPlayer.playerDiscard, getBaseCardByIdentifier(itemToUseFromSatchel)];
     
     return { player: modPlayer, gameUpdates };
@@ -749,15 +809,13 @@ export const handleSellItem = ({ player, gameState, payload, helpers }: ActionHa
         modPlayer.hand[index] = null;
     } else if (source === CardContext.EQUIPPED && index !== undefined) {
         const soldEquippedItem = modPlayer.equippedItems[index];
+        modPlayer = reIndexSatchelsAfterRemoval(modPlayer, soldEquippedItem, index, helpers);
         modPlayer.equippedItems = modPlayer.equippedItems.filter((_, i) => i !== index);
+        
         if (soldEquippedItem.type === 'Player Upgrade' && soldEquippedItem.effect?.persistent) {
             const effect = soldEquippedItem.effect;
             if (effect.subtype === 'max_health' && typeof effect.amount === 'number') modPlayer.maxHealth = Math.max(1, modPlayer.maxHealth - effect.amount);
-            if (effect.subtype === 'storage') {
-                const satchelContentsToDiscard = modPlayer.satchel.map(c => getBaseCardByIdentifier(c));
-                modPlayer.playerDiscard = [...modPlayer.playerDiscard, ...satchelContentsToDiscard];
-                modPlayer.satchel = [];
-            }
+            
             if (effect.subtype === 'damage_negation') { 
                 modPlayer.hatDamageNegationAvailable = false;
                 if(typeof effect.max_health === 'number') modPlayer.maxHealth = Math.max(1, modPlayer.maxHealth - effect.max_health);
@@ -770,7 +828,7 @@ export const handleSellItem = ({ player, gameState, payload, helpers }: ActionHa
 };
 
 export const handleSellFromSatchel = ({ player, gameState, payload, helpers }: ActionHandlerArgs): ActionHandlerResult => {
-    const { cardToSell, itemIndexInSatchel } = payload;
+    const { cardToSell, itemIndexInSatchel, satchelEquipmentIndex } = payload;
     const { _log, triggerGoldFlash, getBaseCardByIdentifier } = helpers;
     let modPlayer = { ...player };
     let gameUpdates: Partial<GameState> = {};
@@ -778,8 +836,9 @@ export const handleSellFromSatchel = ({ player, gameState, payload, helpers }: A
 
     if (modPlayer.turnEnded || gameState.blockTradeDueToHostileEvent) { _log("Cannot trade.", "error"); return { player, gameUpdates }; }
     if (!cardToSell || !cardToSell.sellValue || cardToSell.sellValue <= 0) { _log("Cannot be sold.", "error"); return { player, gameUpdates }; }
-    if (modPlayer.satchel.length === 0 || itemIndexInSatchel === undefined || !modPlayer.satchel[itemIndexInSatchel]) {
-        _log("Item not found in satchel.", "error");
+    
+    if (satchelEquipmentIndex === undefined || !modPlayer.satchels[satchelEquipmentIndex] || modPlayer.satchels[satchelEquipmentIndex].length === 0 || itemIndexInSatchel === undefined || !modPlayer.satchels[satchelEquipmentIndex][itemIndexInSatchel]) {
+        _log("Item not found in specified satchel.", "error");
         return { player, gameUpdates };
     }
 
@@ -807,8 +866,8 @@ export const handleSellFromSatchel = ({ player, gameState, payload, helpers }: A
         }
     }
     
-    // Remove from satchel
-    modPlayer.satchel = modPlayer.satchel.filter((_, i) => i !== itemIndexInSatchel);
+    const updatedSatchelContents = modPlayer.satchels[satchelEquipmentIndex].filter((_, i) => i !== itemIndexInSatchel);
+    modPlayer.satchels[satchelEquipmentIndex] = updatedSatchelContents;
     
     return { player: modPlayer, gameUpdates };
 };
@@ -853,18 +912,17 @@ export const handleDiscardEquippedItem = ({ player, payload, helpers }: ActionHa
     
     const itemToDiscard = modPlayer.equippedItems[index];
     _log(getRandomLogVariation('itemDiscarded', { itemName: itemToDiscard.name }, theme, modPlayer, itemToDiscard), 'action');
+    
+    modPlayer = reIndexSatchelsAfterRemoval(modPlayer, itemToDiscard, index, helpers);
     modPlayer.equippedItems = modPlayer.equippedItems.filter((_, i) => i !== index);
+    
     const baseEquippedToDiscard = getBaseCardByIdentifier(itemToDiscard);
     if (baseEquippedToDiscard) modPlayer.playerDiscard = [...modPlayer.playerDiscard, baseEquippedToDiscard];
     
     if (itemToDiscard.type === 'Player Upgrade' && itemToDiscard.effect?.persistent) {
         const effect = itemToDiscard.effect;
         if (effect.subtype === 'max_health' && typeof effect.amount === 'number') modPlayer.maxHealth = Math.max(1, modPlayer.maxHealth - effect.amount);
-        if (effect.subtype === 'storage') {
-            const satchelContentsToDiscard = modPlayer.satchel.map(c => getBaseCardByIdentifier(c));
-            modPlayer.playerDiscard = [...modPlayer.playerDiscard, ...satchelContentsToDiscard];
-            modPlayer.satchel = [];
-        }
+        
         if (effect.subtype === 'damage_negation') {
             modPlayer.hatDamageNegationAvailable = false;
             if (typeof effect.max_health === 'number') modPlayer.maxHealth = Math.max(1, modPlayer.maxHealth - effect.max_health);

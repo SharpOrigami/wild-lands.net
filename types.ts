@@ -170,7 +170,7 @@ export interface PlayerDetails {
   playerDeck: CardData[];
   playerDiscard: CardData[];
   hasEquippedThisTurn: boolean;
-  satchel: CardData[];
+  satchels: { [equippedItemIndex: number]: CardData[] };
   turnEnded: boolean;
   hasTakenActionThisTurn: boolean;
   hasRestockedThisTurn: boolean;
@@ -277,6 +277,7 @@ export interface GameState {
   eventDifficultyBonus: number;
   remixDeckOnStart?: boolean;
   saveSlotIndex?: number | null;
+  isBossFightActive?: boolean;
 }
 
 export interface AIBossData {

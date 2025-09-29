@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { GameState, PlayerDetails, Character, CardData, LogEntry, CardEffect, CardContext, ModalState, ActiveGameBannerState, RunStats } from '../types.ts';
+import { GameState, PlayerDetails, Character, CardData, LogEntry, CardContext, ModalState, ActiveGameBannerState, RunStats } from '../types.ts';
 import {
     PLAYER_ID, MAX_LOG_ENTRIES, HAND_LIMIT, EQUIP_LIMIT, STORE_DISPLAY_LIMIT, EVENT_DECK_SIZE, PLAYER_DECK_TARGET_SIZE, STORE_DECK_TARGET_SIZE,
     CHARACTERS_DATA_MAP, INITIAL_PLAYER_STATE_TEMPLATE,
@@ -337,11 +337,20 @@ export const useGameState = () => {
     localStorage.setItem('ngPlusRewardChosen_WWS', 'false');
     localStorage.setItem('wildWestStepsTaken_WWS', player.stepsTaken.toString());
     localStorage.setItem('wildWestPlayerEquipped_WWS', JSON.stringify(player.equippedItems));
-    const satchel = player.equippedItems.find(item => item.effect?.subtype === 'storage');
-    if (satchel && player.satchel.length > 0) {
-        localStorage.setItem('wildWestSatchelContents_WWS', JSON.stringify(player.satchel));
+    
+    const satchelsWithIds: { [key: number]: string[] } = {};
+    let hasSatchelContents = false;
+    for (const key in player.satchels) {
+      const contents = player.satchels[key] || [];
+      if (contents.length > 0) {
+        hasSatchelContents = true;
+        satchelsWithIds[key] = contents.map(c => c.id);
+      }
+    }
+    if (hasSatchelContents) {
+      localStorage.setItem('wildWestSatchelContents_WWS', JSON.stringify(satchelsWithIds));
     } else {
-        localStorage.removeItem('wildWestSatchelContents_WWS');
+      localStorage.removeItem('wildWestSatchelContents_WWS');
     }
     localStorage.removeItem('wildWestRunStartState_WWS');
   }, [_log]);
@@ -744,6 +753,7 @@ export const useGameState = () => {
                         _log(`CRITICAL ERROR: AI Boss card '${initialTurnState.aiBoss!.id}' not found.`, "error");
                     }
                     modifiableGameStateUpdates.activeEventTurnCounter = 1;
+                    modifiableGameStateUpdates.isBossFightActive = true;
                 } else if (currentEventDeck.length > 0) {
                     let newEventOriginal = currentEventDeck.shift()!;
                     if (currentEventDeck.length === 0 && !gameShouldEnd) {
@@ -1253,60 +1263,61 @@ export const useGameState = () => {
     } : null);
   }, [_log, triggerGoldFlash, getBaseCardByIdentifier]);
 
-  const pregenerateNextLevelRemix = useCallback(async (level: number) => {
+  const pregenerateNextLevelRemix = useCallback(async (level: number): Promise<{ [id: string]: CardData }> => {
     try {
         const themeName = getThemeName(level);
         const themeSuffix = getThemeSuffix(level);
 
-        if (level === 0) return;
+        if (level === 0) return {};
 
-        // Levels 1-9
+        let remixedPoolKey = '';
+        let cardsForRemixingPool: CardData[] = [];
+        let cumulativeRemixedCards: { [id: string]: CardData } = {};
+        let resultToReturn: { [id: string]: CardData } = {};
+        
         if (level >= 1 && level < 10) {
-            const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-            let cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
-            
+            remixedPoolKey = 'remixedCardPool_theme_western_WWS';
+            cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
             const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => !/_fj$|_as$|_sh$|_cp$/.test(c.id));
             const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
-            const remixableCards = originalThemePool.filter(card => !alreadyRemixedOriginalIds.has(card.id) && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
-
-            if (remixableCards.length > 0) {
+            cardsForRemixingPool = originalThemePool.filter(card => !alreadyRemixedOriginalIds.has(card.id) && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
+            
+            if (cardsForRemixingPool.length > 0) {
                 _log(`Remixing 1 new card for the Western pool for NG+${level}...`, "system");
-                const cardToRemix = shuffleArray(remixableCards)[0];
+                const cardToRemix = shuffleArray(cardsForRemixingPool)[0];
                 const singleRemixResult = await remixCardsForNGPlusGame(_log, { [cardToRemix.id]: cardToRemix }, level);
                 if (singleRemixResult) {
                     const newRemixedCards = { ...cumulativeRemixedCards, ...singleRemixResult };
                     localStorage.setItem(remixedPoolKey, JSON.stringify(newRemixedCards));
+                    resultToReturn = singleRemixResult;
                 }
             }
         } 
-        // Milestone Levels
         else if (level >= 10 && level % NG_PLUS_THEME_MILESTONE_INTERVAL === 0) {
-            const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-            localStorage.removeItem(remixedPoolKey); // Clear the pool for the new theme
+            remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
+            localStorage.removeItem(remixedPoolKey); 
             _log(`Entering a new realm for NG+${level}: ${themeName}. Clearing old legends and forging a new one...`, "system");
-            
             const themeSuffixForMilestone = getThemeSuffixForMilestone(level);
-            let cardsForRemixingPool: CardData[] = [];
             if (themeSuffixForMilestone) {
                 cardsForRemixingPool = Object.values(ALL_CARDS_DATA_MAP).filter(c => c.id.endsWith(themeSuffixForMilestone) && c.subType !== 'objective' && c.buyCost && c.buyCost > 0);
             }
-
             if (cardsForRemixingPool.length > 0) {
                 const cardToRemix = shuffleArray(cardsForRemixingPool)[0];
                 const singleRemixedCard = await remixCardsForNGPlusGame(_log, { [cardToRemix.id]: cardToRemix }, level);
-                localStorage.setItem(remixedPoolKey, JSON.stringify(singleRemixedCard || {}));
+                if (singleRemixedCard) {
+                    localStorage.setItem(remixedPoolKey, JSON.stringify(singleRemixedCard));
+                    resultToReturn = singleRemixedCard;
+                }
             }
         } 
-        // Non-Milestone Themed Levels
         else if (level > 10) {
             const CARDS_TO_REMIX_PER_LEVEL = 10;
-            const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-            let cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
-            
+            remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
+            cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
             const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => themeSuffix ? c.id.endsWith(themeSuffix) : false);
             const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
             const remixableCards = originalThemePool.filter(card => !alreadyRemixedOriginalIds.has(card.id) && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
-
+            
             if (remixableCards.length > 0) {
                 const numToRemix = Math.min(CARDS_TO_REMIX_PER_LEVEL, remixableCards.length);
                 _log(`Adding ${numToRemix} new remixed cards to the ${themeName} pool for NG+${level}...`, "system");
@@ -1319,11 +1330,14 @@ export const useGameState = () => {
                 if (multiRemixResult) {
                     const newRemixedCards = { ...cumulativeRemixedCards, ...multiRemixResult };
                     localStorage.setItem(remixedPoolKey, JSON.stringify(newRemixedCards));
+                    resultToReturn = multiRemixResult;
                 }
             }
         }
+        return resultToReturn;
     } catch (err) {
         _log(`Failed to pregenerate assets for NG+${level}. They will be generated upon starting the next run.`, "error");
+        return {};
     }
   }, [_log]);
 
@@ -1387,13 +1401,14 @@ export const useGameState = () => {
       try {
         setGameState(prev => prev ? { ...prev, isLoadingNGPlus: true } : null);
         
+        let remixedCardsFromGeneration: { [id: string]: CardData } = {};
         if (nextLevelRemixPromise.current) {
             _log("Waiting for pregenerated assets to finish...", "system");
             await nextLevelRemixPromise.current;
             nextLevelRemixPromise.current = null; // Consume the promise
         } else if (level > 0 && !hardReset) {
             _log(`Assets for NG+${level} were not pre-generated. Generating now...`, "system");
-            await pregenerateNextLevelRemix(level);
+            remixedCardsFromGeneration = await pregenerateNextLevelRemix(level);
         }
 
         let finalRemixedCards: { [id: string]: CardData } = {};
@@ -1405,6 +1420,8 @@ export const useGameState = () => {
             const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
             finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
         }
+
+        finalRemixedCards = { ...finalRemixedCards, ...remixedCardsFromGeneration };
         
         const finalCardsData = { ...ALL_CARDS_DATA_MAP, ...finalRemixedCards };
         updateCurrentCardsData(finalCardsData);
@@ -1423,6 +1440,9 @@ export const useGameState = () => {
                          if (storedPlayerDetails.name && storedPlayerDetails.characterId) {
                              updatedPlayer.name = storedPlayerDetails.name;
                              updatedPlayer.character = CHARACTERS_DATA_MAP[storedPlayerDetails.characterId] || null;
+                             if (storedPlayerDetails.personality) {
+                                 updatedPlayer.personality = storedPlayerDetails.personality;
+                             }
                          }
                      } catch (e) { localStorage.removeItem('wildWestPlayerDetailsForNGPlus_WWS'); }
                  }
@@ -1432,13 +1452,33 @@ export const useGameState = () => {
                  }
             }
             if (runStartState && updatedPlayer.character && runStartState.characterId === updatedPlayer.character.id) {
+                 // MIGRATION LOGIC FOR OLD RUN START STATE
+                 // @ts-ignore
+                 if (runStartState.satchel && !runStartState.satchels) {
+                    _log("Old run start state detected. Migrating satchel data...", "system");
+                    const satchelIdsObj: { [key: number]: string[] } = {};
+                    const equippedItems = runStartState.equipped || [];
+                    const satchelIndex = equippedItems.findIndex((item: CardData) => item?.effect?.subtype === 'storage');
+                    if (satchelIndex !== -1) {
+                        // @ts-ignore
+                        satchelIdsObj[satchelIndex] = runStartState.satchel;
+                    }
+                    runStartState.satchels = satchelIdsObj;
+                    // @ts-ignore
+                    delete runStartState.satchel;
+                 }
+                 // END MIGRATION
                  updatedPlayer.playerDeck = runStartState.deck || [];
                  updatedPlayer.playerDiscard = runStartState.discard || [];
                  updatedPlayer.equippedItems = runStartState.equipped || [];
                  const hatEquippedOnRetry = updatedPlayer.equippedItems.some(item => item.effect?.subtype === 'damage_negation');
                  updatedPlayer.hatDamageNegationAvailable = hatEquippedOnRetry;
-                 const satchelIds = runStartState.satchel || [];
-                 updatedPlayer.satchel = satchelIds.map((id:string) => finalCardsData[id]).filter(Boolean);
+                 const satchelIdsObj = runStartState.satchels || {};
+                 const rehydratedSatchels: { [key: number]: CardData[] } = {};
+                 for (const key in satchelIdsObj) {
+                     rehydratedSatchels[key] = (satchelIdsObj[key] || []).map((id: string) => finalCardsData[id]).filter(Boolean);
+                 }
+                 updatedPlayer.satchels = rehydratedSatchels;
                  updatedPlayer.gold = runStartState.gold || 0;
                  updatedPlayer.maxHealth = runStartState.maxHealth || updatedPlayer.character?.health || 30;
                  updatedPlayer.health = runStartState.health || updatedPlayer.maxHealth;
@@ -1475,13 +1515,22 @@ export const useGameState = () => {
   }, [_log, pregenerateNextLevelRemix]);
 
   const selectCharacter = useCallback((character: Character) => {
+    // Update localStorage with the new character and their default personality
+    const storedDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
+    const storedDetails = storedDetailsString ? JSON.parse(storedDetailsString) : {};
+    localStorage.setItem('wildWestPlayerDetailsForNGPlus_WWS', JSON.stringify({
+        ...storedDetails,
+        characterId: character.id,
+        personality: character.personality // Save new default personality
+    }));
+
     setGameState(prev => {
       if (!prev || prev.status !== 'setup') return prev;
       let currentNGPlusLevel = prev.ngPlusLevel;
       let cumulativeBonus = prev.playerDetails[PLAYER_ID]?.cumulativeNGPlusMaxHealthBonus || 0;
       let goldForCharacterSelection = character.gold;
       let equippedItemsForCharacterSelection: CardData[] = [];
-      let satchelContentsForCharacterSelection: CardData[] = [];
+      
       let currentMaxHealth = character.health + cumulativeBonus;
 
       if (currentNGPlusLevel > 0) {
@@ -1489,8 +1538,7 @@ export const useGameState = () => {
           if (storedGold !== null) goldForCharacterSelection = parseInt(storedGold, 10);
           const carriedOverEquippedString = localStorage.getItem('wildWestPlayerEquipped_WWS');
           equippedItemsForCharacterSelection = JSON.parse(carriedOverEquippedString || '[]') as CardData[];
-          const carriedOverSatchelString = localStorage.getItem('wildWestSatchelContents_WWS');
-          satchelContentsForCharacterSelection = JSON.parse(carriedOverSatchelString || '[]') as CardData[];
+          
           let hpBonusFromItems = 0;
           equippedItemsForCharacterSelection.forEach(item => {
               if (item.effect?.persistent && item.type === 'Player Upgrade') {
@@ -1501,12 +1549,38 @@ export const useGameState = () => {
           currentMaxHealth += hpBonusFromItems;
       }
       const finalMaxHealth = Math.max(1, currentMaxHealth);
+      
+      const carriedOverSatchelString = localStorage.getItem('wildWestSatchelContents_WWS');
+      let satchelIdsObj = JSON.parse(carriedOverSatchelString || '{}');
+      
+      // MIGRATION FOR OLD NG+ SATCHEL DATA
+      if (Array.isArray(satchelIdsObj)) {
+          _log("Old NG+ satchel data detected. Migrating...", "system");
+          const oldSatchelContentsAsIds = satchelIdsObj;
+          satchelIdsObj = {};
+          
+          const carriedOverEquippedString = localStorage.getItem('wildWestPlayerEquipped_WWS');
+          const currentEquippedItems = JSON.parse(carriedOverEquippedString || '[]') as CardData[];
+          const satchelIndex = currentEquippedItems.findIndex(item => item?.effect?.subtype === 'storage');
+          
+          if (satchelIndex !== -1) {
+              satchelIdsObj[satchelIndex] = oldSatchelContentsAsIds;
+          }
+      }
+      // END MIGRATION
+      
+      const newSatchels: { [key: number]: CardData[] } = {};
+      for (const key in satchelIdsObj) {
+        newSatchels[key] = (satchelIdsObj[key] || []).map((id: string) => CURRENT_CARDS_DATA[id]).filter(Boolean);
+      }
+      
       const updatedPlayerDetails: PlayerDetails = {
         ...INITIAL_PLAYER_STATE_TEMPLATE,
         name: prev.playerDetails[PLAYER_ID]?.name || null,
         character, health: finalMaxHealth, maxHealth: finalMaxHealth,
         characterBaseMaxHealthForRun: character.health + cumulativeBonus,
-        playerDeck: [], equippedItems: equippedItemsForCharacterSelection, satchel: satchelContentsForCharacterSelection,
+        playerDeck: [], equippedItems: equippedItemsForCharacterSelection, 
+        satchels: newSatchels,
         hand: new Array(HAND_LIMIT).fill(null),
         ngPlusLevel: currentNGPlusLevel, gold: goldForCharacterSelection,
         cumulativeNGPlusMaxHealthBonus: cumulativeBonus,
@@ -1523,10 +1597,19 @@ export const useGameState = () => {
   }, [_log]);
 
   const confirmName = useCallback((name: string) => {
+    const currentGameState = gameStateRef.current;
+    if (!currentGameState || currentGameState.status !== 'setup') return;
+
+    const player = currentGameState.playerDetails[PLAYER_ID];
+    localStorage.setItem('wildWestPlayerDetailsForNGPlus_WWS', JSON.stringify({ 
+        name: name, 
+        characterId: player?.character?.id,
+        personality: player?.personality 
+     }));
+
     setGameState(prev => {
       if (!prev || prev.status !== 'setup') return prev;
        _log(`Name set: ${name}.`, 'system');
-       localStorage.setItem('wildWestPlayerDetailsForNGPlus_WWS', JSON.stringify({ name: name, characterId: prev.playerDetails[PLAYER_ID]?.character?.id }));
       return { ...prev, playerDetails: { ...prev.playerDetails, [PLAYER_ID]: { ...prev.playerDetails[PLAYER_ID], name } } };
     });
   }, [_log]);
@@ -1660,8 +1743,34 @@ export const useGameState = () => {
 
     _log("Proceeding to gameplay...", "system");
     
-    const currentState = gameStateRef.current;
+    let currentState = gameStateRef.current;
     if (!currentState || !currentState.playerDetails[PLAYER_ID]?.character) return;
+
+    // PATCH: Add compatibility for older saves missing the initialCardPool
+    if (!currentState.initialCardPool || currentState.initialCardPool.length === 0) {
+      _log("Older save detected. Regenerating card pool for current theme...", "system");
+      
+      const level = currentState.ngPlusLevel;
+      const themeName = getThemeName(level);
+      let finalRemixedCards: { [id: string]: CardData } = {};
+
+      if (level > 0 && level < 10) {
+          const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
+          finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+      } else if (level >= 10) {
+          const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
+          finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+      }
+      
+      const finalCardsData = { ...ALL_CARDS_DATA_MAP, ...finalRemixedCards };
+      updateCurrentCardsData(finalCardsData);
+      
+      // We must update the state here so the rest of the function has access to the regenerated pool
+      const updatedState = { ...currentState, initialCardPool: getThemedCardPool(level, finalCardsData) };
+      setGameState(updatedState);
+      currentState = updatedState; // Use the updated state for the rest of this function call
+    }
+    // END PATCH
 
     const pendingRewardsString = localStorage.getItem('wildWestPendingRewardCards_WWS');
     localStorage.removeItem('wildWestPendingRewardCards_WWS'); // Consume it
@@ -1678,7 +1787,7 @@ export const useGameState = () => {
     const carriedOverCardIds = new Set<string>([
         ...(JSON.parse(localStorage.getItem('wildWestPlayerDeck_WWS') || '[]') as CardData[]).map(c => c.id),
         ...playerDetailsFromSetup.equippedItems.map(c => c.id),
-        ...playerDetailsFromSetup.satchel.map(c => c.id)
+        ...Object.values(playerDetailsFromSetup.satchels).flat().map(c => c.id)
     ]);
 
     const starterCardIdsForPoolFiltering = playerChar.starterDeck || [];
@@ -1840,7 +1949,7 @@ export const useGameState = () => {
         // Check for existing cheat cards to prevent duplication
         const allPlayerCardIds = new Set([
             ...playerDetailsFromSetup.equippedItems.map(c => c.id),
-            ...playerDetailsFromSetup.satchel.map(c => c.id),
+            ...Object.values(playerDetailsFromSetup.satchels).flat().map(c => c.id),
             ...finalPlayerDeck.map(c => c.id),
             ...(playerDetailsFromSetup.playerDiscard || []).map(c => c.id)
         ]);
@@ -1868,11 +1977,15 @@ export const useGameState = () => {
         finalPlayerDiscard.push(...rewardCards);
     }
     
+    const satchelsWithIds: { [key: number]: string[] } = {};
+    for (const key in playerDetailsFromSetup.satchels) {
+      satchelsWithIds[key] = (playerDetailsFromSetup.satchels[key] || []).map(c => c.id);
+    }
     const runStartState = {
         deck: [...finalPlayerDeck, ...actualInitialHandCards],
         discard: finalPlayerDiscard,
         equipped: playerDetailsFromSetup.equippedItems,
-        satchel: playerDetailsFromSetup.satchel.map(c => c.id),
+        satchels: satchelsWithIds,
         gold: playerDetailsFromSetup.gold,
         maxHealth: playerDetailsFromSetup.maxHealth,
         health: playerDetailsFromSetup.health,
@@ -1904,7 +2017,7 @@ export const useGameState = () => {
         isLoadingNGPlus: false,
         remixDeckOnStart: false,
     });
-  }, [_log, pregenerateNextLevelRemix]);
+  }, [_log]);
 
    useEffect(() => {
     if (gameState?.status === 'playing_initial_reveal') {
@@ -1974,8 +2087,6 @@ export const useGameState = () => {
 
   const handlePostGame = useCallback(() => {
     ttsManager.cancel();
-// FIX: Removed call to non-existent ttsManager.unlockNarration().
-// The ttsManager.cancel() call already handles unlocking narration for subsequent logs.
     const currentGameState = gameStateRef.current;
     if (!currentGameState) return;
     if (currentGameState.playerDetails[PLAYER_ID].health > 0) {
@@ -2008,18 +2119,32 @@ export const useGameState = () => {
   const deselectAllCards = useCallback(() => setGameState(prev => !prev || !prev.selectedCard ? prev : { ...prev, selectedCard: null }), []);
   const setSelectedCard = useCallback((details: { card: CardData; source: string; index: number } | null) => setGameState(prev => !prev ? null : { ...prev, selectedCard: details }), []);
   
-  // FIX: Add missing setPersonality function.
   const setPersonality = useCallback((traits: { archetype?: string; temperament?: string; motivation?: string; }) => {
+    const currentGameState = gameStateRef.current;
+    if (!currentGameState || currentGameState.status !== 'setup') return;
+
+    const playerDetails = currentGameState.playerDetails[PLAYER_ID];
+    const updatedPersonality = { ...playerDetails.personality, ...traits };
+
+    // Also save to localStorage
+    const storedDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
+    const storedDetails = storedDetailsString ? JSON.parse(storedDetailsString) : {};
+    localStorage.setItem('wildWestPlayerDetailsForNGPlus_WWS', JSON.stringify({
+        ...storedDetails,
+        characterId: playerDetails.character?.id,
+        personality: updatedPersonality
+    }));
+
     setGameState(prev => {
       if (!prev || prev.status !== 'setup') return prev;
-      const playerDetails = prev.playerDetails[PLAYER_ID];
-      const updatedPersonality = { ...playerDetails.personality, ...traits };
-      const updatedPlayerDetails = { ...playerDetails, personality: updatedPersonality };
+      const currentPlayerDetails = prev.playerDetails[PLAYER_ID];
+      const newPersonality = { ...currentPlayerDetails.personality, ...traits };
+      const newPlayerDetails = { ...currentPlayerDetails, personality: newPersonality };
       return {
         ...prev,
         playerDetails: {
           ...prev.playerDetails,
-          [PLAYER_ID]: updatedPlayerDetails
+          [PLAYER_ID]: newPlayerDetails
         }
       };
     });
@@ -2260,7 +2385,7 @@ export const useGameState = () => {
     if (!currentGameState) return;
     const nextLevel = currentGameState.ngPlusLevel + 1;
     _log(`Pregenerating assets for NG+${nextLevel}...`, "system");
-    nextLevelRemixPromise.current = pregenerateNextLevelRemix(nextLevel);
+    nextLevelRemixPromise.current = pregenerateNextLevelRemix(nextLevel).then(() => {});
   }, [_log, pregenerateNextLevelRemix]);
 
   useEffect(() => {
@@ -2317,6 +2442,27 @@ export const useGameState = () => {
             }
           }
           
+          // MIGRATION LOGIC FOR OLD SAVE
+          const playerState = savedState.playerDetails?.[PLAYER_ID];
+          // The old save format might have a `satchel` property (array) instead of `satchels` (object).
+          // @ts-ignore - a one-time migration for old save structure.
+          if (playerState && playerState.satchel && !playerState.satchels) {
+            _log("Old save format detected. Migrating satchel data...", "system");
+            const newSatchels: { [key: number]: CardData[] } = {};
+            const equippedItems = playerState.equippedItems || [];
+            // Find the index of the first equipped satchel.
+            const satchelIndex = equippedItems.findIndex((item: CardData) => item?.effect?.subtype === 'storage');
+            // If a satchel is found, assign the old satchel content to the new structure.
+            if (satchelIndex !== -1) {
+              // @ts-ignore
+              newSatchels[satchelIndex] = playerState.satchel;
+            }
+            playerState.satchels = newSatchels;
+            // @ts-ignore
+            delete playerState.satchel; // Clean up the old property.
+          }
+          // END MIGRATION
+
           // Rehydrate character object to include new properties like skills
           if (savedState.playerDetails?.[PLAYER_ID]?.character?.id) {
             const charId = savedState.playerDetails[PLAYER_ID].character.id;
@@ -2329,8 +2475,19 @@ export const useGameState = () => {
           if (savedState.playerDetails?.[PLAYER_ID]) {
               savedState.playerDetails[PLAYER_ID].hatDamageNegationAvailable = savedState.playerDetails[PLAYER_ID].equippedItems.some((item: CardData) => item.effect?.subtype === 'damage_negation');
           }
-          const ngPlusMilestone = Math.floor((savedState.ngPlusLevel || 0) / NG_PLUS_THEME_MILESTONE_INTERVAL) * NG_PLUS_THEME_MILESTONE_INTERVAL;
-          const remixedCards = JSON.parse(localStorage.getItem(`ngPlusThemeSet_${ngPlusMilestone}_WWS`) || '{}');
+
+          // ** FIX: Correct logic to load remixed cards on initial app load. **
+          const themeName = getThemeName(savedState.ngPlusLevel || 0);
+          let remixedCards: { [id: string]: CardData } = {};
+          if (savedState.ngPlusLevel > 0 && savedState.ngPlusLevel < 10) {
+              const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
+              remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+          } else if (savedState.ngPlusLevel >= 10) {
+              const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
+              remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+          }
+          // ** END FIX **
+          
           const finalCardsData = { ...ALL_CARDS_DATA_MAP, ...remixedCards };
           if (savedState.aiBoss?.id) finalCardsData[savedState.aiBoss.id] = savedState.aiBoss;
           updateCurrentCardsData(finalCardsData);

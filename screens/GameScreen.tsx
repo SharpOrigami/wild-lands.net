@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { GameState, PlayerDetails, CardData, CardContext, LogEntry } from '../types.ts';
 import CardComponent from '../components/CardComponent.tsx';
@@ -160,12 +161,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
   useEffect(() => {
     // When satchel contents change (e.g., an item is used),
     // ensure the viewed index is still valid to prevent out-of-bounds errors.
-    if (viewedSatchelItemIndex >= playerDetails.satchel.length) {
-        const newIndex = Math.max(0, playerDetails.satchel.length - 1);
+    // FIX: Changed playerDetails.satchel to correctly reference the contents of the currently viewed satchel.
+    const currentSatchelContents = playerDetails.satchels[lastViewedSatchelIndex] || [];
+    if (viewedSatchelItemIndex >= currentSatchelContents.length) {
+        const newIndex = Math.max(0, currentSatchelContents.length - 1);
         setViewedSatchelItemIndex(newIndex);
-        setLastViewedSatchelItemIndex(newIndex);
     }
-  }, [playerDetails.satchel.length, viewedSatchelItemIndex]);
+  }, [playerDetails.satchels, lastViewedSatchelIndex, viewedSatchelItemIndex]);
 
   useEffect(() => {
     activePanelRef.current = activePanel;
@@ -427,13 +429,22 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const handleCycleSatchel = useCallback(() => {
     setSatchelAnimation('out');
     setTimeout(() => {
-        const newIndex = (viewedSatchelItemIndex + 1) % playerDetails.satchel.length;
+        // FIX: Changed playerDetails.satchel to correctly reference the contents of the currently viewed satchel.
+        const currentSatchelContents = playerDetails.satchels[lastViewedSatchelIndex] || [];
+        const newIndex = (viewedSatchelItemIndex + 1) % currentSatchelContents.length;
         setViewedSatchelItemIndex(newIndex);
-        setLastViewedSatchelItemIndex(newIndex);
         setSatchelAnimation('in');
         setTimeout(() => setSatchelAnimation(null), 400); // match animation duration
     }, 400); // match animation duration
-  }, [viewedSatchelItemIndex, playerDetails.satchel.length]);
+  }, [viewedSatchelItemIndex, playerDetails.satchels, lastViewedSatchelIndex]);
+
+  const hasSatchelWithSpace = playerDetails.equippedItems.some((item, idx) => {
+    if (item.effect?.subtype === 'storage' && item.effect.capacity) {
+      const contents = playerDetails.satchels[idx] || [];
+      return contents.length < item.effect.capacity;
+    }
+    return false;
+  });
 
   const playerPanel = (
     <div
@@ -450,11 +461,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       aria-live="polite"
       aria-atomic="true"
     >
-      {gameState.ngPlusLevel > 0 && (
-        <div className="absolute top-2 right-4 font-western text-yellow-600 text-2xl" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
-          NG+{gameState.ngPlusLevel}
-        </div>
-      )}
       <div className={`absolute inset-0 rounded-sm pointer-events-none transition-opacity duration-300 ${overlayClass}`}></div>
       <div className="relative">
           <div className="flex justify-between items-end">
@@ -489,10 +495,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
                 </div>
               </div>
               <div>
-              <h4 className="font-semibold text-right text-lg">Deck Info</h4>
-              <p className="text-right">Total Cards: <span id="playerDeckTotalCount" className="font-bold text-blue-600 text-lg">{totalPlayerCards}</span></p>
-              <p className="text-right">Deck: <span id="playerDeckCount" className="font-bold text-blue-600 text-lg">{playerDetails.playerDeck?.length || 0}</span></p>
-              <p className="text-right">Discard: <span id="playerDiscardCount" className="font-bold text-blue-400 text-lg">{playerDetails.playerDiscard?.length || 0}</span></p>
+                {gameState.ngPlusLevel > 0 && (
+                  <div className="font-western text-yellow-600 text-2xl text-right mb-1" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
+                    NG+{gameState.ngPlusLevel}
+                  </div>
+                )}
+                <h4 className="font-semibold text-right text-lg">Deck Info</h4>
+                <p className="text-right">Total Cards: <span id="playerDeckTotalCount" className="font-bold text-blue-600 text-lg">{totalPlayerCards}</span></p>
+                <p className="text-right">Deck: <span id="playerDeckCount" className="font-bold text-blue-600 text-lg">{playerDetails.playerDeck?.length || 0}</span></p>
+                <p className="text-right">Discard: <span id="playerDiscardCount" className="font-bold text-blue-400 text-lg">{playerDetails.playerDiscard?.length || 0}</span></p>
               </div>
           </div>
 
@@ -535,6 +546,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
                   } else if (satchelAnimation === 'in') {
                       satchelAnimClass = 'slide-in-right';
                   }
+                  
+                  const satchelContents = playerDetails.satchels[i] || [];
 
                   return (
                       <div key={`equipped-wrapper-${i}`} className="relative">
@@ -556,31 +569,32 @@ const GameScreen: React.FC<GameScreenProps> = ({
                           isPlayable={isEquippedPlayable}
                           isDisabled={playerDetails.turnEnded || !equippedCard}
                           className={equipAnimationIndex === i ? 'event-card-drop' : ''}
-                          onViewSatchel={isSatchel && playerDetails.satchel.length > 0 ? () => {
+                          onViewSatchel={isSatchel && satchelContents.length > 0 ? () => {
                               if (isViewingThisSatchel) {
                                   setSelectedCard(null);
                               } else {
                                   setSelectedCard({ card: equippedCard, source: CardContext.SATCHEL_VIEW, index: i });
+                                  setLastViewedSatchelItemIndex(i);
                               }
                           } : undefined}
                           lastViewedSatchelIndex={lastViewedSatchelIndex}
                         />
-                        {isViewingThisSatchel && playerDetails.satchel.length > 0 && (
+                        {isViewingThisSatchel && satchelContents.length > 0 && (
                           <div className="absolute top-0 left-0 z-20" style={{ transform: 'translate(15%, -15%) scale(1.05)' }}>
                             <div className={satchelAnimClass}>
                               <CardComponent
-                                card={playerDetails.satchel[viewedSatchelItemIndex]}
+                                card={satchelContents[viewedSatchelItemIndex]}
                                 context={CardContext.SATCHEL_VIEW}
                                 indexInSource={viewedSatchelItemIndex}
                                 isSelected={true}
                                 playerDetails={playerDetails}
                                 onAction={(actionType, payload) => {
                                   if (actionType === 'USE_ITEM') {
-                                    onCardAction('USE_FROM_SATCHEL', { itemFromSatchel: payload.card, itemIndexInSatchel: payload.index });
+                                    onCardAction('USE_FROM_SATCHEL', { itemFromSatchel: payload.card, itemIndexInSatchel: payload.index, satchelEquipmentIndex: payload.satchelIndex });
                                   } else if (actionType === 'SELL_FROM_SATCHEL') {
                                     onCardAction('SELL_FROM_SATCHEL', { 
                                         cardToSell: payload.card, 
-                                        satchelEquipmentIndex: selectedCardDetails?.index,
+                                        satchelEquipmentIndex: payload.satchelIndex,
                                         itemIndexInSatchel: payload.index
                                     });
                                   }
@@ -588,6 +602,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
                                 }}
                                 onCycleSatchel={handleCycleSatchel}
                                 isSellable={!gameState.blockTradeDueToHostileEvent && !playerDetails.turnEnded}
+                                lastViewedSatchelIndex={lastViewedSatchelIndex}
                               />
                             </div>
                           </div>
@@ -636,7 +651,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
                           isPlayable={isHandPlayable}
                           isEquipable={!!cardInSlot && !playerDetails.hasEquippedThisTurn && (playerDetails.equippedItems?.length || 0) < playerDetails.equipSlots && !playerDetails.turnEnded && cardInSlot.type !== 'Player Upgrade'}
                           isEquipablePlayerUpgrade={!!cardInSlot && !playerDetails.hasEquippedThisTurn && (playerDetails.equippedItems?.length || 0) < playerDetails.equipSlots && !playerDetails.turnEnded && cardInSlot.type === 'Player Upgrade'}
-                          isStorable={!!cardInSlot && (playerDetails.satchel?.length || 0) < (playerDetails.equippedItems.find(item => item.effect?.subtype === 'storage')?.effect?.capacity || 0) && !playerDetails.turnEnded && cardInSlot.type === 'Provision'}
+                          isStorable={!!cardInSlot && hasSatchelWithSpace && !playerDetails.turnEnded && cardInSlot.type === 'Provision'}
                           isSellable={!!cardInSlot && typeof cardInSlot.sellValue === 'number' && cardInSlot.sellValue > 0 && !playerDetails.turnEnded}
                           blockTradeDueToHostileEvent={gameState.blockTradeDueToHostileEvent}
                           isDisabled={playerDetails.turnEnded || !cardInSlot}
