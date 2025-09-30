@@ -517,7 +517,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
               onMouseEnter={handleTooltipMouseEnter}
               onMouseLeave={handleTooltipMouseLeave}
             >
-              <span className={primaryStat?.includes('HP') ? 'text-green-600' : 'text-red-600'}>{primaryStat || ''}</span>
+              <span style={{color: primaryStat?.includes('HP') ? 'var(--heal-green)' : (primaryStat ? 'var(--blood-red)' : undefined)}}>{primaryStat || ''}</span>
               {attackBreakdown && (
                 <div
                     ref={tooltipRef}

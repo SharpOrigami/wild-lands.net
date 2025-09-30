@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LifetimeStats } from '../types.ts';
 import ModalComponent from './ModalComponent.tsx';
@@ -100,7 +99,7 @@ const StatsModalComponent: React.FC<StatsModalProps> = ({ isOpen, onClose, stats
        <div className="mt-6 pt-4 border-t border-[var(--border-color)] flex justify-end">
           <button
             onClick={onReset}
-            className="button !bg-red-800 hover:!bg-red-900 !text-white !border-red-900"
+            className="button button-danger"
           >
             Reset All Stats
           </button>

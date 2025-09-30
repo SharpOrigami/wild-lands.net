@@ -356,13 +356,17 @@ const GameScreen: React.FC<GameScreenProps> = ({
     ? "Low Health"
     : "Healthy";
 
-  const playerStatusStyle = isIll
-    ? 'text-red-600 font-bold'
-    : isCriticalHealth
-    ? 'text-red-700 font-bold'
-    : isLowHealth
-    ? 'text-red-600'
-    : 'text-green-600';
+  const isStatusNegative = isIll || isCriticalHealth || isLowHealth;
+  const playerStatusStyle = isStatusNegative
+      ? `font-semibold ${(isIll || isCriticalHealth) ? 'font-bold' : ''}`
+      : 'font-semibold';
+  
+  let playerStatusColor = 'var(--heal-green)';
+  if (isIll) {
+      playerStatusColor = 'var(--faded-green)';
+  } else if (isCriticalHealth || isLowHealth) {
+      playerStatusColor = 'var(--blood-red)';
+  }
 
     let pedometerButtonText = "Pedometer Off";
     let pedometerButtonClass = "button";
@@ -476,14 +480,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
                 <h3 id="player1Name" className={`${playerNameFontClass} text-stone-800 text-5xl leading-tight`}>{playerDetails.name}</h3>
                 <p className="font-semibold text-lg">{playerDetails.character?.name}</p>
                  <div className="tooltip-container">
-                    <p>Health: <span id="player1Health" className="font-bold text-red-700 text-lg"><span className={healthAnimClass}>{playerDetails.health}</span> / {playerDetails.maxHealth}</span></p>
+                    <p>Health: <span id="player1Health" className="font-bold text-lg" style={{ color: 'var(--blood-red)' }}><span className={healthAnimClass}>{playerDetails.health}</span> / {playerDetails.maxHealth}</span></p>
                     {healthBreakdownHtml && (
                         <div className="tooltip" dangerouslySetInnerHTML={{ __html: healthBreakdownHtml }} />
                     )}
                  </div>
                 <p>Gold: <span id="player1Gold" className={`font-bold text-yellow-500 text-lg ${gameState.goldFlashPlayer ? 'gold-gained' : ''}`}>{playerDetails.gold}</span></p>
                 <div className="flex items-center gap-2">
-                    <p>Status: <span id="player1Illness" className={`font-semibold ${playerStatusStyle}`}>{playerStatusText}</span></p>
+                    <p>Status: <span id="player1Illness" className={playerStatusStyle} style={{color: playerStatusColor}}>{playerStatusText}</span></p>
                     <div className="flex gap-1 items-center">
                         {isIll && (
                             <div className="tooltip-container">
@@ -735,7 +739,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
       <div className="flex flex-col items-start mb-2">
         <h3 className="text-xl font-western text-[var(--ink-main)]">The Frontier</h3>
-        <div className="text-xs text-[var(--ink-main)] mt-0.5">Event Deck: <span className="font-bold text-red-600">{gameState.eventDeck?.length || 0}</span></div>
+        <div className="text-xs text-[var(--ink-main)] mt-0.5">Event Deck: <span className="font-bold" style={{ color: 'var(--blood-red)' }}>{gameState.eventDeck?.length || 0}</span></div>
       </div>
 
       {(() => {
@@ -824,7 +828,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         <GameLogComponent logEntries={log} />
         <button
             id="restartButton"
-            className="button w-full bg-red-800 hover:bg-red-900 border-red-900 text-[var(--paper-bg)]"
+            className="button button-danger w-full"
             onClick={onRestartGame}
         >
             Restart Game

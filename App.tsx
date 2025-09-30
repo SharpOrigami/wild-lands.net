@@ -328,30 +328,33 @@ const App: React.FC = () => {
       const themeClass20 = 'ng-plus-20-theme';
       const themeClass30 = 'ng-plus-30-theme';
       const themeClass40 = 'ng-plus-40-theme';
+      const themeClass50 = 'ng-plus-50-theme';
       
       const bodyClassList = document.body.classList;
-      const allThemes = [themeClass10, themeClass20, themeClass30, themeClass40, 'ng-plus-50-theme'];
+      const allThemes = [themeClass10, themeClass20, themeClass30, themeClass40, themeClass50];
 
       let landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image.png';
       let portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image2.png';
       let themeToApply: string | null = null;
 
-      if (ngPlusLevel >= 10 && ngPlusLevel < 20) {
-        themeToApply = themeClass10;
-        landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_fj.png';
-        portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_fj2.png';
-      } else if (ngPlusLevel >= 20 && ngPlusLevel < 30) {
-        themeToApply = themeClass20;
-        landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_as.png';
-        portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_as2.png';
-      } else if (ngPlusLevel >= 30 && ngPlusLevel < 40) {
-        themeToApply = themeClass30;
-        landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_sh.png';
-        portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_sh2.png';
-      } else if (ngPlusLevel >= 40 && ngPlusLevel < 50) {
+      if (ngPlusLevel >= 50) {
+        themeToApply = themeClass50;
+      } else if (ngPlusLevel >= 40) {
         themeToApply = themeClass40;
         landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_cp.png';
         portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_cp2.png';
+      } else if (ngPlusLevel >= 30) {
+        themeToApply = themeClass30;
+        landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_sh.png';
+        portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_sh2.png';
+      } else if (ngPlusLevel >= 20) {
+        themeToApply = themeClass20;
+        landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_as.png';
+        portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_as2.png';
+      } else if (ngPlusLevel >= 10) {
+        themeToApply = themeClass10;
+        landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_fj.png';
+        portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_fj2.png';
       }
 
       const updateBackgrounds = () => {
@@ -868,7 +871,7 @@ const App: React.FC = () => {
               soundManager.playSound('ui_button_click');
               fullResetGame();
             }}
-            className="button !bg-red-800 hover:!bg-red-900 !text-white !border-red-900 text-xs py-1 px-2"
+            className="button button-danger text-xs py-1 px-2"
             title="Reset all progress and start a new game at NG+0. Lifetime stats will be preserved."
           >
             Reset

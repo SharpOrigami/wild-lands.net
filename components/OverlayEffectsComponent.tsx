@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import CardComponent from './CardComponent.tsx'; // Changed to default import
 import { CardContext, CardData, ActiveGameBannerState, PlayerDetails } from '../types.ts';
@@ -103,11 +102,17 @@ const OverlayEffectsComponent: React.FC<OverlayEffectsProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scoutedCard]);
 
-  let bannerTextColorClass = 'text-red-600'; // Default for event_alert, threat_defeated (though threat_defeated might want green)
+  let bannerTextColorClass = '';
+  const bannerTextStyle: React.CSSProperties = {
+    textShadow: '1px 1px 1px rgba(0,0,0,0.3)',
+  };
+
   if (activeGameBanner?.bannerType === 'generic_info') {
-    bannerTextColorClass = 'text-blue-700'; // Neutral blue for generic info
+    bannerTextColorClass = 'text-blue-700';
   } else if (activeGameBanner?.bannerType === 'threat_defeated') {
-    bannerTextColorClass = 'text-green-600'; // Green for threat defeated
+    bannerTextStyle.color = 'var(--heal-green)';
+  } else if (activeGameBanner) { // For threat/illness alerts
+    bannerTextStyle.color = 'var(--blood-red)';
   }
 
 
@@ -164,8 +169,11 @@ const OverlayEffectsComponent: React.FC<OverlayEffectsProps> = ({
         >
           <h1
               id="endGameText"
-              className={`font-western text-[clamp(2rem,6vw,5rem)] ${finalOutcome.status === 'victory' ? 'text-green-500' : 'text-red-500'}`}
-              style={{ textShadow: '2px 2px 0px var(--paper-bg), 4px 4px 0px rgba(0,0,0,0.2)' }}
+              className={`font-western text-[clamp(2rem,6vw,5rem)]`}
+              style={{ 
+                  textShadow: '2px 2px 0px var(--paper-bg), 4px 4px 0px rgba(0,0,0,0.2)',
+                  color: finalOutcome.status === 'defeat' ? 'var(--blood-red)' : 'var(--heal-green)'
+              }}
           >
             {finalOutcome.status === 'victory' ? "Victory" : "You Died"}
           </h1>
@@ -197,7 +205,7 @@ const OverlayEffectsComponent: React.FC<OverlayEffectsProps> = ({
         >
           <div
             className={`font-pulp-title ${bannerTextColorClass} text-[clamp(2.5rem,6vw,4rem)] bg-[rgba(244,241,234,0.85)] px-6 py-4 rounded-md shadow-lg border-2 border-[var(--ink-main)] text-center`}
-            style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.3)'}}
+            style={bannerTextStyle}
           >
             {activeGameBanner.message}
           </div>

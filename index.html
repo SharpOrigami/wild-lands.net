@@ -27,20 +27,30 @@
             --ink-secondary: #5c5c5c;
             --border-color: #b0a69a;
             
-            --blood-red: #d90429;
-            --blood-red-rgb: 217, 4, 41;
+            /* -- Base Colors for Western Theme -- */
+            --blood-red: #c81919;
+            --blood-red: color(display-p3 0.75 0.1 0.1);
+            --blood-red-rgb: 200, 25, 25;
+            --blood-red-bright: color-mix(in srgb, var(--blood-red) 80%, white 20%);
+
+            --faded-green: #556b2f;
+            --faded-green: color(display-p3 0.37 0.42 0.22);
+            --faded-green-rgb: 85, 107, 47;
+            
+            --heal-green: #16a34a; /* Tailwind Green-600 */
+            --heal-green: color(display-p3 0.1 0.64 0.3);
+            --heal-green-rgb: 22, 163, 74;
+            --heal-green-dark: color-mix(in srgb, var(--heal-green) 80%, black 20%);
+            --heal-green-bright: color-mix(in srgb, var(--heal-green) 80%, white 20%);
 
             --faded-blue: #4a6b8a;
             --faded-blue-rgb: 74, 107, 138;
 
             --tarnished-gold: #c8a415;
             --tarnished-gold-rgb: 200, 164, 21;
-
-            --faded-green: #556b2f;
-            --faded-green-rgb: 85, 107, 47;
             
             --scarlet-fever-color: #C71585; 
-            --puke-yellow: #BDB76B;
+            --puke-yellow: var(--faded-green);
 
             /* --- THEME VARIABLES (Default: Western) --- */
             
@@ -135,23 +145,35 @@
         body.ng-plus-10-theme {
             --panel-bg: rgba(251, 249, 244, 0.92); /* Rice Paper */
             --panel-border: 1px solid #a19a8e;
+
+            --blood-red: #d01d1d;
+            --blood-red: color(display-p3 0.79 0.11 0.11);
+            --blood-red-rgb: 208, 29, 29;
+            
+            --faded-green: #5A7734;
+            --faded-green: color(display-p3 0.39 0.48 0.24);
+            --faded-green-rgb: 90, 119, 52;
+            
+            --heal-green: #21ac4a;
+            --heal-green: color(display-p3 0.13 0.67 0.3);
+            --heal-green-rgb: 33, 172, 74;
             
             /* Threat */
-            --glow-color-threat: #a82a2a;
-            --glow-color-threat: color(display-p3 0.65 0.16 0.16);
-            --glow-shadow-threat: 0 0 26px var(--glow-color-threat);
+            --glow-color-threat: #9f2727;
+            --glow-color-threat: color(display-p3 0.62 0.14 0.14);
+            --glow-shadow-threat: 0 0 25px var(--glow-color-threat);
             /* Weapon */
-            --glow-color-item-weapon: #c86c06;
-            --glow-color-item-weapon: color(display-p3 0.78 0.42 0.02);
+            --glow-color-item-weapon: #c16705;
+            --glow-color-item-weapon: color(display-p3 0.75 0.40 0.02);
             /* Heal */
-            --glow-color-provision-heal: #5f9228;
-            --glow-color-provision-heal: color(display-p3 0.37 0.57 0.16);
+            --glow-color-provision-heal: #5a8c27;
+            --glow-color-provision-heal: color(display-p3 0.35 0.55 0.16);
             /* Draw */
-            --glow-color-provision-draw: #3a5fcd;
-            --glow-color-provision-draw: color(display-p3 0.23 0.37 0.8);
+            --glow-color-provision-draw: #3a5fbf;
+            --glow-color-provision-draw: color(display-p3 0.23 0.37 0.75);
             /* Upgrade */
-            --glow-color-player-upgrade: #d1500b;
-            --glow-color-player-upgrade: color(display-p3 0.82 0.31 0.04);
+            --glow-color-player-upgrade: #cf4d0a;
+            --glow-color-player-upgrade: color(display-p3 0.80 0.30 0.04);
 
             --tint-event: rgba(168, 42, 42, 0.09);
             --tint-provision-heal: rgba(95, 146, 40, 0.08);
@@ -172,22 +194,34 @@
             --panel-bg: rgba(245, 235, 215, 0.92); /* Dingy Yellow Paper */
             --panel-border: 1px solid #968977;
 
+            --blood-red: #da2121;
+            --blood-red: color(display-p3 0.82 0.12 0.12);
+            --blood-red-rgb: 218, 33, 33;
+
+            --faded-green: #678423;
+            --faded-green: color(display-p3 0.44 0.54 0.18);
+            --faded-green-rgb: 103, 132, 35;
+            
+            --heal-green: #27b54c;
+            --heal-green: color(display-p3 0.15 0.70 0.3);
+            --heal-green-rgb: 39, 181, 76;
+
             /* Threat */
-            --glow-color-threat: #b52020;
-            --glow-color-threat: color(display-p3 0.7 0.12 0.12);
-            --glow-shadow-threat: 0 0 28px var(--glow-color-threat);
+            --glow-color-threat: #a82a2a;
+            --glow-color-threat: color(display-p3 0.65 0.16 0.16);
+            --glow-shadow-threat: 0 0 27px var(--glow-color-threat);
             /* Weapon */
-            --glow-color-item-weapon: #d65b0f;
-            --glow-color-item-weapon: color(display-p3 0.84 0.35 0.06);
+            --glow-color-item-weapon: #d0590e;
+            --glow-color-item-weapon: color(display-p3 0.80 0.34 0.05);
             /* Heal */
-            --glow-color-provision-heal: #827717;
-            --glow-color-provision-heal: color(display-p3 0.5 0.85 0.1);
+            --glow-color-provision-heal: #79a117;
+            --glow-color-provision-heal: color(display-p3 0.45 0.80 0.1);
             /* Draw */
-            --glow-color-provision-draw: #0077c2;
-            --glow-color-provision-draw: color(display-p3 0 0.47 0.76);
+            --glow-color-provision-draw: #0072b6;
+            --glow-color-provision-draw: color(display-p3 0 0.45 0.72);
             /* Upgrade */
-            --glow-color-player-upgrade: #e07000;
-            --glow-color-player-upgrade: color(display-p3 0.88 0.44 0);
+            --glow-color-player-upgrade: #da6a00;
+            --glow-color-player-upgrade: color(display-p3 0.85 0.42 0);
 
             --tint-event: rgba(181, 32, 32, 0.1);
             --tint-provision-heal: rgba(130, 119, 23, 0.09);
@@ -213,6 +247,18 @@
             --card-bg: #f5f5f5; /* Bone White */
             --ink-main: #2a2a2a;
             --ink-secondary: #4c4c4c;
+            
+            --blood-red: #ef4444;
+            --blood-red: color(display-p3 1 0.25 0.25);
+            --blood-red-rgb: 239, 68, 68;
+            
+            --faded-green: #9acd32;
+            --faded-green: color(display-p3 0.6 0.8 0.2);
+            --faded-green-rgb: 154, 205, 50;
+
+            --heal-green: #76ff03;
+            --heal-green: color(display-p3 0.46 1 0.01);
+            --heal-green-rgb: 118, 255, 3;
 
             /* Threat */
             --glow-color-threat: #ef4444;
@@ -259,6 +305,18 @@
             --card-bg: #ffffff; /* Brighter, cleaner card white */
             --ink-main: #1a1a1a; /* Dark ink for contrast */
             --ink-secondary: #4a4a4a;
+
+            --blood-red: #ff1744;
+            --blood-red: color(display-p3 1 0.09 0.26);
+            --blood-red-rgb: 255, 23, 68;
+
+            --faded-green: #b3ff1a;
+            --faded-green: color(display-p3 0.7 1 0.1);
+            --faded-green-rgb: 179, 255, 26;
+
+            --heal-green: #76ff03;
+            --heal-green: color(display-p3 0.46 1 0.01);
+            --heal-green-rgb: 118, 255, 3;
 
             --glow-color-default: #00ffff; /* Neon Cyan */
             --glow-shadow-default: 0 0 18px rgba(0, 255, 255, 0.8), 0 0 5px #fff;
@@ -323,44 +381,69 @@
             --ink-main: #2a2a2a;
             --ink-secondary: #4c4c4c;
             --border-color: #a89e92;
-            --blood-red: #7a0202;
-            --blood-red: color(display-p3 0.7 0 0);
-            --blood-red-rgb: 122, 2, 2;
-
+            
             --panel-bg: rgba(242, 238, 228, 0.92);
             --panel-border: 1px solid var(--border-color);
             --card-bg: var(--paper-bg);
 
-            /* Threat */
-            --glow-color-threat: var(--blood-red);
-            --glow-shadow-threat: 0 0 30px var(--glow-color-threat);
-            /* Weapon */
-            --glow-color-item-weapon: #bf360c;
-            --glow-color-item-weapon: color(display-p3 0.75 0.21 0.05);
+            /* --- Cyberpunk Vibrancy --- */
+            --blood-red: #ff1744;
+            --blood-red: color(display-p3 1 0.09 0.26);
+            --blood-red-rgb: 255, 23, 68;
+
+            --faded-green: #b3ff1a;
+            --faded-green: color(display-p3 0.7 1 0.1);
+            --faded-green-rgb: 179, 255, 26;
+
+            --heal-green: #76ff03;
+            --heal-green: color(display-p3 0.46 1 0.01);
+            --heal-green-rgb: 118, 255, 3;
+
+            --glow-color-default: #00ffff; /* Neon Cyan */
+            --glow-shadow-default: 0 0 18px rgba(0, 255, 255, 0.8), 0 0 5px #fff;
+            
+            /* Threat & Weapon */
+            --glow-color-threat: #ff1744;
+            --glow-color-threat: color(display-p3 1 0.09 0.26);
+            --glow-shadow-threat: 0 0 22px var(--glow-color-threat), 0 0 8px #fff;
+            --glow-color-item-weapon: var(--glow-color-threat);
+            --glow-shadow-item-weapon: var(--glow-shadow-threat);
             /* Heal */
-            --glow-color-provision-heal: #1b5e20;
-            --glow-color-provision-heal: color(display-p3 0.1 0.7 0.1);
+            --glow-color-provision-heal: #76ff03;
+            --glow-color-provision-heal: color(display-p3 0.46 1 0.01);
+            --glow-shadow-provision-heal: 0 0 20px var(--glow-color-provision-heal), 0 0 6px #fff;
             /* Draw */
-            --glow-color-provision-draw: #0d47a1;
-            --glow-color-provision-draw: color(display-p3 0.05 0.28 0.63);
+            --glow-color-provision-draw: #00bfff;
+            --glow-color-provision-draw: color(display-p3 0 0.8 1);
+            --glow-shadow-provision-draw: 0 0 20px var(--glow-color-provision-draw), 0 0 6px #fff;
             /* Upgrade */
-            --glow-color-player-upgrade: #5d4037;
-            --glow-color-player-upgrade: color(display-p3 0.36 0.25 0.21);
+            --glow-color-player-upgrade: #ffab00;
+            --glow-color-player-upgrade: color(display-p3 1 0.67 0);
+            --glow-shadow-player-upgrade: 0 0 20px var(--glow-color-player-upgrade), 0 0 6px #fff;
 
-            --glow-color-item-gold: var(--tarnished-gold);
-            --glow-shadow-item-gold: 0 0 20px rgba(var(--tarnished-gold-rgb), 0.8);
-
+            /* Gold */
+            --glow-color-item-gold: #ffeb3b;
+            --glow-shadow-item-gold: 0 0 18px rgba(255, 235, 59, 0.8), 0 0 5px #fff;
+            
             /* Tints */
-            --tint-event: rgba(122, 2, 2, 0.09);
-            --tint-provision-heal: rgba(27, 94, 32, 0.09);
-            --tint-provision-draw: rgba(13, 71, 161, 0.08);
-            --tint-item-weapon: rgba(191, 54, 12, 0.09);
-            --tint-player-upgrade: rgba(93, 64, 55, 0.09);
-            --tint-item-gold: rgba(200,164,21,0.08);
+            --tint-event: rgba(255, 23, 68, 0.05);
+            --tint-item-weapon: var(--tint-event);
+            --tint-provision-heal: rgba(118, 255, 3, 0.05);
+            --tint-provision-draw: rgba(0, 191, 255, 0.05);
+            --tint-player-upgrade: rgba(255, 171, 0, 0.05);
+            --tint-item-gold: rgba(255, 235, 59, 0.05);
+            --tint-item-trap: rgba(245, 0, 87, 0.05);
+            --tint-item-campfire: rgba(0, 255, 255, 0.04);
+            --tint-item-neutral: rgba(0, 255, 255, 0.04);
+            --tint-action-scout: rgba(0, 255, 255, 0.04);
+            --tint-trophy-bounty: rgba(0, 255, 255, 0.04);
         }
-        body.ng-plus-50-theme .card-face:not(.selected) {
-            transition: box-shadow 0.3s ease-in-out;
-            box-shadow: 0 0 8px rgba(58, 58, 58, 0.2);
+        body.ng-plus-50-theme #characterCardGrid .card-face:not(.selected) {
+            box-shadow: 0 0 10px rgba(118, 255, 3, 0.5), 0 0 3px rgba(0,0,0,0.4);
+        }
+        body.ng-plus-50-theme #characterCardGrid .selected {
+            border-color: var(--glow-color-default) !important;
+            box-shadow: var(--glow-shadow-default) !important;
         }
 
         .font-western { font-family: 'Rye', cursive; }
@@ -380,7 +463,7 @@
 
         @keyframes player-heal-flash-bg {
             0%, 100% { background-color: rgba(244, 241, 234, 0.9); }
-            50% { background-color: rgba(var(--faded-green-rgb), 0.35); }
+            50% { background-color: rgba(var(--heal-green-rgb), 0.35); }
         }
         .player-heal-flash-bg { animation: player-flash-bg-green 0.3s ease-out; }
         
@@ -406,7 +489,7 @@
 
         @keyframes player-border-pulse-green-anim {
             0%, 100% { border-color: var(--border-color); box-shadow: none; transform: scale(1); }
-            50% { border-color: var(--faded-green); box-shadow: 0 0 15px rgba(var(--faded-green-rgb), 0.6); transform: scale(1.02); }
+            50% { border-color: var(--heal-green); box-shadow: 0 0 15px rgba(var(--heal-green-rgb), 0.6); transform: scale(1.02); }
         }
         .player-border-pulse-green { animation: player-border-pulse-green-anim 0.45s ease-in-out; }
 
@@ -465,13 +548,13 @@
 
         @keyframes stat-flash-red {
             0%, 100% { color: var(--blood-red); transform: scale(1); }
-            50% { color: #ef4444; /* red-500 */ transform: scale(1.25); }
+            50% { color: var(--blood-red-bright); transform: scale(1.25); }
         }
         .stat-damage-flash { animation: stat-flash-red 0.4s ease-out; display: inline-block; }
 
         @keyframes stat-flash-green {
-            0%, 100% { color: #15803d; /* green-700 */ transform: scale(1); }
-            50% { color: #22c55e; /* green-500 */ transform: scale(1.25); }
+            0%, 100% { color: var(--heal-green-dark); transform: scale(1); }
+            50% { color: var(--heal-green-bright); transform: scale(1.25); }
         }
         .stat-heal-flash { animation: stat-flash-green 0.4s ease-out; display: inline-block; }
 
@@ -566,7 +649,7 @@
 
         @keyframes player-illness-pulse {
             0%, 100% { background-color: rgba(244, 241, 234, 0.9); box-shadow: none; }
-            50% { background-color: var(--puke-yellow); opacity: 0.7; box-shadow: 0 0 15px color-mix(in srgb, var(--puke-yellow) 40%, transparent); }
+            50% { background-color: var(--faded-green); opacity: 0.7; box-shadow: 0 0 15px color-mix(in srgb, var(--faded-green) 40%, transparent); }
         }
         .player-is-ill { animation: player-illness-pulse 0.8s ease-in-out 2; }
 
@@ -623,6 +706,16 @@
             border-color: #999999; /* Tailwind 'border-gray-400' */
             cursor: not-allowed;
             opacity: 0.7;
+        }
+
+        .button.button-danger {
+            background-color: var(--blood-red);
+            border-color: color-mix(in srgb, var(--blood-red) 70%, black);
+            color: var(--paper-bg);
+        }
+        .button.button-danger:hover {
+            background-color: color-mix(in srgb, var(--blood-red) 80%, black);
+            border-color: color-mix(in srgb, var(--blood-red) 60%, black);
         }
 
         /* Card back styling */
@@ -689,7 +782,7 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
         .status-icon.illness {
-            color: var(--puke-yellow);
+            color: var(--faded-green);
         }
 
         /* Store Blocked Styles */

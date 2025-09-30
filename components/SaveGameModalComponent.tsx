@@ -68,7 +68,7 @@ const SaveSlot: React.FC<{
         buttonArea = (
             <div className="flex flex-col gap-2 w-full">
                 <button className="button" onClick={() => onAction('load', slotIndex)}>Load</button>
-                <button className="button !bg-red-700 !text-white" onClick={() => onAction('delete', slotIndex)}>Delete</button>
+                <button className="button button-danger" onClick={() => onAction('delete', slotIndex)}>Delete</button>
             </div>
         );
      }
@@ -82,7 +82,7 @@ const SaveSlot: React.FC<{
       );
   } else if (mode === 'new') {
     if (slotData) {
-        buttonArea = <button className="button w-full !bg-red-700 !text-white" onClick={() => onAction('delete', slotIndex)}>Delete & Start New</button>;
+        buttonArea = <button className="button button-danger w-full" onClick={() => onAction('delete', slotIndex)}>Delete & Start New</button>;
     } else {
         buttonArea = <button className="button w-full" onClick={() => onAction('new', slotIndex)}>Start New Game</button>;
     }

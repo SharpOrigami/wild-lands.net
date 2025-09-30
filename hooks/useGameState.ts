@@ -1284,7 +1284,8 @@ export const useGameState = () => {
         
         if (level >= 1 && level < 10) {
             remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-            cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+            // FIX: Cast result of JSON.parse to avoid potential 'unknown' type errors.
+            cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as { [id: string]: CardData };
             const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => !/_fj$|_as$|_sh$|_cp$/.test(c.id));
             const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
             cardsForRemixingPool = originalThemePool.filter(card => !alreadyRemixedOriginalIds.has(card.id) && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
@@ -1320,7 +1321,8 @@ export const useGameState = () => {
         else if (level > 10) {
             const CARDS_TO_REMIX_PER_LEVEL = 10;
             remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-            cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+            // FIX: Cast result of JSON.parse to avoid potential 'unknown' type errors.
+            cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as { [id: string]: CardData };
             const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => themeSuffix ? c.id.endsWith(themeSuffix) : false);
             const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
             const remixableCards = originalThemePool.filter(card => !alreadyRemixedOriginalIds.has(card.id) && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
@@ -1421,11 +1423,13 @@ export const useGameState = () => {
         let finalRemixedCards: { [id: string]: CardData } = {};
         if (level > 0 && level < 10) {
             const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-            finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+            // FIX: Cast result of JSON.parse to avoid potential 'unknown' type errors.
+            finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as { [id: string]: CardData };
         } else if (level >= 10) {
             const themeName = getThemeName(level);
             const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-            finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+            // FIX: Cast result of JSON.parse to avoid potential 'unknown' type errors.
+            finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as { [id: string]: CardData };
         }
 
         finalRemixedCards = { ...finalRemixedCards, ...remixedCardsFromGeneration };
@@ -1443,7 +1447,8 @@ export const useGameState = () => {
                  const storedPlayerDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
                  if (storedPlayerDetailsString) {
                      try {
-                         const storedPlayerDetails = JSON.parse(storedPlayerDetailsString);
+                        // FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
+                         const storedPlayerDetails = JSON.parse(storedPlayerDetailsString) as any;
                          if (storedPlayerDetails.name && storedPlayerDetails.characterId) {
                              updatedPlayer.name = storedPlayerDetails.name;
                              updatedPlayer.character = CHARACTERS_DATA_MAP[storedPlayerDetails.characterId] || null;
@@ -1455,7 +1460,8 @@ export const useGameState = () => {
                  }
                  const runStartStateString = localStorage.getItem('wildWestRunStartState_WWS');
                  if (runStartStateString) {
-                     try { runStartState = JSON.parse(runStartStateString); } catch (e) { localStorage.removeItem('wildWestRunStartState_WWS'); }
+                    // FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
+                     try { runStartState = JSON.parse(runStartStateString) as any; } catch (e) { localStorage.removeItem('wildWestRunStartState_WWS'); }
                  }
             }
             if (runStartState && updatedPlayer.character && runStartState.characterId === updatedPlayer.character.id) {
@@ -1524,7 +1530,8 @@ export const useGameState = () => {
   const selectCharacter = useCallback((character: Character) => {
     // Update localStorage with the new character and their default personality
     const storedDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
-    const storedDetails = storedDetailsString ? JSON.parse(storedDetailsString) : {};
+    // FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
+    const storedDetails = storedDetailsString ? JSON.parse(storedDetailsString) as any : {};
     localStorage.setItem('wildWestPlayerDetailsForNGPlus_WWS', JSON.stringify({
         ...storedDetails,
         characterId: character.id,
@@ -1558,7 +1565,7 @@ export const useGameState = () => {
       const finalMaxHealth = Math.max(1, currentMaxHealth);
       
       const carriedOverSatchelString = localStorage.getItem('wildWestSatchelContents_WWS');
-      let satchelIdsObj = JSON.parse(carriedOverSatchelString || '{}');
+      let satchelIdsObj: any = JSON.parse(carriedOverSatchelString || '{}');
       
       // MIGRATION FOR OLD NG+ SATCHEL DATA
       if (Array.isArray(satchelIdsObj)) {
@@ -2402,7 +2409,7 @@ export const useGameState = () => {
       const savedStateString = localStorage.getItem('wildWestGameState_WWS');
       if (savedStateString) {
         try {
-          const savedState = JSON.parse(savedStateString);
+          const savedState: any = JSON.parse(savedStateString);
           
           if (typeof savedState !== 'object' || savedState === null || !savedState.status) {
             throw new Error("Saved state is not a valid game object.");
@@ -2494,10 +2501,12 @@ export const useGameState = () => {
           let remixedCards: { [id: string]: CardData } = {};
           if (savedState.ngPlusLevel > 0 && savedState.ngPlusLevel < 10) {
               const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-              remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+              // FIX: Cast result of JSON.parse to avoid potential 'unknown' type errors.
+              remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as { [id: string]: CardData };
           } else if (savedState.ngPlusLevel >= 10) {
               const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-              remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+              // FIX: Cast result of JSON.parse to avoid potential 'unknown' type errors.
+              remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as { [id: string]: CardData };
           }
           // ** END FIX **
           

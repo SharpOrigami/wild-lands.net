@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { LogEntry } from '../types.ts';
 import { MAX_LOG_ENTRIES } from '../constants.ts';
@@ -136,17 +135,27 @@ const GameLogComponent: React.FC<GameLogProps> = ({ logEntries }) => {
       >
         {displayedEntries.map((entry, index) => {
           const time = new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          let textColor = '';
-          if (entry.type === 'error') textColor = 'text-red-600 font-semibold';
-          else if (entry.type === 'action') textColor = 'text-blue-600';
-          else if (entry.type === 'system') textColor = 'text-green-700 font-semibold';
-          else if (entry.type === 'turn') textColor = 'text-purple-700 font-bold underline';
-          else if (entry.type === 'event') textColor = 'text-red-700 font-semibold';
-          else if (entry.type === 'gold') textColor = 'text-yellow-600 font-semibold';
-          // 'debug' type is already filtered out for display
+          const isRedText = entry.type === 'error' || entry.type === 'event';
+
+          let textColorClass = '';
+          const textStyle: React.CSSProperties = {};
+          
+          if (isRedText) {
+              textColorClass = 'font-semibold';
+              textStyle.color = 'var(--blood-red)';
+          } else if (entry.type === 'action') {
+              textColorClass = 'text-blue-600';
+          } else if (entry.type === 'system') {
+              textColorClass = 'font-semibold';
+              textStyle.color = 'var(--heal-green-dark)';
+          } else if (entry.type === 'turn') {
+              textColorClass = 'text-purple-700 font-bold underline';
+          } else if (entry.type === 'gold') {
+              textColorClass = 'text-yellow-600 font-semibold';
+          }
 
           return (
-            <p key={`${entry.timestamp}-${index}`} className={textColor}>
+            <p key={`${entry.timestamp}-${index}`} className={textColorClass} style={textStyle}>
               {`[${time}] ${entry.message}`}
             </p>
           );
