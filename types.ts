@@ -278,6 +278,7 @@ export interface GameState {
   remixDeckOnStart?: boolean;
   saveSlotIndex?: number | null;
   isBossFightActive?: boolean;
+  triggerThreatShake?: boolean;
 }
 
 export interface AIBossData {

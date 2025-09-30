@@ -166,7 +166,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
         else if (card.effect?.type === 'campfire') tintClass = 'bg-[var(--tint-item-campfire)]';
         else tintClass = 'bg-[var(--tint-item-neutral)]';
     } else if (card.type === 'Player Upgrade') {
-        tintClass = 'bg-[var(--tint-item-gold)]';
+        tintClass = 'bg-[var(--tint-player-upgrade)]';
     } else if (card.type === 'Action') {
         if (card.id === 'action_scout_ahead') tintClass = 'bg-[var(--tint-action-scout)]';
         else tintClass = 'bg-[var(--tint-item-weapon)]';
@@ -175,9 +175,9 @@ const CardComponent: React.FC<CardComponentProps> = ({
     }
   }
 
-  const cardFaceStyle = `border-2 border-[var(--ink-main)] text-[var(--ink-main)] shadow-[3px_3px_8px_rgba(0,0,0,0.2)] bg-[var(--paper-bg)]`;
+  const cardFaceStyle = `border-2 border-[var(--ink-main)] text-[var(--ink-main)] shadow-[3px_3px_8px_rgba(0,0,0,0.2)] bg-[var(--card-bg)]`;
   const hoverStyle = context !== CardContext.EVENT && context !== CardContext.SCOUTED_PREVIEW && !isDisabled ? 'hover:-translate-y-1 hover:-rotate-1 hover:shadow-[4px_4px_12px_rgba(0,0,0,0.25)] cursor-pointer' : '';
-  const selectedStyle = isSelected ? 'border-3 border-[var(--tarnished-gold)] shadow-[0_0_15px_rgba(200,164,21,0.5)] scale-105 -translate-y-2 -rotate-1' : '';
+  const selectedStyle = isSelected ? 'selected scale-105 -translate-y-2 -rotate-1' : '';
   const nameStyle = "font-['Special_Elite'] font-bold leading-snug break-words w-full text-[var(--ink-main)] uppercase text-[1em] lg:text-[1.1em]";
   const typeStyle = "font-['Merriweather'] italic text-[var(--ink-secondary)] leading-tight text-[0.8em] lg:text-[0.9em] mt-0.5";
   const bottomStatStyle = "font-['Special_Elite'] font-bold mt-auto text-[0.95em] lg:text-[1.05em]";
@@ -384,15 +384,52 @@ const CardComponent: React.FC<CardComponentProps> = ({
       }
     }
   }
+  
+  const isFrontierCard = context === CardContext.EVENT;
+  const isThreat = !isCharacterCard && card.type === 'Event' && (card.subType === 'animal' || card.subType === 'human');
+
+  let cardTypeId = 'default';
+  if (!isCharacterCard) {
+      switch (card.type) {
+          case 'Event':
+              cardTypeId = 'event';
+              break;
+          case 'Provision':
+              if (card.effect?.type === 'heal') cardTypeId = 'provision-heal';
+              else if (card.effect?.type === 'draw') cardTypeId = 'provision-draw';
+              else cardTypeId = 'provision-neutral';
+              break;
+          case 'Item':
+              if (card.effect?.type === 'weapon' || card.effect?.type === 'conditional_weapon') cardTypeId = 'item-weapon';
+              else if (card.effect?.type === 'gold' || card.id.startsWith('item_gold_nugget') || card.id.startsWith('item_jewelry') || card.id === 'item_gold_pan') cardTypeId = 'item-gold';
+              else if (card.effect?.type === 'trap') cardTypeId = 'item-trap';
+              else if (card.effect?.type === 'campfire') cardTypeId = 'item-campfire';
+              else cardTypeId = 'item-neutral';
+              break;
+          case 'Player Upgrade':
+              cardTypeId = 'player-upgrade';
+              break;
+          case 'Action':
+              if (card.effect?.type === 'scout') cardTypeId = 'action-scout';
+              else cardTypeId = 'item-weapon';
+              break;
+          case 'Trophy':
+          case 'Objective Proof':
+              cardTypeId = 'trophy-bounty';
+              break;
+      }
+  }
 
   const finalCardClasses = `
     ${cardBaseStructure} 
     ${cardResponsiveDimensions} 
     ${cardFaceStyle}
-    ${isSelected ? selectedStyle : hoverStyle}
+    ${selectedStyle ? selectedStyle : hoverStyle}
     ${className}
     ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''}
     ${isTooltipVisible ? 'z-20' : ''}
+    ${isFrontierCard ? 'frontier-card-glow' : ''}
+    card-face
   `.trim().replace(/\s+/g, ' ');
 
 
@@ -402,10 +439,11 @@ const CardComponent: React.FC<CardComponentProps> = ({
 
     return (
       <div 
-        className={`${cardBaseStructure} ${cardResponsiveDimensions} ${cardFaceStyle} bg-[var(--paper-bg)] text-[var(--ink-main)] ${isSelected ? 'border-[var(--tarnished-gold)] shadow-[0_0_15px_rgba(200,164,21,0.5)] scale-105' : 'border-[var(--border-color)] hover:border-stone-400'} ${hoverStyle} ${className} ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+        className={`${cardBaseStructure} ${cardResponsiveDimensions} ${cardFaceStyle} bg-[var(--card-bg)] text-[var(--ink-main)] ${isSelected ? 'selected' : 'border-[var(--border-color)] hover:border-stone-400'} ${hoverStyle} ${className} ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''} card-face`}
         onClick={handleCardClick}
         style={style}
         data-testid={`char-card-${character.id}`}
+        data-character-id={character.id}
         role="button" tabIndex={onClick && !isDisabled ? 0 : -1} aria-label={`Character: ${character.name}`}
         aria-disabled={isDisabled}
       >
@@ -441,7 +479,9 @@ const CardComponent: React.FC<CardComponentProps> = ({
       className={finalCardClasses} 
       onClick={handleCardClick} 
       style={style}
-      data-testid={`card-${card.id}-${indexInSource ?? ''}`} 
+      data-testid={`card-${card.id}-${indexInSource ?? ''}`}
+      data-card-type-id={cardTypeId}
+      data-is-threat={isThreat}
       role="button" tabIndex={onClick && !isDisabled ? 0 : -1} 
       aria-label={`Card: ${card.name}`}
       aria-disabled={isDisabled}

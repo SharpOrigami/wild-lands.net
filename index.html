@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-widh, initial-scale=1.0">
     <title>Wild Lands a Deckbuilding Game by Charles Falk</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,8 +27,8 @@
             --ink-secondary: #5c5c5c;
             --border-color: #b0a69a;
             
-            --blood-red: #8a0303;
-            --blood-red-rgb: 138, 3, 3;
+            --blood-red: #d90429;
+            --blood-red-rgb: 217, 4, 41;
 
             --faded-blue: #4a6b8a;
             --faded-blue-rgb: 74, 107, 138;
@@ -42,13 +42,68 @@
             --scarlet-fever-color: #C71585; 
             --puke-yellow: #BDB76B;
 
-            /* Card Tint Full RGBA Variables */
-            --tint-event: rgba(138,3,3,0.07);
-            --tint-provision-heal: rgba(85,107,47,0.08);
-            --tint-provision-draw: rgba(70,100,160,0.07);
+            /* --- THEME VARIABLES (Default: Western) --- */
+            
+            /* Panels */
+            --panel-bg: rgba(244, 241, 234, 0.9);
+            --panel-border: 1px solid var(--border-color);
+            --panel-border-cyber: none;
+
+            /* Card Base BG */
+            --card-bg: var(--paper-bg);
+
+            /* Selected Card Glows -- HDR Update */
+            --glow-color-default: rgba(40, 38, 35, 0.9);
+            --glow-shadow-default: 0 0 12px rgba(40, 38, 35, 0.75);
+            
+            --glow-color-event: rgba(40, 38, 35, 0.9);
+            --glow-shadow-event: 0 0 12px rgba(40, 38, 35, 0.75);
+
+            /* Threat */
+            --glow-color-threat: rgba(80, 40, 40, 0.9);
+            --glow-shadow-threat: 0 0 25px rgba(80, 40, 40, 0.75);
+
+            /* Provision - Heal */
+            --glow-color-provision-heal: rgba(40, 60, 40, 0.9);
+            --glow-shadow-provision-heal: 0 0 18px rgba(40, 60, 40, 0.75);
+
+            /* Provision - Draw */
+            --glow-color-provision-draw: rgba(40, 50, 60, 0.9);
+            --glow-shadow-provision-draw: 0 0 18px rgba(40, 50, 60, 0.75);
+
+            --glow-color-provision-neutral: rgba(50, 50, 50, 0.9);
+            --glow-shadow-provision-neutral: 0 0 15px rgba(50, 50, 50, 0.7);
+
+            /* Item - Weapon */
+            --glow-color-item-weapon: rgba(80, 50, 40, 0.9);
+            --glow-shadow-item-weapon: 0 0 18px rgba(80, 50, 40, 0.75);
+
+            /* Player Upgrade */
+            --glow-color-player-upgrade: rgba(75, 55, 40, 0.9);
+            --glow-shadow-player-upgrade: 0 0 18px rgba(75, 55, 40, 0.75);
+
+            /* Others */
+            --glow-color-item-gold: var(--tarnished-gold);
+            --glow-shadow-item-gold: 0 0 20px rgba(var(--tarnished-gold-rgb), 0.7);
+            --glow-color-item-trap: rgba(50, 40, 35, 0.9);
+            --glow-shadow-item-trap: 0 0 15px rgba(50, 40, 35, 0.7);
+            --glow-color-item-campfire: rgba(70, 50, 40, 0.9);
+            --glow-shadow-item-campfire: 0 0 15px rgba(70, 50, 40, 0.7);
+            --glow-color-item-neutral: rgba(50, 50, 50, 0.9);
+            --glow-shadow-item-neutral: 0 0 15px rgba(50, 50, 50, 0.7);
+            --glow-color-action-scout: rgba(40, 50, 40, 0.9);
+            --glow-shadow-action-scout: 0 0 15px rgba(40, 50, 40, 0.7);
+            --glow-color-trophy-bounty: var(--tarnished-gold);
+            --glow-shadow-trophy-bounty: 0 0 18px rgba(var(--tarnished-gold-rgb), 0.65);
+            
+            /* Card Tints */
+            --tint-event: rgba(161, 44, 44, 0.1);
+            --tint-provision-heal: rgba(85, 107, 47, 0.08);
+            --tint-provision-draw: rgba(90, 125, 154, 0.08);
             --tint-provision-neutral: rgba(120,120,120,0.05);
-            --tint-item-weapon: rgba(74,107,138,0.08); /* Also for Action (other) */
-            --tint-item-gold: rgba(200,164,21,0.07);   /* Also for Player Upgrade */
+            --tint-item-weapon: rgba(185, 78, 10, 0.08);
+            --tint-player-upgrade: rgba(181, 101, 29, 0.08);
+            --tint-item-gold: rgba(200,164,21,0.07);
             --tint-item-trap: rgba(160,100,70,0.07);
             --tint-item-campfire: rgba(200,100,50,0.07);
             --tint-item-neutral: rgba(130,130,130,0.06);
@@ -76,36 +131,236 @@
             }
         }
 
-        /* NG+10 Theme */
+        /* Feudal Japan Theme (NG+10) */
         body.ng-plus-10-theme {
+            --panel-bg: rgba(251, 249, 244, 0.92); /* Rice Paper */
+            --panel-border: 1px solid #a19a8e;
+            
+            /* Threat */
+            --glow-color-threat: #a82a2a;
+            --glow-color-threat: color(display-p3 0.65 0.16 0.16);
+            --glow-shadow-threat: 0 0 26px var(--glow-color-threat);
+            /* Weapon */
+            --glow-color-item-weapon: #c86c06;
+            --glow-color-item-weapon: color(display-p3 0.78 0.42 0.02);
+            /* Heal */
+            --glow-color-provision-heal: #5f9228;
+            --glow-color-provision-heal: color(display-p3 0.37 0.57 0.16);
+            /* Draw */
+            --glow-color-provision-draw: #3a5fcd;
+            --glow-color-provision-draw: color(display-p3 0.23 0.37 0.8);
+            /* Upgrade */
+            --glow-color-player-upgrade: #d1500b;
+            --glow-color-player-upgrade: color(display-p3 0.82 0.31 0.04);
+
+            --tint-event: rgba(168, 42, 42, 0.09);
+            --tint-provision-heal: rgba(95, 146, 40, 0.08);
+            --tint-provision-draw: rgba(58, 95, 205, 0.07);
+            --tint-item-weapon: rgba(200, 108, 6, 0.08);
+            --tint-player-upgrade: rgba(209, 80, 11, 0.08);
+            --tint-item-gold: rgba(255, 223, 186, 0.08);
+            --tint-trophy-bounty: rgba(210, 180, 140, 0.08);
         }
-        @media (orientation: portrait) {
-            body.ng-plus-10-theme {
-            }
+        body.ng-plus-10-theme #characterCardGrid .selected {
+            border-color: #ffdde1 !important;
+            box-shadow: 0 0 20px rgba(255, 182, 193, 0.8), 0 0 5px #fff !important;
         }
 
-        /* NG+20 Theme */
+
+        /* Africa Safari Theme (NG+20) */
         body.ng-plus-20-theme {
+            --panel-bg: rgba(245, 235, 215, 0.92); /* Dingy Yellow Paper */
+            --panel-border: 1px solid #968977;
+
+            /* Threat */
+            --glow-color-threat: #b52020;
+            --glow-color-threat: color(display-p3 0.7 0.12 0.12);
+            --glow-shadow-threat: 0 0 28px var(--glow-color-threat);
+            /* Weapon */
+            --glow-color-item-weapon: #d65b0f;
+            --glow-color-item-weapon: color(display-p3 0.84 0.35 0.06);
+            /* Heal */
+            --glow-color-provision-heal: #827717;
+            --glow-color-provision-heal: color(display-p3 0.5 0.85 0.1);
+            /* Draw */
+            --glow-color-provision-draw: #0077c2;
+            --glow-color-provision-draw: color(display-p3 0 0.47 0.76);
+            /* Upgrade */
+            --glow-color-player-upgrade: #e07000;
+            --glow-color-player-upgrade: color(display-p3 0.88 0.44 0);
+
+            --tint-event: rgba(181, 32, 32, 0.1);
+            --tint-provision-heal: rgba(130, 119, 23, 0.09);
+            --tint-provision-draw: rgba(0, 119, 194, 0.08);
+            --tint-item-weapon: rgba(214, 91, 15, 0.09);
+            --tint-player-upgrade: rgba(224, 112, 0, 0.09);
+            --tint-item-gold: rgba(220, 184, 41, 0.09);
+            --tint-item-trap: rgba(180, 120, 90, 0.09);
+            --tint-trophy-bounty: rgba(180, 160, 120, 0.1);
         }
-        @media (orientation: portrait) {
-            body.ng-plus-20-theme {
-            }
+        body.ng-plus-20-theme #characterCardGrid .card-face:not(.selected) {
+            box-shadow: 0 0 12px rgba(218, 165, 32, 0.5);
+        }
+        body.ng-plus-20-theme #characterCardGrid .selected {
+            border-color: #daa520 !important;
+            box-shadow: 0 0 20px rgba(218, 165, 32, 0.7), 0 0 5px #3a3a3a !important;
         }
 
-        /* NG+30 Theme */
+        /* Supernatural Horror Theme (NG+30) */
         body.ng-plus-30-theme {
+            --panel-bg: rgba(210, 210, 210, 0.9); /* Light Charcoal */
+            --panel-border: 1px solid #555;
+            --card-bg: #f5f5f5; /* Bone White */
+            --ink-main: #2a2a2a;
+            --ink-secondary: #4c4c4c;
+
+            /* Threat */
+            --glow-color-threat: #ef4444;
+            --glow-color-threat: color(display-p3 1 0.25 0.25);
+            --glow-shadow-threat: 0 0 30px var(--glow-color-threat);
+            /* Weapon */
+            --glow-color-item-weapon: #ff4500;
+            --glow-color-item-weapon: color(display-p3 1 0.27 0);
+            --glow-shadow-item-weapon: 0 0 20px var(--glow-color-item-weapon);
+            /* Heal */
+            --glow-color-provision-heal: #76ff03;
+            --glow-color-provision-heal: color(display-p3 0.46 1 0.01);
+            --glow-shadow-provision-heal: 0 0 20px var(--glow-color-provision-heal);
+            /* Draw */
+            --glow-color-provision-draw: #00bfff;
+            --glow-color-provision-draw: color(display-p3 0 0.75 1);
+            --glow-shadow-provision-draw: 0 0 20px var(--glow-color-provision-draw);
+            /* Upgrade */
+            --glow-color-player-upgrade: #b8860b;
+            --glow-color-player-upgrade: color(display-p3 0.72 0.52 0.04);
+            --glow-shadow-player-upgrade: 0 0 20px var(--glow-color-player-upgrade);
+            
+            --tint-event: rgba(239, 68, 68, 0.07);
+            --tint-provision-heal: rgba(118, 255, 3, 0.06);
+            --tint-provision-draw: rgba(0, 191, 255, 0.06);
+            --tint-item-weapon: rgba(255, 69, 0, 0.07);
+            --tint-player-upgrade: rgba(184, 134, 11, 0.07);
+            --tint-item-gold: rgba(255, 215, 0, 0.06);
+            --tint-trophy-bounty: rgba(139, 69, 19, 0.07);
         }
-        @media (orientation: portrait) {
-            body.ng-plus-30-theme {
-            }
+        body.ng-plus-30-theme .card-face:not(.selected) {
+            box-shadow: 0 0 10px rgba(118, 255, 3, 0.5), 0 0 3px rgba(0,0,0,0.4);
+        }
+        body.ng-plus-30-theme #characterCardGrid .selected {
+            border-color: var(--glow-color-provision-heal) !important;
+            box-shadow: 0 0 20px var(--glow-color-provision-heal), 0 0 5px #fff !important;
         }
 
-        /* NG+40 Theme */
+        /* Cyberpunk Theme (NG+40) */
         body.ng-plus-40-theme {
+            --panel-bg: rgba(252, 253, 255, 0.92); /* Super Clean White */
+            --panel-border: none;
+            --panel-border-cyber: 2px solid;
+            --card-bg: #ffffff; /* Brighter, cleaner card white */
+            --ink-main: #1a1a1a; /* Dark ink for contrast */
+            --ink-secondary: #4a4a4a;
+
+            --glow-color-default: #00ffff; /* Neon Cyan */
+            --glow-shadow-default: 0 0 18px rgba(0, 255, 255, 0.8), 0 0 5px #fff;
+            
+            /* Threat & Weapon */
+            --glow-color-threat: #ff1744;
+            --glow-color-threat: color(display-p3 1 0.09 0.26);
+            --glow-shadow-threat: 0 0 22px var(--glow-color-threat), 0 0 8px #fff;
+            --glow-color-item-weapon: var(--glow-color-threat);
+            --glow-shadow-item-weapon: var(--glow-shadow-threat);
+            /* Heal */
+            --glow-color-provision-heal: #76ff03;
+            --glow-color-provision-heal: color(display-p3 0.46 1 0.01);
+            --glow-shadow-provision-heal: 0 0 20px var(--glow-color-provision-heal), 0 0 6px #fff;
+            /* Draw */
+            --glow-color-provision-draw: #00bfff;
+            --glow-color-provision-draw: color(display-p3 0 0.8 1);
+            --glow-shadow-provision-draw: 0 0 20px var(--glow-color-provision-draw), 0 0 6px #fff;
+            /* Upgrade */
+            --glow-color-player-upgrade: #ffab00;
+            --glow-color-player-upgrade: color(display-p3 1 0.67 0);
+            --glow-shadow-player-upgrade: 0 0 20px var(--glow-color-player-upgrade), 0 0 6px #fff;
+
+            /* Gold */
+            --glow-color-item-gold: #ffeb3b;
+            --glow-shadow-item-gold: 0 0 18px rgba(255, 235, 59, 0.8), 0 0 5px #fff;
+            
+            /* Tints */
+            --tint-event: rgba(255, 23, 68, 0.05);
+            --tint-item-weapon: var(--tint-event);
+            --tint-provision-heal: rgba(118, 255, 3, 0.05);
+            --tint-provision-draw: rgba(0, 191, 255, 0.05);
+            --tint-player-upgrade: rgba(255, 171, 0, 0.05);
+            --tint-item-gold: rgba(255, 235, 59, 0.05);
+            --tint-item-trap: rgba(245, 0, 87, 0.05); /* Neon pink for trap */
+            --tint-item-campfire: rgba(0, 255, 255, 0.04);
+            --tint-item-neutral: rgba(0, 255, 255, 0.04);
+            --tint-action-scout: rgba(0, 255, 255, 0.04);
+            --tint-trophy-bounty: rgba(0, 255, 255, 0.04);
         }
-        @media (orientation: portrait) {
-            body.ng-plus-40-theme {
-            }
+        body.ng-plus-40-theme .card-face:not(.selected) {
+            transition: box-shadow 0.3s ease-in-out;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+        }
+        body.ng-plus-40-theme #characterCardGrid .selected {
+            border-color: var(--glow-color-default) !important;
+            box-shadow: var(--glow-shadow-default) !important;
+        }
+        body.ng-plus-40-theme #characterCardGrid [data-character-id='gunslinger']:not(.selected) { box-shadow: 0 0 18px color(display-p3 1 0.09 0.26), 0 0 5px #fff; }
+        body.ng-plus-40-theme #characterCardGrid [data-character-id='hunter']:not(.selected) { box-shadow: 0 0 18px color(display-p3 0.46 1 0.01), 0 0 5px #fff; }
+        body.ng-plus-40-theme #characterCardGrid [data-character-id='trapper']:not(.selected) { box-shadow: 0 0 18px color(display-p3 1 0.67 0), 0 0 5px #fff; }
+        body.ng-plus-40-theme #characterCardGrid [data-character-id='doctor']:not(.selected) { box-shadow: 0 0 18px color(display-p3 0 0.8 1), 0 0 5px #fff; }
+        body.ng-plus-40-theme #characterCardGrid [data-character-id='herbalist']:not(.selected) { box-shadow: 0 0 18px color(display-p3 0.68 1 0.18), 0 0 5px #fff; }
+        body.ng-plus-40-theme #characterCardGrid [data-character-id='explorer']:not(.selected) { box-shadow: 0 0 18px color(display-p3 1 0.92 0.23), 0 0 5px #fff; }
+        body.ng-plus-40-theme #characterCardGrid [data-character-id='preacher']:not(.selected) { box-shadow: 0 0 18px color(display-p3 0.88 1 1), 0 0 5px #fff; }
+        body.ng-plus-40-theme #characterCardGrid [data-character-id='prospector']:not(.selected) { box-shadow: 0 0 18px color(display-p3 1 0.84 0), 0 0 5px #fff; }
+
+
+        /* Legendary Western Theme (NG+50) */
+        body.ng-plus-50-theme {
+            --paper-bg: #f2eee4;
+            --ink-main: #2a2a2a;
+            --ink-secondary: #4c4c4c;
+            --border-color: #a89e92;
+            --blood-red: #7a0202;
+            --blood-red: color(display-p3 0.7 0 0);
+            --blood-red-rgb: 122, 2, 2;
+
+            --panel-bg: rgba(242, 238, 228, 0.92);
+            --panel-border: 1px solid var(--border-color);
+            --card-bg: var(--paper-bg);
+
+            /* Threat */
+            --glow-color-threat: var(--blood-red);
+            --glow-shadow-threat: 0 0 30px var(--glow-color-threat);
+            /* Weapon */
+            --glow-color-item-weapon: #bf360c;
+            --glow-color-item-weapon: color(display-p3 0.75 0.21 0.05);
+            /* Heal */
+            --glow-color-provision-heal: #1b5e20;
+            --glow-color-provision-heal: color(display-p3 0.1 0.7 0.1);
+            /* Draw */
+            --glow-color-provision-draw: #0d47a1;
+            --glow-color-provision-draw: color(display-p3 0.05 0.28 0.63);
+            /* Upgrade */
+            --glow-color-player-upgrade: #5d4037;
+            --glow-color-player-upgrade: color(display-p3 0.36 0.25 0.21);
+
+            --glow-color-item-gold: var(--tarnished-gold);
+            --glow-shadow-item-gold: 0 0 20px rgba(var(--tarnished-gold-rgb), 0.8);
+
+            /* Tints */
+            --tint-event: rgba(122, 2, 2, 0.09);
+            --tint-provision-heal: rgba(27, 94, 32, 0.09);
+            --tint-provision-draw: rgba(13, 71, 161, 0.08);
+            --tint-item-weapon: rgba(191, 54, 12, 0.09);
+            --tint-player-upgrade: rgba(93, 64, 55, 0.09);
+            --tint-item-gold: rgba(200,164,21,0.08);
+        }
+        body.ng-plus-50-theme .card-face:not(.selected) {
+            transition: box-shadow 0.3s ease-in-out;
+            box-shadow: 0 0 8px rgba(58, 58, 58, 0.2);
         }
 
         .font-western { font-family: 'Rye', cursive; }
@@ -230,7 +485,7 @@
         
         @keyframes threat-card-border-pulse-red-anim {
             0%, 100% { border-color: var(--ink-main); box-shadow: 3px 3px 8px rgba(0,0,0,0.2); }
-            50% { border-color: var(--blood-red); box-shadow: 0 0 15px 5px rgba(var(--blood-red-rgb), 0.5); }
+            50% { border-color: var(--glow-color-threat); box-shadow: var(--glow-shadow-threat); }
         }
         .threat-card-border-pulse-red { animation: threat-card-border-pulse-red-anim 0.45s ease-in-out; }
 
@@ -456,7 +711,94 @@
             border-radius: 0.1rem;
             pointer-events: none;
         }
+        
+        /* --- THEME-BASED STYLING --- */
+        .player-area, .frontier-area {
+            background-color: var(--panel-bg);
+            border: var(--panel-border);
+        }
+        .card-face {
+            background-color: var(--card-bg) !important;
+        }
+        body.ng-plus-40-theme .player-area,
+        body.ng-plus-40-theme .frontier-area {
+            border-image-slice: 1;
+            border-width: 2px;
+            border-style: solid;
+            border-image: linear-gradient(to bottom right, #ff00ff, #00ffff) 1;
+        }
+        
+        .selected {
+            border-width: 3px !important;
+            border-color: var(--glow-color-default) !important;
+            box-shadow: var(--glow-shadow-default) !important;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+        }
+        /* Increased specificity to ensure Threat overrides Event */
+        .selected[data-card-type-id='event'][data-is-threat="true"] {
+            border-color: var(--glow-color-threat) !important;
+            box-shadow: var(--glow-shadow-threat) !important;
+        }
+        .selected[data-card-type-id='event']:not([data-is-threat="true"]) {
+            border-color: var(--glow-color-event) !important;
+            box-shadow: var(--glow-shadow-event) !important;
+        }
+        .selected[data-card-type-id='provision-heal'] {
+            border-color: var(--glow-color-provision-heal) !important;
+            box-shadow: var(--glow-shadow-provision-heal) !important;
+        }
+        .selected[data-card-type-id='provision-draw'] {
+            border-color: var(--glow-color-provision-draw) !important;
+            box-shadow: var(--glow-shadow-provision-draw) !important;
+        }
+        .selected[data-card-type-id='provision-neutral'] {
+            border-color: var(--glow-color-provision-neutral) !important;
+            box-shadow: var(--glow-shadow-provision-neutral) !important;
+        }
+        .selected[data-card-type-id='item-weapon'] {
+            border-color: var(--glow-color-item-weapon) !important;
+            box-shadow: var(--glow-shadow-item-weapon) !important;
+        }
+        .selected[data-card-type-id='item-gold'] {
+            border-color: var(--glow-color-item-gold) !important;
+            box-shadow: var(--glow-shadow-item-gold) !important;
+        }
+        .selected[data-card-type-id='item-trap'] {
+            border-color: var(--glow-color-item-trap) !important;
+            box-shadow: var(--glow-shadow-item-trap) !important;
+        }
+        .selected[data-card-type-id='item-campfire'] {
+            border-color: var(--glow-color-item-campfire) !important;
+            box-shadow: var(--glow-shadow-item-campfire) !important;
+        }
+        .selected[data-card-type-id='item-neutral'] {
+            border-color: var(--glow-color-item-neutral) !important;
+            box-shadow: var(--glow-shadow-item-neutral) !important;
+        }
+        .selected[data-card-type-id='action-scout'] {
+            border-color: var(--glow-color-action-scout) !important;
+            box-shadow: var(--glow-shadow-action-scout) !important;
+        }
+        .selected[data-card-type-id='trophy-bounty'] {
+            border-color: var(--glow-color-trophy-bounty) !important;
+            box-shadow: var(--glow-shadow-trophy-bounty) !important;
+        }
+        .selected[data-card-type-id='player-upgrade'] {
+            border-color: var(--glow-color-player-upgrade) !important;
+            box-shadow: var(--glow-shadow-player-upgrade) !important;
+        }
 
+        .frontier-card-glow { transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+        .frontier-card-glow[data-is-threat="true"] {
+            box-shadow: 0 0 8px color-mix(in srgb, var(--glow-color-threat) 50%, transparent);
+            border-color: color-mix(in srgb, var(--glow-color-threat) 70%, transparent);
+        }
+        .frontier-card-glow[data-card-type-id*="item"],
+        .frontier-card-glow[data-card-type-id*="provision"],
+        .frontier-card-glow[data-card-type-id*="action"] {
+             box-shadow: 0 0 8px color-mix(in srgb, var(--glow-color-item-gold) 25%, transparent);
+             border-color: color-mix(in srgb, var(--glow-color-item-gold) 40%, transparent);
+        }
 
     </style>
 <script type="importmap">

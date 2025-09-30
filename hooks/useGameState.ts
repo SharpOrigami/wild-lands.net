@@ -169,7 +169,7 @@ export const useGameState = () => {
     // as it's a transitional state that can cause issues on reload.
     if (gameState && (gameState.status === 'playing' || gameState.status === 'playing_initial_reveal')) {
       try {
-        const stateToSave = { ...gameState };
+        const stateToSave: Partial<GameState> = { ...gameState };
         
         // Remove transient UI properties
         stateToSave.selectedCard = null;
@@ -185,6 +185,7 @@ export const useGameState = () => {
         stateToSave.isLoadingStory = false;
         stateToSave.isLoadingNGPlus = false;
         stateToSave.showNGPlusRewardModal = false;
+        delete stateToSave.triggerThreatShake;
         
         const gameStateJSON = JSON.stringify(stateToSave);
         localStorage.setItem('wildWestGameState_WWS', gameStateJSON);
@@ -195,8 +196,8 @@ export const useGameState = () => {
     }
   }, [gameState, _log]);
 
-  const getBaseCardByIdentifier = useCallback((cardIdentifier: CardData): CardData => {
-    if (!cardIdentifier) return cardIdentifier;
+  const getBaseCardByIdentifier = useCallback((cardIdentifier: CardData | null): CardData | null => {
+    if (!cardIdentifier) return null;
     const standardCard = ALL_CARDS_DATA_MAP[cardIdentifier.id];
     if (!standardCard) return CURRENT_CARDS_DATA[cardIdentifier.id] || cardIdentifier;
 
@@ -326,6 +327,7 @@ export const useGameState = () => {
         newlyDrawnCardIndices: undefined,
         triggerEquipAnimation: false,
         eventDifficultyBonus: 0,
+        triggerThreatShake: false,
     };
 
     setGameState(finishedState);
@@ -593,7 +595,7 @@ export const useGameState = () => {
             const cardsFromHand = modifiablePlayer.hand.filter(c => c !== null) as CardData[];
             if (cardsFromHand.length > 0) {
                 _log(`[DEBUG] Discarding ${cardsFromHand.length} cards: ${cardsFromHand.map(c => c.name).join(', ')}.`, 'debug');
-                const baseCardsToDiscard = cardsFromHand.map(c => getBaseCardByIdentifier(c)).filter(Boolean);
+                const baseCardsToDiscard = cardsFromHand.map(c => getBaseCardByIdentifier(c)).filter((c): c is CardData => c !== null);
                 modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, ...baseCardsToDiscard];
                 modifiablePlayer.hand = new Array(modifiablePlayer.handSize).fill(null);
             }
@@ -773,7 +775,8 @@ export const useGameState = () => {
                           winReason = reasonAfterImmediate || winReason;
                       }
                       if (eventRemoved) {
-                          currentEventDiscard.push(newEventOriginal);
+                          const baseNewEvent = getBaseCardByIdentifier(newEventOriginal);
+                          if(baseNewEvent) currentEventDiscard.push(baseNewEvent);
                           currentActiveEventForNewDay = null;
                           modifiableGameStateUpdates.activeEventTurnCounter = 0;
                       } else {
@@ -1085,6 +1088,10 @@ export const useGameState = () => {
         let result: actionHandlers.ActionHandlerResult | null = null;
 
         switch (actionType) {
+            case 'RESET_THREAT_SHAKE_TRIGGER':
+                setGameState(prev => prev ? { ...prev, triggerThreatShake: false } : null);
+                isActionInProgress.current = false;
+                return;
             case 'CHEAT_ADD_GOLD': {
                 const { amount } = payload;
                 if (typeof amount === 'number' && amount > 0) {
@@ -1237,7 +1244,7 @@ export const useGameState = () => {
 
     let currentStoreDeck = [...(currentGameState.storeItemDeck || [])];
     let currentStoreDiscard = [...(currentGameState.storeItemDiscardPile || [])];
-    currentGameState.storeDisplayItems.forEach(item => { if (item) currentStoreDeck.push(getBaseCardByIdentifier(item)); });
+    currentGameState.storeDisplayItems.forEach(item => { if (item) { const baseItem = getBaseCardByIdentifier(item); if (baseItem) currentStoreDeck.push(baseItem); } });
 
     const newStoreDisplay: (CardData | null)[] = new Array(STORE_DISPLAY_LIMIT).fill(null);
     for (let i = 0; i < STORE_DISPLAY_LIMIT; i++) {
@@ -1393,7 +1400,7 @@ export const useGameState = () => {
     };
     const baseInitialState: GameState = {
         runId: crypto.randomUUID(),
-        status: initialStatus, playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjective: null, storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, triggerEquipAnimation: false, eventDifficultyBonus: 0, saveSlotIndex: saveSlotIndex ?? undefined,
+        status: initialStatus, playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjective: null, storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, triggerEquipAnimation: false, eventDifficultyBonus: 0, saveSlotIndex: saveSlotIndex ?? undefined, triggerThreatShake: false,
     };
     setGameState(baseInitialState);
     
@@ -2048,7 +2055,8 @@ export const useGameState = () => {
                 winReasonFromInitialReveal = winReason || "Defeated on first reveal!";
             }
             if (eventRemoved) {
-                eventDiscard.push(firstEventBase);
+                const baseEventCard = getBaseCardByIdentifier(firstEventBase);
+                if (baseEventCard) eventDiscard.push(baseEventCard);
                 activeEventForDay1 = null;
             } else {
                 activeEventForDay1 = modifiedEventAfterTrap;
@@ -2318,6 +2326,7 @@ export const useGameState = () => {
         isLoadingNGPlus: false,
         showNGPlusRewardModal: false,
         selectedCard: null,
+        triggerThreatShake: false,
       };
 
       setGameState(rehydratedState);
@@ -2394,6 +2403,10 @@ export const useGameState = () => {
       if (savedStateString) {
         try {
           const savedState = JSON.parse(savedStateString);
+          
+          if (typeof savedState !== 'object' || savedState === null || !savedState.status) {
+            throw new Error("Saved state is not a valid game object.");
+          }
 
           if (savedState.status === 'finished') {
             _log("Stuck 'finished' state detected. Recovering progress...", "system");
@@ -2502,7 +2515,7 @@ export const useGameState = () => {
           
           setGameState(savedState);
         } catch (error) {
-          _log("Error loading saved game. Starting fresh.", "error");
+          _log(`Error loading saved game: ${error instanceof Error ? error.message : String(error)}. Starting fresh.`, "error");
           resetGame({ hardReset: true });
         }
       } else {

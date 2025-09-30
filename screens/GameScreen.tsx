@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { GameState, PlayerDetails, CardData, CardContext, LogEntry } from '../types.ts';
 import CardComponent from '../components/CardComponent.tsx';
@@ -50,9 +49,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const [threatAnimationClass, setThreatAnimationClass] = useState('');
   const [threatStatAnimClass, setThreatStatAnimClass] = useState('');
   const prevEventRef = useRef<{ id?: string; health?: number } | null>(null);
+  // FIX: Define `prevHealthRef` to track health changes for animations.
+  const prevHealthRef = useRef(playerDetails.health);
   const [playerShakeClass, setPlayerShakeClass] = useState('');
   const [healthAnimClass, setHealthAnimClass] = useState('');
-  const prevHealthRef = useRef(playerDetails.health);
   const [eventAnimationClass, setEventAnimationClass] = useState('');
   const [frontierPanelShakeClass, setFrontierPanelShakeClass] = useState('');
   const prevEventIdRef = useRef<string | undefined | null>(null);
@@ -62,8 +62,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   // --- State for Satchel View ---
   const [viewedSatchelItemIndex, setViewedSatchelItemIndex] = useState(0);
-  // FIX: Corrected the useState setter name from 'setLastViewedSatchelIndex' to 'setLastViewedSatchelItemIndex'.
-  const [lastViewedSatchelIndex, setLastViewedSatchelItemIndex] = useState(0);
+  const [lastViewedSatchelIndex, setLastViewedSatchelIndex] = useState(0);
   const [satchelAnimation, setSatchelAnimation] = useState<'in' | 'out' | null>(null);
 
   const animatingIndices = useMemo(() => new Set(gameState.newlyDrawnCardIndices || []), [gameState.newlyDrawnCardIndices]);
@@ -159,9 +158,19 @@ const GameScreen: React.FC<GameScreenProps> = ({
   }, [gameState.newlyDrawnCardIndices, onCardAction]);
 
   useEffect(() => {
+    if (gameState.triggerThreatShake) {
+        setThreatAnimationClass('threat-card-shake-damage-bg');
+        const timer = setTimeout(() => {
+            setThreatAnimationClass('');
+            onCardAction('RESET_THREAT_SHAKE_TRIGGER');
+        }, 400); // Animation duration
+        return () => clearTimeout(timer);
+    }
+  }, [gameState.triggerThreatShake, onCardAction]);
+
+  useEffect(() => {
     // When satchel contents change (e.g., an item is used),
     // ensure the viewed index is still valid to prevent out-of-bounds errors.
-    // FIX: Changed playerDetails.satchel to correctly reference the contents of the currently viewed satchel.
     const currentSatchelContents = playerDetails.satchels[lastViewedSatchelIndex] || [];
     if (viewedSatchelItemIndex >= currentSatchelContents.length) {
         const newIndex = Math.max(0, currentSatchelContents.length - 1);
@@ -429,7 +438,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const handleCycleSatchel = useCallback(() => {
     setSatchelAnimation('out');
     setTimeout(() => {
-        // FIX: Changed playerDetails.satchel to correctly reference the contents of the currently viewed satchel.
         const currentSatchelContents = playerDetails.satchels[lastViewedSatchelIndex] || [];
         const newIndex = (viewedSatchelItemIndex + 1) % currentSatchelContents.length;
         setViewedSatchelItemIndex(newIndex);
@@ -451,9 +459,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
       id="player1Area"
       className={`
         player-area
-        bg-[rgba(244,241,234,0.9)] text-[var(--ink-main)]
+        text-[var(--ink-main)]
         p-3 sm:p-4 md:p-5
-        rounded-sm border border-[var(--border-color)]
+        rounded-sm
         relative transition-all duration-300 ease-in-out
         ${playerAreaBorderClass}
         ${playerShakeClass}
@@ -574,7 +582,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
                                   setSelectedCard(null);
                               } else {
                                   setSelectedCard({ card: equippedCard, source: CardContext.SATCHEL_VIEW, index: i });
-                                  setLastViewedSatchelItemIndex(i);
+                                  setLastViewedSatchelIndex(i);
                               }
                           } : undefined}
                           lastViewedSatchelIndex={lastViewedSatchelIndex}
@@ -674,7 +682,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   );
 
   const frontierPanel = (
-    <div className={`flex flex-col bg-[rgba(244,241,234,0.9)] text-[var(--ink-main)] p-3 sm:p-4 md:p-5 rounded-sm border border-[var(--border-color)] ${frontierPanelShakeClass}`}>
+    <div className={`frontier-area flex flex-col text-[var(--ink-main)] p-3 sm:p-4 md:p-5 rounded-sm ${frontierPanelShakeClass}`}>
       <div className={`mt-0 transition-all duration-300 ${gameState.blockTradeDueToHostileEvent ? 'store-blocked' : ''}`}>
         <div className="flex flex-col items-start mb-2">
           <h4 className="font-western text-lg text-blue-700">General Store:</h4>
@@ -762,7 +770,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
                   statAnimationClass={threatStatAnimClass}
                   />
               ) : (
-                  <div className={`card flex items-center justify-center border-2 border-[var(--ink-main)] bg-[var(--paper-bg)] text-[var(--ink-main)] rounded m-1 text-center shadow-md w-[7rem] h-[9.8rem] text-[0.65rem] p-1.5 sm:w-[7rem] sm:h-[9.8rem] sm:text-[0.65rem] sm:p-1.5 md:w-[8.5rem] md:h-[11.9rem] md:text-[0.7rem] md:p-2 lg:w-[10.5rem] lg:h-[14.7rem] lg:text-[0.8rem] lg:p-2.5 xl:w-[11.5rem] xl:h-[16.1rem] xl:text-[0.8rem] xl:p-2.5 2xl:w-[12.5rem] 2xl:h-[17.5rem] 2xl:text-sm 2xl:p-3`}>
+                  <div className={`card flex items-center justify-center border-2 border-[var(--ink-main)] bg-[var(--card-bg)] text-[var(--ink-main)] rounded m-1 text-center shadow-md w-[7rem] h-[9.8rem] text-[0.65rem] p-1.5 sm:w-[7rem] sm:h-[9.8rem] sm:text-[0.65rem] sm:p-1.5 md:w-[8.5rem] md:h-[11.9rem] md:text-[0.7rem] md:p-2 lg:w-[10.5rem] lg:h-[14.7rem] lg:text-[0.8rem] lg:p-2.5 xl:w-[11.5rem] xl:h-[16.1rem] xl:text-[0.8rem] xl:p-2.5 2xl:w-[12.5rem] 2xl:h-[17.5rem] 2xl:text-sm 2xl:p-3`}>
                   <div className="font-['Special_Elite']">All Clear</div>
                   </div>
               )}

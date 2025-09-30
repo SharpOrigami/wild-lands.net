@@ -73,7 +73,7 @@ export const applyDamageAndGetAnimation = (
     sourceName: string,
     _log: (message: string, type?: LogEntry['type']) => void,
     triggerAnimation: (type: string, target?: string) => Promise<void>,
-    getBaseCardByIdentifier: (card: CardData) => CardData,
+    getBaseCardByIdentifier: (card: CardData | null) => CardData | null,
     isBossFight?: boolean,
     eventId?: string,
     suppressLog: boolean = false,
@@ -103,7 +103,10 @@ export const applyDamageAndGetAnimation = (
         modPlayer.equippedItems = modPlayer.equippedItems.filter(item => item.id !== equippedHat.id);
         modPlayer.maxHealth = Math.max(1, modPlayer.maxHealth - hatHealthBonus);
         modPlayer.health = Math.min(modPlayer.health, modPlayer.maxHealth);
-        modPlayer.playerDiscard = [...modPlayer.playerDiscard, getBaseCardByIdentifier(equippedHat)];
+        const baseEquippedHat = getBaseCardByIdentifier(equippedHat);
+        if (baseEquippedHat) {
+            modPlayer.playerDiscard = [...modPlayer.playerDiscard, baseEquippedHat];
+        }
 
         modPlayer.hatDamageNegationAvailable = false;
         modPlayer.hatDamageNegationUsedThisTurn = true;
@@ -434,7 +437,7 @@ export const applyImmediateEventAndCheckEndTurn = (
     triggerGoldFlash: (playerId: string) => void,
     triggerAnimation: (type: string, target?: string) => Promise<void>,
     triggerBanner: (message: string, bannerType: ActiveGameBannerState['bannerType'], autoEndTurnAfter?: boolean) => void,
-    getBaseCardByIdentifier: (card: CardData) => CardData,
+    getBaseCardByIdentifier: (card: CardData | null) => CardData | null,
     applyDamageAndGetAnimation: (player: PlayerDetails, damage: number, source: string, isBossFight?: boolean, eventId?: string, suppressLog?: boolean, sourceCard?: CardData) => { updatedPlayer: PlayerDetails, animationDetails: any }
 ): {
     updatedPlayer: PlayerDetails;
@@ -488,7 +491,8 @@ export const applyImmediateEventAndCheckEndTurn = (
         }
 
         if (trapInteractionResult.trapConsumedAndDiscarded) {
-            modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, getBaseCardByIdentifier(modifiablePlayer.activeTrap)];
+            const baseTrapCard = getBaseCardByIdentifier(modifiablePlayer.activeTrap);
+            if(baseTrapCard) modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, baseTrapCard];
             modifiablePlayer.activeTrap = null;
             triggerAnimation('trap-display-activated', 'trapDisplay');
         }
@@ -641,7 +645,9 @@ export const applyImmediateEventAndCheckEndTurn = (
           const cardsFromHandToDiscard = modifiablePlayer.hand.filter(c => c !== null) as CardData[];
           if (cardsFromHandToDiscard.length > 0) {
               const baseCardsToDiscard = cardsFromHandToDiscard.map(c => getBaseCardByIdentifier(c)).filter(Boolean);
-              modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, ...baseCardsToDiscard];
+              if (baseCardsToDiscard.length > 0) {
+                  modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, ...baseCardsToDiscard as CardData[]];
+              }
           }
           modifiablePlayer.hand = new Array(modifiablePlayer.handSize).fill(null);
         }
@@ -693,7 +699,7 @@ export const applyImmediateEventAndCheckEndTurn = (
                     const baseItemsToDiscard = itemsToDiscard.map(i => getBaseCardByIdentifier(i)).filter(Boolean);
                     const baseContentsToDiscard = satchelContentsToDiscard.map(c => getBaseCardByIdentifier(c)).filter(Boolean);
                     
-                    modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, ...baseItemsToDiscard, ...baseContentsToDiscard];
+                    modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, ...baseItemsToDiscard as CardData[], ...baseContentsToDiscard as CardData[]];
                     
                     if (satchelContentsToDiscard.length > 0) {
                         _log(`The contents of your satchel(s) were also lost and have been discarded.`, 'event');

@@ -18,7 +18,7 @@ export interface ActionHandlerArgs {
     triggerGoldFlash: (playerId: string) => void;
     applyHealToPlayer: (player: PlayerDetails, healAmount: number, sourceName: string, isBossFight?: boolean, sourceCard?: CardData, suppressLog?: boolean) => PlayerDetails;
     applyDamageAndGetAnimation: (playerDetailsInput: PlayerDetails, damage: number, sourceName: string, isBossFight?: boolean, eventId?: string, suppressLog?: boolean, sourceCard?: CardData) => { updatedPlayer: PlayerDetails; actualDamageDealt: number; animationDetails: { amount: number; sourceName: string; eventId?: string } | null; };
-    getBaseCardByIdentifier: (card: CardData) => CardData;
+    getBaseCardByIdentifier: (card: CardData | null) => CardData | null;
     soundManager: any;
     setPendingStoreRestock: React.Dispatch<React.SetStateAction<{ index: number; } | null>>;
     lastAttackPowerRef: React.MutableRefObject<number>;
@@ -43,7 +43,7 @@ const reIndexSatchelsAfterRemoval = (
     if (removedItem.effect?.subtype === 'storage') {
         const satchelContents = modPlayer.satchels[removedIndex] || [];
         if (satchelContents.length > 0) {
-            const contentsToDiscard = satchelContents.map(c => getBaseCardByIdentifier(c));
+            const contentsToDiscard = satchelContents.map(c => getBaseCardByIdentifier(c)).filter((c): c is CardData => c !== null);
             modPlayer.playerDiscard = [...modPlayer.playerDiscard, ...contentsToDiscard];
             _log(`Contents of discarded ${removedItem.name} (${contentsToDiscard.map(c => c.name).join(', ')}) were also discarded.`, 'info');
         }
@@ -300,7 +300,8 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                             const baseDefeatedEvent = getBaseCardByIdentifier(updatedActiveEvent);
                             if (baseDefeatedEvent) gameUpdates.eventDiscardPile = [...(gameState.eventDiscardPile || []), baseDefeatedEvent];
                             const trophyCard = createTrophyOrBountyCard(updatedActiveEvent);
-                            modPlayer.playerDiscard = [...modPlayer.playerDiscard, trophyCard];
+                            const baseTrophyCard = getBaseCardByIdentifier(trophyCard);
+                            if (baseTrophyCard) modPlayer.playerDiscard = [...modPlayer.playerDiscard, baseTrophyCard];
                             if (trophyCard.type === 'Objective Proof') {
                                 _log(`${modPlayer.name || 'Player'} collects the proof of bounty for ${updatedActiveEvent.name}.`, 'info');
                             } else { // Trophy
@@ -381,7 +382,8 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
             }
         } else if (card.effect.type === 'trap') {
             if (modPlayer.activeTrap) {
-                modPlayer.playerDiscard = [...modPlayer.playerDiscard, getBaseCardByIdentifier(modPlayer.activeTrap)];
+                const baseTrap = getBaseCardByIdentifier(modPlayer.activeTrap);
+                if (baseTrap) modPlayer.playerDiscard = [...modPlayer.playerDiscard, baseTrap];
                 _log(`${modPlayer.name || 'Player'} replaces their old trap with a new ${card.name}.`, 'action');
             } else {
                 if (card.isCheat) {
@@ -463,7 +465,8 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
             }
             modPlayer.playerDeck = tempDeck;
             modPlayer.hand = tempHand;
-            modPlayer.playerDiscard = [...tempDiscard, cardToDiscard]; 
+            if (cardToDiscard) modPlayer.playerDiscard = [...tempDiscard, cardToDiscard];
+            else modPlayer.playerDiscard = tempDiscard; 
 
             if (actuallyDrawnCount > 0) {
                 soundManager.playSound('card_draw');
@@ -706,7 +709,10 @@ export const handleUseFromSatchel = ({ player, gameState, payload, isBossActive,
     
     const updatedSatchelContents = modPlayer.satchels[satchelEquipmentIndex].filter((_, i) => i !== itemIndexInSatchel);
     modPlayer.satchels[satchelEquipmentIndex] = updatedSatchelContents;
-    modPlayer.playerDiscard = [...modPlayer.playerDiscard, getBaseCardByIdentifier(itemToUseFromSatchel)];
+    const itemToDiscard = getBaseCardByIdentifier(itemToUseFromSatchel);
+    if(itemToDiscard) {
+        modPlayer.playerDiscard = [...modPlayer.playerDiscard, itemToDiscard];
+    }
     
     return { player: modPlayer, gameUpdates };
 };
@@ -727,7 +733,8 @@ export const handleAttemptObjective = ({ player, gameState, payload, helpers }: 
     let discardedProvisions: CardData[] = [];
     for(let i = handAfterDiscard.length - 1; i >= 0 && provisionsToDiscard > 0; i--) {
         if (handAfterDiscard[i]?.type === 'Provision') {
-            discardedProvisions.push(getBaseCardByIdentifier(handAfterDiscard[i]!));
+            const baseCard = getBaseCardByIdentifier(handAfterDiscard[i]!);
+            if (baseCard) discardedProvisions.push(baseCard);
             handAfterDiscard[i] = null;
             provisionsToDiscard--;
         }
@@ -962,6 +969,7 @@ export const handleInteractWithThreat = ({ player, gameState, isBossActive, help
         const petRoll = Math.random();
         if (petRoll <= petFailureChance) { // Chance to fail
             _log(`You try to pet the ${activeEvent.name}. It doesn't like that.`, 'action');
+            gameUpdates.triggerThreatShake = true;
 
             if (activeEvent.effect?.type === 'apply_illness_on_linger' && activeEvent.effect.illness_id) {
                 const illnessCardId = activeEvent.effect.illness_id;
@@ -1019,6 +1027,8 @@ export const handleInteractWithThreat = ({ player, gameState, isBossActive, help
         const talkRoll = Math.random();
         if (talkRoll <= talkFailureChance) { // Chance to fail
             _log(`You try to talk to the ${activeEvent.name}. They respond with violence.`, 'action');
+            gameUpdates.triggerThreatShake = true;
+            
             const damage = activeEvent.effect?.type === 'damage' ? activeEvent.effect.amount || 0 : 0;
              if (damage > 0) {
                 const { updatedPlayer, animationDetails } = applyDamageAndGetAnimation(modPlayer, damage, activeEvent.name, isBossActive, activeEvent.id, false, activeEvent);
