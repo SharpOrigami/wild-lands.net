@@ -273,12 +273,13 @@ export interface GameState {
   gameJustStarted?: boolean;
   playerShake?: boolean;
   newlyDrawnCardIndices?: number[];
-  triggerEquipAnimation?: boolean;
+  equipAnimationIndex?: number | null;
   eventDifficultyBonus: number;
   remixDeckOnStart?: boolean;
   saveSlotIndex?: number | null;
   isBossFightActive?: boolean;
   triggerThreatShake?: boolean;
+  triggerStoreRestockAnimation?: boolean;
 }
 
 export interface AIBossData {

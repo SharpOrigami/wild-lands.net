@@ -23,7 +23,6 @@ interface CardComponentProps {
   blockTradeDueToHostileEvent?: boolean;
   isDisabled?: boolean;
   className?: string;
-  showBack?: boolean;
   style?: React.CSSProperties;
   statAnimationClass?: string;
   onViewSatchel?: () => void;
@@ -82,7 +81,6 @@ const CardComponent: React.FC<CardComponentProps> = ({
   blockTradeDueToHostileEvent = false,
   isDisabled = false,
   className = '',
-  showBack = false,
   style,
   statAnimationClass,
   onViewSatchel,
@@ -96,25 +94,15 @@ const CardComponent: React.FC<CardComponentProps> = ({
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   const cardResponsiveDimensions = `
-    w-[7rem] h-[9.8rem] text-[0.65rem] p-1.5
-    sm:w-[7rem] sm:h-[9.8rem] sm:text-[0.65rem] sm:p-1.5
-    md:w-[8.5rem] md:h-[11.9rem] md:text-[0.7rem] md:p-2
-    lg:w-[10.5rem] lg:h-[14.7rem] md:text-[0.8rem] lg:p-2.5
+    w-[7rem] h-[9.8rem] text-[0.6rem] p-1.5
+    sm:w-[7rem] sm:h-[9.8rem] sm:text-[0.6rem] sm:p-1.5
+    md:w-[8.5rem] md:h-[11.9rem] md:text-[0.65rem] md:p-2
+    lg:w-[10.5rem] lg:h-[14.7rem] lg:text-[0.75rem] lg:p-2.5
     xl:w-[11.5rem] xl:h-[16.1rem] xl:text-[0.8rem] xl:p-2.5
-    2xl:w-[12.5rem] 2xl:h-[17.5rem] 2xl:text-sm 2xl:p-3
+    2xl:w-[12.5rem] 2xl:h-[17.5rem] 2xl:text-[0.85rem] 2xl:p-3
   `;
 
   const cardBaseStructure = `rounded m-1 text-center transition-all duration-200 ease-out flex flex-col relative flex-shrink-0`;
-
-  if (showBack) {
-    return (
-      <div
-        className={`${cardBaseStructure} ${cardResponsiveDimensions} card-back ${className}`}
-        data-testid={`card-back-${cardOrChar?.id}-${indexInSource ?? ''}`}
-      >
-      </div>
-    );
-  }
 
   if (!cardOrChar) {
      if (context === CardContext.STORE || context === CardContext.EQUIPPED || context === CardContext.HAND) {
@@ -175,12 +163,11 @@ const CardComponent: React.FC<CardComponentProps> = ({
     }
   }
 
-  const cardFaceStyle = `border-2 border-[var(--ink-main)] text-[var(--ink-main)] shadow-[3px_3px_8px_rgba(0,0,0,0.2)] bg-[var(--card-bg)]`;
-  const hoverStyle = context !== CardContext.EVENT && context !== CardContext.SCOUTED_PREVIEW && !isDisabled ? 'hover:-translate-y-1 hover:-rotate-1 hover:shadow-[4px_4px_12px_rgba(0,0,0,0.25)] cursor-pointer' : '';
+  const cardFaceStyle = `text-[var(--ink-main)] bg-[var(--card-bg)]`;
   const selectedStyle = isSelected ? 'selected scale-105 -translate-y-2 -rotate-1' : '';
-  const nameStyle = "font-['Special_Elite'] font-bold leading-snug break-words w-full text-[var(--ink-main)] uppercase text-[1em] lg:text-[1.1em]";
-  const typeStyle = "font-['Merriweather'] italic text-[var(--ink-secondary)] leading-tight text-[0.8em] lg:text-[0.9em] mt-0.5";
-  const bottomStatStyle = "font-['Special_Elite'] font-bold mt-auto text-[0.95em] lg:text-[1.05em]";
+  const nameStyle = "font-['Special_Elite'] font-bold break-words w-full text-[var(--ink-main)] uppercase text-[1.1em] lg:text-[1.15em]";
+  const typeStyle = "font-['Merriweather'] italic text-[var(--ink-secondary)] text-[0.85em]";
+  const bottomStatStyle = "font-['Special_Elite'] font-bold mt-auto text-[1em]";
 
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -424,9 +411,9 @@ const CardComponent: React.FC<CardComponentProps> = ({
     ${cardBaseStructure} 
     ${cardResponsiveDimensions} 
     ${cardFaceStyle}
-    ${selectedStyle ? selectedStyle : hoverStyle}
+    ${selectedStyle}
     ${className}
-    ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''}
+    ${isDisabled ? 'opacity-60' : ''}
     ${isTooltipVisible ? 'z-20' : ''}
     ${isFrontierCard ? 'frontier-card-glow' : ''}
     card-face
@@ -439,17 +426,20 @@ const CardComponent: React.FC<CardComponentProps> = ({
 
     return (
       <div 
-        className={`${cardBaseStructure} ${cardResponsiveDimensions} ${cardFaceStyle} bg-[var(--card-bg)] text-[var(--ink-main)] ${isSelected ? 'selected' : 'border-[var(--border-color)] hover:border-stone-400'} ${hoverStyle} ${className} ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''} card-face`}
+        className={`${cardBaseStructure} ${cardResponsiveDimensions} ${cardFaceStyle} bg-[var(--card-bg)] text-[var(--ink-main)] ${isSelected ? 'selected' : ''} ${className} ${isDisabled ? 'opacity-60' : ''} card-face`}
         onClick={handleCardClick}
         style={style}
         data-testid={`char-card-${character.id}`}
         data-character-id={character.id}
+        data-context={context}
         role="button" tabIndex={onClick && !isDisabled ? 0 : -1} aria-label={`Character: ${character.name}`}
         aria-disabled={isDisabled}
       >
         <div className="flex flex-col h-full items-center justify-start"> {/* Use justify-start */}
-            <div className={`${nameStyle} mt-0.5`}>{character.name}</div>
-            <div className={`${typeStyle} mb-1`}>Character</div>
+            <div className="flex flex-col justify-center items-center h-8 md:h-10 lg:h-12 2xl:h-14 w-full">
+              <div className={`${nameStyle} mt-0.5`}>{character.name}</div>
+              <div className={`${typeStyle} mb-1`}>Character</div>
+            </div>
             
             <div className="flex-grow my-1 w-full overflow-hidden flex items-center justify-center">
               {finalImageUrl && (
@@ -482,6 +472,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
       data-testid={`card-${card.id}-${indexInSource ?? ''}`}
       data-card-type-id={cardTypeId}
       data-is-threat={isThreat}
+      data-context={context}
       role="button" tabIndex={onClick && !isDisabled ? 0 : -1} 
       aria-label={`Card: ${card.name}`}
       aria-disabled={isDisabled}
@@ -529,12 +520,14 @@ const CardComponent: React.FC<CardComponentProps> = ({
             </div>
           <span className="text-yellow-600">{gold || ''}</span>
         </div>
-
-        <div className={`${nameStyle} mt-0`}>{card.name}</div>
-        <div className={typeStyle}>
-          {context !== CardContext.CHARACTER_SELECTION && <>{card.type} {card.subType ? ` - ${card.subType}` : ''}</>}
-        </div>
         
+        <div className="flex flex-col justify-center items-center h-8 md:h-10 lg:h-12 2xl:h-14 w-full pt-px">
+            <div className={`${nameStyle}`}>{card.name}</div>
+            <div className={typeStyle}>
+              {context !== CardContext.CHARACTER_SELECTION && <>{card.type} {card.subType ? ` - ${card.subType}` : ''}</>}
+            </div>
+        </div>
+
         <div className="flex-grow my-1 w-full overflow-hidden flex items-center justify-center">
           {finalImageUrl ? (
             <img src={finalImageUrl} alt={card.name} className="w-full h-full object-contain" />

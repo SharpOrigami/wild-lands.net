@@ -1,6 +1,6 @@
 {
   "name": "Ready for testing - Wild Lands",
-  "description": "Moving to Netlify for hosting and serving. Added haptic feedback. Added Narrate options in the manual, turn on for narrated adventures. Added customizable personality traits to the character select screen that affect the story. Splitting up the log file. Added satchel contents visibility.",
+  "description": "Added dynamic hdr colors and glow effects. Working on buff calculation methods",
   "requestFramePermissions": [
     "geolocation"
   ],

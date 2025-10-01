@@ -286,7 +286,9 @@ export function getCardValues(card: CardData, context: CardContext, playerDetail
 export function getAttackPowerBreakdown(card: CardData, playerDetails: PlayerDetails, source: CardContext): string | null {
     if (!card.effect || (card.effect.type !== 'weapon' && card.effect.type !== 'conditional_weapon')) return null;
 
-    const parts: { label: string, value: string }[] = [];
+    const parts_pre_multiplier: { label: string, value: string }[] = [];
+    const multipliers: { label: string, value: number }[] = [];
+    const parts_post_multiplier: { label: string, value: string }[] = [];
     
     let basePower = card.effect.attack || 0;
     
@@ -299,34 +301,33 @@ export function getAttackPowerBreakdown(card: CardData, playerDetails: PlayerDet
         if (card.effect.condition === 'is_knife' && hasAnotherKnife) conditionalMet = true;
         
         if (conditionalMet) {
-            parts.push({ label: 'Base (Conditional)', value: `+${basePower + (card.effect.bonus_attack || 0)}` });
+            parts_pre_multiplier.push({ label: 'Base (Conditional)', value: `+${basePower + (card.effect.bonus_attack || 0)}` });
         } else {
-            parts.push({ label: 'Base', value: `+${basePower}` });
+            parts_pre_multiplier.push({ label: 'Base', value: `+${basePower}` });
         }
     } else {
-        parts.push({ label: 'Base', value: `+${basePower}` });
+        parts_pre_multiplier.push({ label: 'Base', value: `+${basePower}` });
     }
 
     if (source === CardContext.EQUIPPED) {
-        parts.push({ label: 'Equipped Bonus', value: '+1' });
+        parts_pre_multiplier.push({ label: 'Equipped Bonus', value: '+1' });
     }
 
     const isFirearmCard = isFirearm(card);
     const isBowCard = isBow(card);
     const isKnife = card.id.includes('_knife') || card.effect?.subtype === 'sword';
 
-    const allPlayerCards = [...playerDetails.equippedItems, ...playerDetails.hand.filter(Boolean) as CardData[]];
-
-    allPlayerCards.forEach(item => {
+    // Pre-multiplier buffs (from EQUIPPED items)
+    playerDetails.equippedItems.forEach(item => {
         const effect = item.effect;
         if (effect?.persistent && effect.type === 'upgrade') {
-            if (isFirearmCard && effect.subtype === 'firearm_boost') parts.push({ label: item.name, value: `+${effect.amount || 0}` });
-            if (isBowCard && effect.subtype === 'bow_boost') parts.push({ label: item.name, value: `+${effect.amount || 0}` });
-            if (isKnife && effect.subtype === 'knife_boost') parts.push({ label: item.name, value: `+${effect.amount || 0}` });
+            if (isFirearmCard && effect.subtype === 'firearm_boost') parts_pre_multiplier.push({ label: item.name, value: `+${effect.amount || 0}` });
+            if (isBowCard && effect.subtype === 'bow_boost') parts_pre_multiplier.push({ label: item.name, value: `+${effect.amount || 0}` });
+            if (isKnife && effect.subtype === 'knife_boost') parts_pre_multiplier.push({ label: item.name, value: `+${effect.amount || 0}` });
         }
     });
-    
-    const multipliers: { label: string, value: number }[] = [];
+
+    // Multipliers (from EQUIPPED items)
     playerDetails.equippedItems.forEach(item => {
         const effect = item.effect;
         if (effect?.type === 'upgrade' && effect.multiplier && effect.multiplier > 1) {
@@ -340,14 +341,29 @@ export function getAttackPowerBreakdown(card: CardData, playerDetails: PlayerDet
             }
         }
     });
-    
-    if (parts.length === 1 && multipliers.length === 0) return null;
 
-    let breakdownHtml = parts.map(p => `<span>${p.label}:</span><span class="text-right">${p.value}</span>`).join('');
+    // Post-multiplier buffs (from HAND items)
+    playerDetails.hand.forEach(item => {
+        if (item && item.effect?.persistent && item.effect.type === 'upgrade') {
+            const effect = item.effect;
+            if (isFirearmCard && effect.subtype === 'firearm_boost') parts_post_multiplier.push({ label: item.name, value: `+${effect.amount || 0}` });
+            if (isBowCard && effect.subtype === 'bow_boost') parts_post_multiplier.push({ label: item.name, value: `+${effect.amount || 0}` });
+            if (isKnife && effect.subtype === 'knife_boost') parts_post_multiplier.push({ label: item.name, value: `+${effect.amount || 0}` });
+        }
+    });
+    
+    if (parts_pre_multiplier.length <= 1 && multipliers.length === 0 && parts_post_multiplier.length === 0) return null;
+
+    let breakdownHtml = parts_pre_multiplier.map(p => `<span>${p.label}:</span><span class="text-right">${p.value}</span>`).join('');
+    
     if (multipliers.length > 0) {
         multipliers.forEach(m => {
             breakdownHtml += `<span>${m.label}:</span><span class="text-right">&times;${m.value}</span>`;
         });
+    }
+
+    if (parts_post_multiplier.length > 0) {
+         breakdownHtml += parts_post_multiplier.map(p => `<span>${p.label}:</span><span class="text-right">${p.value}</span>`).join('');
     }
 
     const total = calculateAttackPower(card, playerDetails, source, null);
@@ -383,14 +399,12 @@ export function calculateAttackPower(card: CardData, playerDetails: PlayerDetail
         }
     }
 
+    // Add equipped bonus and buffs from equipped items (pre-multiplier)
     if (source === CardContext.EQUIPPED) {
         attackPower += 1;
     }
-
-    // --- Specific Item Boosts (Hand or Equipped) ---
-    const allPlayerCardsForBoost = [...playerDetails.hand.filter(Boolean) as CardData[], ...playerDetails.equippedItems];
-
-    allPlayerCardsForBoost.forEach(item => {
+    
+    playerDetails.equippedItems.forEach(item => {
         if (item.effect?.type === 'upgrade' && item.effect.persistent) {
             if (isFirearmCard && item.effect.subtype === 'firearm_boost') {
                 attackPower += item.effect.amount || 0;
@@ -404,8 +418,7 @@ export function calculateAttackPower(card: CardData, playerDetails: PlayerDetail
         }
     });
 
-
-    // --- Multiplier Boosts (Equipped Only) ---
+    // Apply multiplier boosts from equipped items
     const multipliers: number[] = [];
     playerDetails.equippedItems.forEach(item => {
         const effect = item.effect;
@@ -427,10 +440,24 @@ export function calculateAttackPower(card: CardData, playerDetails: PlayerDetail
     });
     
     if (multipliers.length > 0) {
-        // Sum of multipliers, as requested by user. e.g., 3x + 6x = 9x.
         const totalMultiplier = multipliers.reduce((sum, current) => sum + current, 0);
         attackPower *= totalMultiplier;
     }
+    
+    // Add buffs from items in hand (post-multiplier)
+    playerDetails.hand.forEach(item => {
+        if (item && item.effect?.type === 'upgrade' && item.effect.persistent) {
+            if (isFirearmCard && item.effect.subtype === 'firearm_boost') {
+                attackPower += item.effect.amount || 0;
+            }
+            if (isBowCard && item.effect.subtype === 'bow_boost') {
+                attackPower += item.effect.amount || 0;
+            }
+            if (isKnife && item.effect.subtype === 'knife_boost') {
+                attackPower += item.effect.amount || 0;
+            }
+        }
+    });
 
     return attackPower;
 }
@@ -522,9 +549,9 @@ export function getFormattedEffectText(card: CardData, source: CardContext, play
         case 'scout':
             return `Reveals the next event from the deck.`;
         case 'fire_arrow':
-            return `Requires a Bow. Deals damage equal to your strongest bow (ignoring Quiver) +${effect.damage || 2}.`;
+            return `Requires a Bow. Deals damage equal to your strongest bow's full calculated power +${effect.damage || 2}.`;
         case 'trick_shot':
-            return `Requires a Firearm. Deals damage equal to your strongest firearm (ignoring Bandolier) +${effect.damage || 2}.`;
+            return `Requires a Firearm. Deals damage equal to your strongest firearm's full calculated power +${effect.damage || 2}.`;
         case 'upgrade':
             if (effect.subtype === 'max_health') return `Increases Max HP by ${effect.amount}.`;
             if (effect.subtype === 'bow_boost') return `Bow/Long Bow Attacks +${effect.amount}.`;

@@ -4,7 +4,7 @@ export const CYBERPUNK_ILLUSTRATIONS: { [key: string]: string } = {
   // Cybernetic & Rogue AI Threats (Cyberpunk)
   'threat_skunk_t1_cp': 'https://storage.googleapis.com/wild-lands-card-images/threat_skunk_t1_cp.png', 
   'threat_raccoon_t1_cp': 'https://storage.googleapis.com/wild-lands-card-images/threat_raccoon_t1_cp.png',
-  'threat_raccoon_t2_cp': 'https://storage.googleapis.com/wild-lands-card-images/threat_raccoon_t2_cp.png', 
+  'threat_raccoon_t2_cp': 'https://storage.googleapis.com/wild-lands-card-images/threat_raccoon_t1_cp.png', 
   'threat_beaver_t1_cp': 'https://storage.googleapis.com/wild-lands-card-images/threat_beaver_t1_cp.png', 
   'threat_coyote_t1_cp': 'https://storage.googleapis.com/wild-lands-card-images/threat_coyote_t1_cp.png', 
   'threat_fox_t1_cp': 'https://storage.googleapis.com/wild-lands-card-images/threat_fox_t1_cp.png', 

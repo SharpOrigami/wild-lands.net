@@ -185,7 +185,7 @@
         }
         body.ng-plus-10-theme #characterCardGrid .selected {
             border-color: #ffdde1 !important;
-            box-shadow: 0 0 20px rgba(255, 182, 193, 0.8), 0 0 5px #fff !important;
+            box-shadow: 0 0 0 1px #ffdde1, 0 0 20px rgba(255, 182, 193, 0.8), 0 0 5px #fff !important;
         }
 
 
@@ -237,7 +237,7 @@
         }
         body.ng-plus-20-theme #characterCardGrid .selected {
             border-color: #daa520 !important;
-            box-shadow: 0 0 20px rgba(218, 165, 32, 0.7), 0 0 5px #3a3a3a !important;
+            box-shadow: 0 0 0 1px #daa520, 0 0 20px rgba(218, 165, 32, 0.7), 0 0 5px #3a3a3a !important;
         }
 
         /* Supernatural Horror Theme (NG+30) */
@@ -294,7 +294,7 @@
         }
         body.ng-plus-30-theme #characterCardGrid .selected {
             border-color: var(--glow-color-provision-heal) !important;
-            box-shadow: 0 0 20px var(--glow-color-provision-heal), 0 0 5px #fff !important;
+            box-shadow: 0 0 0 1px var(--glow-color-provision-heal), 0 0 20px var(--glow-color-provision-heal), 0 0 5px #fff !important;
         }
 
         /* Cyberpunk Theme (NG+40) */
@@ -544,7 +544,7 @@
                 transform: translateY(0); 
             } 
         }
-        .action-buttons-enter { animation: button-area-fade-in 0.2s ease-out both; }
+        .action-buttons-enter { animation: button-area-fade-in 0.2s ease-out 75ms both; }
 
         @keyframes stat-flash-red {
             0%, 100% { color: var(--blood-red); transform: scale(1); }
@@ -718,31 +718,6 @@
             border-color: color-mix(in srgb, var(--blood-red) 60%, black);
         }
 
-        /* Card back styling */
-        .card-back {
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"), 
-                              linear-gradient(135deg, var(--ink-secondary) 25%, transparent 25%),
-                              linear-gradient(225deg, var(--ink-secondary) 25%, transparent 25%),
-                              linear-gradient(45deg, var(--ink-secondary) 25%, transparent 25%),
-                              linear-gradient(315deg, var(--ink-secondary) 25%, var(--paper-bg) 25%);
-            background-position: 0 0, 10px 0, 10px 0, 0 0, 0 0; /* Adjusted positions slightly */
-            background-size: 20px 20px; /* Size of the pattern unit */
-            background-repeat: repeat, repeat, repeat, repeat, repeat; /* Ensure all layers repeat */
-            border: 2px solid var(--ink-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .card-back::before {
-            content: "WL"; /* Initials for Wild Lands */
-            font-family: 'Rye', cursive;
-            font-size: 2.2rem; /* Adjusted for card size */
-            color: var(--ink-main);
-            opacity: 0.8;
-            text-shadow: 1px 1px 1px var(--paper-bg);
-            transform: rotate(-5deg);
-        }
-
         /* Tooltip Styles */
         .tooltip-container {
             position: relative;
@@ -812,6 +787,32 @@
         }
         .card-face {
             background-color: var(--card-bg) !important;
+            border-width: 1px;
+            border-style: solid;
+            border-color: var(--ink-main);
+            box-shadow: 3px 3px 8px rgba(0,0,0,0.2);
+            transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.25s ease-out, border-color 0.25s ease-out;
+            transform: translateZ(0); /* Promotes to own layer to prevent animation flicker */
+        }
+        .card-face:not([disabled]) {
+            cursor: pointer;
+        }
+        .card-face[disabled] {
+            cursor: not-allowed;
+        }
+        .card-face:not(.selected):not([disabled]):not([data-context='event']):not([data-context='scouted_preview']):hover {
+             transform: translateY(-0.25rem) rotate(-1deg) translateZ(0);
+        }
+        .card-face:not(.selected):not([disabled]):not([data-context='event']):not([data-context='scouted_preview']):not([data-context='character_selection']):hover {
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.25);
+        }
+        .card-face[data-context='character_selection']:not(.selected) {
+            border-color: var(--border-color);
+            box-shadow: 3px 3px 8px rgba(0,0,0,0.2);
+        }
+        .card-face[data-context='character_selection']:not(.selected):hover {
+            border-color: #a8a29e;
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.25);
         }
         body.ng-plus-40-theme .player-area,
         body.ng-plus-40-theme .frontier-area {
@@ -822,63 +823,61 @@
         }
         
         .selected {
-            border-width: 3px !important;
             border-color: var(--glow-color-default) !important;
-            box-shadow: var(--glow-shadow-default) !important;
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+            box-shadow: 0 0 0 1px var(--glow-color-default), var(--glow-shadow-default) !important;
         }
         /* Increased specificity to ensure Threat overrides Event */
         .selected[data-card-type-id='event'][data-is-threat="true"] {
             border-color: var(--glow-color-threat) !important;
-            box-shadow: var(--glow-shadow-threat) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-threat), var(--glow-shadow-threat) !important;
         }
         .selected[data-card-type-id='event']:not([data-is-threat="true"]) {
             border-color: var(--glow-color-event) !important;
-            box-shadow: var(--glow-shadow-event) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-event), var(--glow-shadow-event) !important;
         }
         .selected[data-card-type-id='provision-heal'] {
             border-color: var(--glow-color-provision-heal) !important;
-            box-shadow: var(--glow-shadow-provision-heal) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-provision-heal), var(--glow-shadow-provision-heal) !important;
         }
         .selected[data-card-type-id='provision-draw'] {
             border-color: var(--glow-color-provision-draw) !important;
-            box-shadow: var(--glow-shadow-provision-draw) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-provision-draw), var(--glow-shadow-provision-draw) !important;
         }
         .selected[data-card-type-id='provision-neutral'] {
             border-color: var(--glow-color-provision-neutral) !important;
-            box-shadow: var(--glow-shadow-provision-neutral) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-provision-neutral), var(--glow-shadow-provision-neutral) !important;
         }
         .selected[data-card-type-id='item-weapon'] {
             border-color: var(--glow-color-item-weapon) !important;
-            box-shadow: var(--glow-shadow-item-weapon) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-item-weapon), var(--glow-shadow-item-weapon) !important;
         }
         .selected[data-card-type-id='item-gold'] {
             border-color: var(--glow-color-item-gold) !important;
-            box-shadow: var(--glow-shadow-item-gold) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-item-gold), var(--glow-shadow-item-gold) !important;
         }
         .selected[data-card-type-id='item-trap'] {
             border-color: var(--glow-color-item-trap) !important;
-            box-shadow: var(--glow-shadow-item-trap) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-item-trap), var(--glow-shadow-item-trap) !important;
         }
         .selected[data-card-type-id='item-campfire'] {
             border-color: var(--glow-color-item-campfire) !important;
-            box-shadow: var(--glow-shadow-item-campfire) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-item-campfire), var(--glow-shadow-item-campfire) !important;
         }
         .selected[data-card-type-id='item-neutral'] {
             border-color: var(--glow-color-item-neutral) !important;
-            box-shadow: var(--glow-shadow-item-neutral) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-item-neutral), var(--glow-shadow-item-neutral) !important;
         }
         .selected[data-card-type-id='action-scout'] {
             border-color: var(--glow-color-action-scout) !important;
-            box-shadow: var(--glow-shadow-action-scout) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-action-scout), var(--glow-shadow-action-scout) !important;
         }
         .selected[data-card-type-id='trophy-bounty'] {
             border-color: var(--glow-color-trophy-bounty) !important;
-            box-shadow: var(--glow-shadow-trophy-bounty) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-trophy-bounty), var(--glow-shadow-trophy-bounty) !important;
         }
         .selected[data-card-type-id='player-upgrade'] {
             border-color: var(--glow-color-player-upgrade) !important;
-            box-shadow: var(--glow-shadow-player-upgrade) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-player-upgrade), var(--glow-shadow-player-upgrade) !important;
         }
 
         .frontier-card-glow { transition: box-shadow 0.3s ease, border-color 0.3s ease; }

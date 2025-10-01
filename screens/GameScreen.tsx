@@ -56,10 +56,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const [eventAnimationClass, setEventAnimationClass] = useState('');
   const [frontierPanelShakeClass, setFrontierPanelShakeClass] = useState('');
   const prevEventIdRef = useRef<string | undefined | null>(null);
-  const [animateStoreRestock, setAnimateStoreRestock] = useState(false);
-  const prevHasRestockedRef = useRef(playerDetails.hasRestockedThisTurn);
-  const [equipAnimationIndex, setEquipAnimationIndex] = useState<number | null>(null);
-
+  const [trapAnimationClass, setTrapAnimationClass] = useState('');
+  const prevTrapIdRef = useRef<string | null>(null);
+  
   // --- State for Satchel View ---
   const [viewedSatchelItemIndex, setViewedSatchelItemIndex] = useState(0);
   const [lastViewedSatchelIndex, setLastViewedSatchelIndex] = useState(0);
@@ -68,36 +67,33 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const animatingIndices = useMemo(() => new Set(gameState.newlyDrawnCardIndices || []), [gameState.newlyDrawnCardIndices]);
 
   useEffect(() => {
-    // Card equip animation
-    if (gameState.triggerEquipAnimation) {
-        const newCardIndex = playerDetails.equippedItems.length - 1;
-        setEquipAnimationIndex(newCardIndex);
-        
-        const shakeTimer = setTimeout(() => {
-            setPlayerShakeClass('player-area-shake-effect');
-            setTimeout(() => setPlayerShakeClass(''), 500);
-        }, 350); // Delay shake to match landing
-
-        const animationClearTimer = setTimeout(() => {
-            setEquipAnimationIndex(null);
-            onCardAction('RESET_EQUIP_ANIMATION_TRIGGER');
-        }, 600);
-
-        return () => {
-            clearTimeout(shakeTimer);
-            clearTimeout(animationClearTimer);
-        };
+    if (gameState.equipAnimationIndex !== null) {
+      const animationClearTimer = setTimeout(() => {
+          onCardAction('RESET_EQUIP_ANIMATION_TRIGGER');
+      }, 600);
+      return () => clearTimeout(animationClearTimer);
     }
-  }, [gameState.triggerEquipAnimation, playerDetails.equippedItems.length, onCardAction]);
+  }, [gameState.equipAnimationIndex, onCardAction]);
+  
+  useEffect(() => {
+      if (gameState.playerShake) {
+          const timer = setTimeout(() => {
+              onCardAction('RESET_PLAYER_SHAKE');
+          }, 500); // Animation duration
+          return () => clearTimeout(timer);
+      }
+  }, [gameState.playerShake, onCardAction]);
+
 
   useEffect(() => {
-    if (playerDetails.hasRestockedThisTurn && !prevHasRestockedRef.current) {
-        setAnimateStoreRestock(true);
-        const timer = setTimeout(() => setAnimateStoreRestock(false), 1000);
+    if (gameState.triggerStoreRestockAnimation) {
+        const timer = setTimeout(() => {
+            // This action will need to be implemented in useGameState.ts later
+            onCardAction('RESET_RESTOCK_ANIMATION_TRIGGER');
+        }, 1000);
         return () => clearTimeout(timer);
     }
-    prevHasRestockedRef.current = playerDetails.hasRestockedThisTurn;
-  }, [playerDetails.hasRestockedThisTurn]);
+  }, [gameState.triggerStoreRestockAnimation, onCardAction]);
 
   useEffect(() => {
     const currentEventId = gameState.activeEvent?.id;
@@ -169,6 +165,16 @@ const GameScreen: React.FC<GameScreenProps> = ({
   }, [gameState.triggerThreatShake, onCardAction]);
 
   useEffect(() => {
+    const currentTrapId = playerDetails.activeTrap?.id;
+    if (currentTrapId && currentTrapId !== prevTrapIdRef.current) {
+        setTrapAnimationClass('event-card-drop');
+        const timer = setTimeout(() => setTrapAnimationClass(''), 600); // Animation duration
+        return () => clearTimeout(timer);
+    }
+    prevTrapIdRef.current = currentTrapId || null;
+  }, [playerDetails.activeTrap]);
+
+  useEffect(() => {
     // When satchel contents change (e.g., an item is used),
     // ensure the viewed index is still valid to prevent out-of-bounds errors.
     const currentSatchelContents = playerDetails.satchels[lastViewedSatchelIndex] || [];
@@ -184,9 +190,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   useEffect(() => {
     if (selectedCardDetails?.source !== CardContext.SATCHEL_VIEW) {
-      setViewedSatchelItemIndex(lastViewedSatchelIndex);
+      setViewedSatchelItemIndex(0);
     }
-  }, [selectedCardDetails, lastViewedSatchelIndex]);
+  }, [selectedCardDetails]);
 
   const deselectAllCards = useCallback(() => {
     deselectAllCardsProp();
@@ -468,7 +474,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         rounded-sm
         relative transition-all duration-300 ease-in-out
         ${playerAreaBorderClass}
-        ${playerShakeClass}
+        ${playerShakeClass || (gameState.playerShake ? 'player-area-shake-effect' : '')}
       `}
       aria-live="polite"
       aria-atomic="true"
@@ -580,7 +586,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
                           onAction={onCardAction}
                           isPlayable={isEquippedPlayable}
                           isDisabled={playerDetails.turnEnded || !equippedCard}
-                          className={equipAnimationIndex === i ? 'event-card-drop' : ''}
+                          className={gameState.equipAnimationIndex === i ? 'event-card-drop' : ''}
                           onViewSatchel={isSatchel && satchelContents.length > 0 ? () => {
                               if (isViewingThisSatchel) {
                                   setSelectedCard(null);
@@ -646,7 +652,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
                       isHandPlayable = isHandPlayable && !!activeEvent && activeEvent.type === 'Event' && (activeEvent.health || 0) > 0;
                   }
                   if (cardInSlot && cardInSlot.effect?.type === 'trap') {
-                      isHandPlayable = true;
+                      const isThreatActive = activeEvent && activeEvent.type === 'Event' && (activeEvent.subType === 'animal' || activeEvent.subType === 'human');
+                      isHandPlayable = !isThreatActive;
                   }
 
 
@@ -727,9 +734,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
               canAfford={playerDetails.gold >= (card?.buyCost || 0)}
               blockTradeDueToHostileEvent={gameState.blockTradeDueToHostileEvent}
               isDisabled={playerDetails.turnEnded || !card || gameState.blockTradeDueToHostileEvent}
-              showBack={!card && gameState.storeDisplayItems[i] === undefined}
-              className={animateStoreRestock ? 'card-enter-animation' : ''}
-              style={{ animationDelay: animateStoreRestock ? `${i * 100}ms` : undefined }}
+              className={gameState.triggerStoreRestockAnimation ? 'card-enter-animation' : ''}
+              style={{ animationDelay: gameState.triggerStoreRestockAnimation ? `${i * 100}ms` : undefined }}
             />
           ))}
         </div>
@@ -759,25 +765,35 @@ const GameScreen: React.FC<GameScreenProps> = ({
           <div className="flex flex-col sm:flex-row items-start gap-1.5 sm:gap-2 md:gap-2 lg:gap-1.5 xl:gap-2">
             <div className="flex flex-row justify-center w-full sm:w-auto gap-1.5 sm:gap-2 md:gap-2 lg:gap-1.5 xl:gap-2">
               <div id="activeEventCardDisplay" className="event-display-card">
-              {activeEvent ? (
-                  <CardComponent
-                  key={`event-${activeEvent.id}-${gameState.turn}`}
-                  card={activeEvent}
-                  context={CardContext.EVENT}
-                  onClick={handleActiveEventClick}
-                  isSelected={selectedCardDetails?.source !== CardContext.SATCHEL_VIEW && selectedCardDetails?.card?.id === activeEvent.id && selectedCardDetails?.source === CardContext.EVENT}
-                  indexInSource={0}
-                  playerDetails={playerDetails}
-                  onAction={onCardAction}
-                  isDisabled={playerDetails.turnEnded}
-                  className={`${threatAnimationClass} ${eventAnimationClass}`}
-                  statAnimationClass={threatStatAnimClass}
-                  />
-              ) : (
-                  <div className={`card flex items-center justify-center border-2 border-[var(--ink-main)] bg-[var(--card-bg)] text-[var(--ink-main)] rounded m-1 text-center shadow-md w-[7rem] h-[9.8rem] text-[0.65rem] p-1.5 sm:w-[7rem] sm:h-[9.8rem] sm:text-[0.65rem] sm:p-1.5 md:w-[8.5rem] md:h-[11.9rem] md:text-[0.7rem] md:p-2 lg:w-[10.5rem] lg:h-[14.7rem] lg:text-[0.8rem] lg:p-2.5 xl:w-[11.5rem] xl:h-[16.1rem] xl:text-[0.8rem] xl:p-2.5 2xl:w-[12.5rem] 2xl:h-[17.5rem] 2xl:text-sm 2xl:p-3`}>
-                  <div className="font-['Special_Elite']">All Clear</div>
-                  </div>
-              )}
+                {(() => {
+                  const cardForDisplay = activeEvent || playerDetails.activeTrap;
+                  // FIX: Ensure isDisplayingTrap is always a boolean by using `!!` to coerce playerDetails.activeTrap to a boolean.
+                  const isDisplayingTrap = !activeEvent && !!playerDetails.activeTrap;
+
+                  if (cardForDisplay) {
+                    return (
+                      <CardComponent
+                        key={`frontier-${cardForDisplay.id}-${isDisplayingTrap ? 'trap' : gameState.turn}`}
+                        card={cardForDisplay}
+                        context={CardContext.EVENT}
+                        onClick={isDisplayingTrap ? undefined : handleActiveEventClick}
+                        isSelected={!isDisplayingTrap && selectedCardDetails?.source !== CardContext.SATCHEL_VIEW && selectedCardDetails?.card?.id === activeEvent?.id && selectedCardDetails?.source === CardContext.EVENT}
+                        indexInSource={0}
+                        playerDetails={playerDetails}
+                        onAction={onCardAction}
+                        isDisabled={isDisplayingTrap || playerDetails.turnEnded}
+                        className={`${isDisplayingTrap ? trapAnimationClass : `${threatAnimationClass} ${eventAnimationClass}`}`}
+                        statAnimationClass={isDisplayingTrap ? '' : threatStatAnimClass}
+                      />
+                    );
+                  } else {
+                    return (
+                      <div className={`card flex items-center justify-center border-2 border-[var(--ink-main)] bg-[var(--card-bg)] text-[var(--ink-main)] rounded m-1 text-center shadow-md w-[7rem] h-[9.8rem] text-[0.65rem] p-1.5 sm:w-[7rem] sm:h-[9.8rem] sm:text-[0.65rem] sm:p-1.5 md:w-[8.5rem] md:h-[11.9rem] md:text-[0.7rem] md:p-2 lg:w-[10.5rem] lg:h-[14.7rem] lg:text-[0.8rem] lg:p-2.5 xl:w-[11.5rem] xl:h-[16.1rem] xl:text-[0.8rem] xl:p-2.5 2xl:w-[12.5rem] 2xl:h-[17.5rem] 2xl:text-sm 2xl:p-3`}>
+                        <div className="font-['Special_Elite']">All Clear</div>
+                      </div>
+                    );
+                  }
+                })()}
               </div>
               {/* Objective Card Display */}
               {activeObjective && (
@@ -809,9 +825,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
         );
       })()}
       <div className="flex flex-col sm:flex-row justify-between items-stretch gap-2 mt-3 sm:mt-2">
-          <div id="activeTrapDisplay" className="w-full sm:w-auto sm:flex-1 flex items-center justify-center p-2 bg-white rounded shadow text-center font-semibold text-sm sm:text-base">
-              Trap: {playerDetails.activeTrap ? playerDetails.activeTrap.name : 'None'}
-          </div>
           <div id="turnIndicator" className="w-full sm:w-auto sm:flex-1 flex items-center justify-center p-2 bg-white rounded shadow text-center font-semibold text-sm sm:text-base">
             <span>Day: <span id="turnNumberDisplay">{turn}</span></span>
           </div>

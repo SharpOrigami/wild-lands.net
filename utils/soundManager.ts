@@ -123,63 +123,61 @@ class SoundManager {
         }
 
       let successfulLoads = 0;
-      const BATCH_SIZE = 5;
+      
+      const allPromises = urlsToProcess.map(url => 
+          new Promise<void>(resolve => {
+              const audio = new Audio();
 
-      for (let i = 0; i < urlsToProcess.length; i += BATCH_SIZE) {
-          const batch = urlsToProcess.slice(i, i + BATCH_SIZE);
-          const batchPromises = batch.map(url => 
-              new Promise<void>(resolve => {
-                  const audio = new Audio();
+              const onDataLoaded = () => {
+                  this.preloadedUrls.add(url);
+                  successfulLoads++;
+                  cleanup();
+                  if (onAssetLoaded) onAssetLoaded();
+                  resolve();
+              };
+              
+              const onError = (e: Event | string) => {
+                  let detail = "Unknown error.";
+                  if (typeof e === 'string') {
+                    detail = e;
+                  } else if (e instanceof Event && e.target) {
+                    const target = e.target as HTMLAudioElement;
+                    if(target.error) {
+                      detail = `Code ${target.error.code}: ${target.error.message}`;
+                    }
+                  }
+                  console.error(`Error preloading sound: ${url} - ${detail}`);
+                  cleanup();
+                  if (onAssetLoaded) onAssetLoaded();
+                  resolve();
+              };
+              
+              const onTimeout = () => {
+                  console.warn(`Timeout preloading sound: ${url}`);
+                  cleanup();
+                  if (onAssetLoaded) onAssetLoaded();
+                  resolve();
+              };
 
-                  const onDataLoaded = () => {
-                      this.preloadedUrls.add(url);
-                      successfulLoads++;
-                      cleanup();
-                      if (onAssetLoaded) onAssetLoaded();
-                      resolve();
-                  };
-                  
-                  const onError = (e: Event | string) => {
-                      let detail = "Unknown error.";
-                      if (typeof e === 'string') {
-                        detail = e;
-                      } else if (e instanceof Event && e.target) {
-                        const target = e.target as HTMLAudioElement;
-                        if(target.error) {
-                          detail = `Code ${target.error.code}: ${target.error.message}`;
-                        }
-                      }
-                      console.error(`Error preloading sound: ${url} - ${detail}`);
-                      cleanup();
-                      if (onAssetLoaded) onAssetLoaded();
-                      resolve();
-                  };
-                  
-                  const onTimeout = () => {
-                      console.warn(`Timeout preloading sound: ${url}`);
-                      cleanup();
-                      if (onAssetLoaded) onAssetLoaded();
-                      resolve();
-                  };
+              const timeoutId = setTimeout(onTimeout, this.assetTimeout);
 
-                  const timeoutId = setTimeout(onTimeout, this.assetTimeout);
+              const cleanup = () => {
+                  audio.removeEventListener('loadeddata', onDataLoaded);
+                  audio.removeEventListener('error', onError as EventListener);
+                  clearTimeout(timeoutId);
+                  audio.src = ''; 
+              };
 
-                  const cleanup = () => {
-                      audio.removeEventListener('loadeddata', onDataLoaded);
-                      audio.removeEventListener('error', onError as EventListener);
-                      clearTimeout(timeoutId);
-                      audio.src = ''; 
-                  };
+              audio.addEventListener('loadeddata', onDataLoaded, { once: true });
+              audio.addEventListener('error', onError as EventListener, { once: true });
 
-                  audio.addEventListener('loadeddata', onDataLoaded, { once: true });
-                  audio.addEventListener('error', onError as EventListener, { once: true });
+              audio.src = getCacheBustedUrl(url);
+              audio.load();
+          })
+      );
 
-                  audio.src = getCacheBustedUrl(url);
-                  audio.load();
-              })
-          );
-          await Promise.all(batchPromises);
-      }
+      await Promise.all(allPromises);
+
       if (successfulLoads > 0) {
         console.log(`${successfulLoads}/${urlsToProcess.length} new sound assets loaded.`);
       }

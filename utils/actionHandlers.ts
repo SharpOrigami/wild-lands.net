@@ -1,3 +1,4 @@
+
 // FIX: Add React import to resolve TypeScript errors for React types like Dispatch and MutableRefObject.
 import React from 'react';
 import { GameState, PlayerDetails, LogEntry, CardData, CardContext, ActiveGameBannerState, RunStats } from '../types.ts';
@@ -130,8 +131,33 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
     const cardToDiscard = getBaseCardByIdentifier(card);
 
     if (card.effect) {
-        // ... (rest of the USE_ITEM logic goes here)
-        if (card.effect.type === 'heal') {
+        if (card.effect.type === 'trap') {
+            if (gameState.activeEvent && gameState.activeEvent.type === 'Event' && (gameState.activeEvent.subType === 'animal' || gameState.activeEvent.subType === 'human')) {
+                _log("Cannot set a trap while a threat is active.", "error");
+                cardUsedAndDiscarded = false; // Prevents discard, keeps card in hand
+            } else {
+                if (modPlayer.activeTrap) {
+                    const baseTrap = getBaseCardByIdentifier(modPlayer.activeTrap);
+                    if (baseTrap) modPlayer.playerDiscard = [...modPlayer.playerDiscard, baseTrap];
+                    _log(`${modPlayer.name || 'Player'} replaces their old trap with a new ${card.name}.`, 'action');
+                } else {
+                    if (card.isCheat) {
+                        _log(getRandomLogVariation('useCheatItem', { itemName: card.name }, theme, modPlayer, card), 'action');
+                    } else {
+                        _log(getRandomLogVariation('trapSet', { trapName: card.name }, theme, modPlayer, card), 'action');
+                    }
+                }
+                modPlayer.activeTrap = card;
+                
+                // Manually remove from hand here since it's "set" not "discarded"
+                if (source === CardContext.HAND && index !== undefined) {
+                    modPlayer.hand[index] = null;
+                }
+                
+                cardUsedAndDiscarded = false; // Prevent it being discarded by the logic at the end of the function
+                triggerAnimation('trap-display-activated', 'trapDisplay');
+            }
+        } else if (card.effect.type === 'heal') {
             const healAmount = calculateHealAmount(card, modPlayer);
             let suppressGenericHealLog = false;
             if (card.isCheat) {
@@ -212,7 +238,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                     ];
                     if (allBows.length === 0) { _log("Requires a Bow.", "error"); cardUsedAndDiscarded = false; }
                     else {
-                        const bowAttackPowers = allBows.map(bowInfo => calculateAttackPower(bowInfo.card, modPlayer, bowInfo.source, currentActiveEvent, { ignoreQuiver: true }));
+                        const bowAttackPowers = allBows.map(bowInfo => calculateAttackPower(bowInfo.card, modPlayer, bowInfo.source, currentActiveEvent));
                         attackPower = Math.max(0, ...bowAttackPowers) + (card.effect.damage || 2);
                         _log(getRandomLogVariation('playerAttack', { playerName: modPlayer.name, enemyName: currentActiveEvent.name, itemName: 'a fire arrow', attackPower }, theme, modPlayer, currentActiveEvent, isBossActive));
                     }
@@ -220,7 +246,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                     const allFirearms = [...modPlayer.hand.filter(c => c && isFirearm(c)).map(c => ({card: c as CardData, source: CardContext.HAND})), ...modPlayer.equippedItems.filter(c => isFirearm(c)).map(c => ({card: c, source: CardContext.EQUIPPED}))];
                     if (allFirearms.length === 0) { _log("Requires a Firearm.", "error"); cardUsedAndDiscarded = false; }
                     else {
-                        const firearmAttackPowers = allFirearms.map(firearmInfo => calculateAttackPower(firearmInfo.card, modPlayer, firearmInfo.source, currentActiveEvent, { ignoreBandolier: true }));
+                        const firearmAttackPowers = allFirearms.map(firearmInfo => calculateAttackPower(firearmInfo.card, modPlayer, firearmInfo.source, currentActiveEvent));
                         attackPower = Math.max(0, ...firearmAttackPowers) + (card.effect.damage || 2);
                         _log(getRandomLogVariation('playerAttack', { playerName: modPlayer.name, enemyName: currentActiveEvent.name, itemName: 'a Trick Shot', attackPower }, theme, modPlayer, currentActiveEvent, isBossActive));
                     }
@@ -380,21 +406,6 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                 }
                 cardUsedAndDiscarded = false; // We handled the discard manually
             }
-        } else if (card.effect.type === 'trap') {
-            if (modPlayer.activeTrap) {
-                const baseTrap = getBaseCardByIdentifier(modPlayer.activeTrap);
-                if (baseTrap) modPlayer.playerDiscard = [...modPlayer.playerDiscard, baseTrap];
-                _log(`${modPlayer.name || 'Player'} replaces their old trap with a new ${card.name}.`, 'action');
-            } else {
-                if (card.isCheat) {
-                    _log(getRandomLogVariation('useCheatItem', { itemName: card.name }, theme, modPlayer, card), 'action');
-                } else {
-                    _log(getRandomLogVariation('trapSet', { trapName: card.name }, theme, modPlayer, card), 'action');
-                }
-            }
-            modPlayer.activeTrap = card;
-            cardUsedAndDiscarded = false;
-            triggerAnimation('trap-display-activated', 'trapDisplay');
         } else if (card.effect.type === 'scout') {
             if (gameState.eventDeck.length > 0) {
                 const nextEvent = gameState.eventDeck[0];
@@ -503,8 +514,6 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                 }
             }
         }
-    } else if (card.effect?.type === 'trap' && source === CardContext.HAND && index !== undefined) {
-         modPlayer.hand[index] = null;
     }
 
     return { player: modPlayer, gameUpdates };
@@ -533,7 +542,8 @@ export const handleEquipItem = ({ player, payload, helpers }: ActionHandlerArgs)
     }
 
     modPlayer.hasEquippedThisTurn = true;
-    gameUpdates.triggerEquipAnimation = true;
+    // FIX: Replaced non-existent 'triggerEquipAnimation' with 'equipAnimationIndex' to trigger the animation.
+    gameUpdates.equipAnimationIndex = modPlayer.equippedItems.length - 1;
 
     if (card.effect?.persistent && card.type === 'Player Upgrade') {
         const effect = card.effect;

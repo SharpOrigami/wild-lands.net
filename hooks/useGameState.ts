@@ -325,7 +325,7 @@ export const useGameState = () => {
         bossIntroTitle: undefined,
         bossIntroParagraph: undefined,
         newlyDrawnCardIndices: undefined,
-        triggerEquipAnimation: false,
+        equipAnimationIndex: null,
         eventDifficultyBonus: 0,
         triggerThreatShake: false,
     };
@@ -544,7 +544,7 @@ export const useGameState = () => {
                             winReason = getRandomLogVariation('playerDefeat', { playerName: modifiablePlayer.character?.name || 'Player', enemyName: nightThreat.name }, theme, modifiablePlayer, nightThreat, isBossActiveDuringNight);
                         }
                     } else if ((isThief || isVagabond) && nightThreat.effect?.type === 'damage' && nightThreat.effect.amount) {
-                        triggerAnimation('player-area-shake-effect', 'player');
+                        modifiableGameStateUpdates.playerShake = true;
                         const { updatedPlayer, animationDetails } = applyDamageAndGetAnimation(modifiablePlayer, nightThreat.effect.amount, nightThreat.name, isBossActiveDuringNight, nightThreat.id, false, nightThreat);
                         modifiablePlayer = updatedPlayer;
                         if (animationDetails) modifiableGameStateUpdates.pendingPlayerDamageAnimation = animationDetails;
@@ -558,7 +558,7 @@ export const useGameState = () => {
                         const illnessCardData = CURRENT_CARDS_DATA[illnessCardId || 'threat_snake_bite'];
                         soundManager.playSound('threat_rattlesnake_t1');
                         triggerBanner('Snake Bite!', 'event_alert');
-                        triggerAnimation('player-area-shake-effect', 'player');
+                        modifiableGameStateUpdates.playerShake = true;
                         if (damageOnApply > 0) {
                             const { updatedPlayer, animationDetails } = applyDamageAndGetAnimation(modifiablePlayer, damageOnApply, nightThreat.name, isBossActiveDuringNight, nightThreat.id, false, nightThreat);
                             modifiablePlayer = updatedPlayer;
@@ -842,7 +842,7 @@ export const useGameState = () => {
                     modifiablePlayer = updatedPlayer;
                     if (animationDetails) modifiableGameStateUpdates.pendingPlayerDamageAnimation = animationDetails;
                     else modifiableGameStateUpdates.pendingPlayerDamageAnimation = null;
-                    triggerAnimation('player-area-shake-effect', 'player');
+                    modifiableGameStateUpdates.playerShake = true;
                     if (modifiablePlayer.health <= 0) {
                         gameShouldEnd = true;
                         winReason = getRandomLogVariation('playerDefeat', { playerName: modifiablePlayer.character?.name || 'Player', enemyName: threatForMorningAttack.name }, theme, modifiablePlayer, threatForMorningAttack, isBossActiveInMorning);
@@ -1092,6 +1092,14 @@ export const useGameState = () => {
                 setGameState(prev => prev ? { ...prev, triggerThreatShake: false } : null);
                 isActionInProgress.current = false;
                 return;
+            case 'RESET_EQUIP_ANIMATION':
+                setGameState(prev => prev ? { ...prev, equipAnimationIndex: null } : null);
+                isActionInProgress.current = false;
+                return;
+            case 'RESET_PLAYER_SHAKE':
+                setGameState(prev => prev ? { ...prev, playerShake: false } : null);
+                isActionInProgress.current = false;
+                return;
             case 'CHEAT_ADD_GOLD': {
                 const { amount } = payload;
                 if (typeof amount === 'number' && amount > 0) {
@@ -1123,7 +1131,11 @@ export const useGameState = () => {
                 isActionInProgress.current = false;
                 return;
             case 'RESET_EQUIP_ANIMATION_TRIGGER':
-                setGameState(prev => prev ? { ...prev, triggerEquipAnimation: false } : null);
+                setGameState(prev => prev ? { ...prev, equipAnimationIndex: null } : null);
+                isActionInProgress.current = false;
+                return;
+            case 'RESET_RESTOCK_ANIMATION_TRIGGER':
+                setGameState(prev => prev ? { ...prev, triggerStoreRestockAnimation: false } : null);
                 isActionInProgress.current = false;
                 return;
             case 'SHOW_MODAL':
@@ -1267,6 +1279,7 @@ export const useGameState = () => {
         storeItemDiscardPile: currentStoreDiscard,
         selectedCard: null,
         playerDetails: { ...prevState.playerDetails, [PLAYER_ID]: modifiablePlayer },
+        triggerStoreRestockAnimation: true,
     } : null);
   }, [_log, triggerGoldFlash, getBaseCardByIdentifier]);
 
@@ -1402,7 +1415,7 @@ export const useGameState = () => {
     };
     const baseInitialState: GameState = {
         runId: crypto.randomUUID(),
-        status: initialStatus, playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjective: null, storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, triggerEquipAnimation: false, eventDifficultyBonus: 0, saveSlotIndex: saveSlotIndex ?? undefined, triggerThreatShake: false,
+        status: initialStatus, playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjective: null, storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, equipAnimationIndex: null, eventDifficultyBonus: 0, saveSlotIndex: saveSlotIndex ?? undefined, triggerThreatShake: false, playerShake: false,
     };
     setGameState(baseInitialState);
     
@@ -2327,7 +2340,7 @@ export const useGameState = () => {
         pendingPlayerDamageAnimation: null,
         scrollAnimationPhase: 'none',
         newlyDrawnCardIndices: undefined,
-        triggerEquipAnimation: false,
+        equipAnimationIndex: null,
         isLoadingBossIntro: false,
         isLoadingStory: false,
         isLoadingNGPlus: false,
@@ -2519,7 +2532,7 @@ export const useGameState = () => {
           savedState.pendingPlayerDamageAnimation = null;
           savedState.scrollAnimationPhase = 'none';
           savedState.newlyDrawnCardIndices = undefined;
-          savedState.triggerEquipAnimation = false;
+          savedState.equipAnimationIndex = null;
           savedState.runId = savedState.runId || crypto.randomUUID();
           
           setGameState(savedState);

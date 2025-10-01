@@ -42,7 +42,7 @@ const ManualContent: React.FC<ManualContentProps> = ({
           <ul className="list-disc list-inside ml-6">
             <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--faded-green) 30%)' }}>Provisions:</span> Consume for effects like healing, curing illness, or drawing cards.</li>
             <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--blood-red) 30%)' }}>Items (Weapons):</span> Use against an active Threat.</li>
-            <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, #92400e 30%)' }}>Items (Traps):</span> Set an active trap (replaces any current one).</li>
+            <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, #92400e 30%)' }}>Items (Traps):</span> Set an active trap (replaces any current one). Traps cannot be set while any threat is active.</li>
             <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--faded-blue) 30%)' }}>Items (Other):</span> Use for their specific effects (e.g., Gold Pan for immediate gold, Firewood for campfire).</li>
             <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--faded-blue) 30%)' }}>Actions:</span> Play for unique effects (e.g., Scout Ahead, Trick Shot).</li>
             <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--tarnished-gold) 30%)' }}>Player Upgrades:</span> These are usually equipped for persistent bonuses, not "played" for a one-time effect from hand.</li>
@@ -64,7 +64,6 @@ const ManualContent: React.FC<ManualContentProps> = ({
             <li><span className="font-bold uppercase text-[var(--blood-red)]">Final Boss:</span> Successfully talking down the final boss counts as a victory! They will pay you their bounty to let them go. However, this peaceful resolution will **void any active run Objectives**, as their conditions require defeating the boss in combat.</li>
           </ul>
         </li>
-        <li><span className="font-bold uppercase text-[var(--ink-main)]">Use Equipped Items:</span> Some equipped items can be actively used (like a weapon).</li>
         <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--faded-green) 30%)' }}>Store Provisions:</span> If you have a Satchel equipped, you can move Provision cards from your hand into the Satchel (up to its capacity).</li>
         <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--faded-green) 30%)' }}>Use Provisions from Satchel:</span> You can use a Provision directly from your Satchel.</li>
         <li><span className="font-bold uppercase text-[var(--ink-main)]">Interact with the Store:</span>
@@ -106,7 +105,7 @@ const ManualContent: React.FC<ManualContentProps> = ({
           <ul className="list-disc list-inside ml-6">
             <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--faded-green) 30%)' }}>Waterskin Canteen:</span> Heals you a bit.</li>
             <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--tarnished-gold) 30%)' }}>Gold Pan:</span> Grants you some gold.</li>
-            <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--faded-green) 30%)' }}>Max Health Recovery:</span> If you are not suffering from a persistent illness, you'll recover 1 point of lost Maximum Health.</li>
+            <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--faded-green) 30%)' }}>Max Health Recovery:</span> If you are not suffering from a persistent illness, you'll regain 1 point of lost Maximum Health at the start of each day, up to your character's natural maximum (plus any permanent bonuses from NG+ or certain upgrades).</li>
           </ul>
         </li>
         <li><span className="font-bold uppercase" style={{ color: 'color-mix(in srgb, var(--ink-main) 70%, var(--faded-blue) 30%)' }}>Card Draw:</span> You draw cards from your Player Deck until your hand is full.
@@ -202,13 +201,19 @@ const ManualContent: React.FC<ManualContentProps> = ({
 
       <h4 className="font-western text-xl mt-3 mb-1">Showdown: Combat</h4>
       <ul className="list-disc list-inside ml-4 mb-1">
-        <li>To fight an active Threat, play a weapon Item from your hand or use an equipped weapon.
-          <ul className="list-disc list-inside ml-6">
-            <li>The damage dealt is based on the weapon's attack power, plus bonuses from being equipped, and any relevant Player Upgrades (e.g., a Bandolier doubles firearm damage, Lucky Bullet adds to firearm damage).</li>
+        <li>To fight an active Threat, play a weapon Item from your hand or use an equipped weapon.</li>
+        <li>The damage you deal is calculated in a specific order to maximize strategy:
+          <ul className="list-[circle] list-inside ml-6 text-xs">
+            <li>Start with the weapon's base attack power.</li>
+            <li>Add +1 damage if the weapon is equipped.</li>
+            <li>Add any flat bonuses from <strong>other equipped items</strong> (like a Worn Whetstone or an equipped Lucky Bullet). This is your subtotal.</li>
+            <li>Apply any multipliers from <strong>equipped items</strong> (like a Bandolier or Quiver) to this subtotal.</li>
+            <li>Finally, add any flat bonuses from items <strong>in your hand</strong> (like an unequipped Lucky Bullet).</li>
           </ul>
         </li>
+        <li><span className="font-bold">Action Cards</span> like 'Fire Arrow' and 'Trick Shot' now benefit from all your buffs! They calculate the full, final damage of your strongest appropriate weapon (bow or firearm) and then add their own bonus damage on top.</li>
         <li>Reduce the Threat's Health by the damage dealt.</li>
-        <li>If the Threat's Health reaches 0, it's defeated! You'll typically get Gold and a Trophy/Objective Proof card added to your discard pile.</li>
+        <li>If the Threat's Health reaches 0, it's defeated! You'll typically get Gold and a Trophy/Objective Proof card when defeated.</li>
       </ul>
 
       <h4 className="font-western text-xl mt-3 mb-1">The General Store</h4>

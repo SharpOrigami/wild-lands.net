@@ -1,4 +1,3 @@
-
 import { CardData } from '../../types.ts';
 
 export const WESTERN_CARDS: { [id: string]: CardData } = {
@@ -149,7 +148,7 @@ export const WESTERN_CARDS: { [id: string]: CardData } = {
     'item_fire_arrow_t1': { id: 'item_fire_arrow_t1', name: 'Fire Arrow', type: 'Action', effect: {type: 'fire_arrow', damage: 2}, sellValue: 3, buyCost: 40, description: "An arrow with an oil-soaked rag tied near the tip. A good way to flush an enemy out of cover or set their gear ablaze."},
     'item_fire_arrow_t2': { id: 'item_fire_arrow_t2', name: 'Fire Arrow', type: 'Action', effect: {type: 'fire_arrow', damage: 2}, sellValue: 3, buyCost: 40, description: "An arrow with an oil-soaked rag tied near the tip. A good way to flush an enemy out of cover or set their gear ablaze."},
     'item_fire_arrow_t3': { id: 'item_fire_arrow_t3', name: 'Fire Arrow', type: 'Action', effect: {type: 'fire_arrow', damage: 2}, sellValue: 3, buyCost: 40, description: "An arrow with an oil-soaked rag tied near the tip. A good way to flush an enemy out of cover or set their gear ablaze."},
-    'action_trick_shot': { id: 'action_trick_shot', name: 'Trick Shot', type: 'Action', effect: {type: 'trick_shot', damage: 2}, sellValue: 4, buyCost: 50, description: "Requires a Firearm. Deals damage equal to your strongest firearm (ignoring Bandolier) +2."},
+    'action_trick_shot': { id: 'action_trick_shot', name: 'Trick Shot', type: 'Action', effect: {type: 'trick_shot', damage: 2}, sellValue: 4, buyCost: 50, description: "A flashy move that ricochets a bullet off a nearby surface for extra impact."},
     'item_large_trap_t1': { id: 'item_large_trap_t1', name: 'Large Trap', type: 'Item', effect: {type: 'trap', size: 'large', breakDamage: 4}, sellValue: 8, buyCost: 106, description: "A heavy, iron-jawed beast of a trap. Meant for serious game like bears or particularly stubborn outlaws."},
     'item_medium_trap_t1': { id: 'item_medium_trap_t1', name: 'Medium Trap', type: 'Item', effect: {type: 'trap', size: 'medium', breakDamage: 2}, sellValue: 6, buyCost: 70, description: "A sturdy trap suitable for wolves, coyotes, or men who don't watch where they're stepping."},
     'item_medium_trap_t2': { id: 'item_medium_trap_t2', name: 'Medium Trap', type: 'Item', effect: {type: 'trap', size: 'medium', breakDamage: 2}, sellValue: 6, buyCost: 70, description: "A sturdy trap suitable for wolves, coyotes, or men who don't watch where they're stepping."},
