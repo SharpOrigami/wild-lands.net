@@ -3,6 +3,7 @@ import { CardData, CardContext } from '../types.ts';
 import CardComponent from '../components/CardComponent.tsx';
 import { PLAYER_NG_PLUS_CARRY_OVER_LIMIT } from '../constants.ts';
 import { soundManager } from '../utils/soundManager.ts';
+import { getCardDescriptionHtml } from '../utils/cardUtils.ts';
 
 interface DeckReviewScreenProps {
   deck: CardData[];
@@ -11,6 +12,7 @@ interface DeckReviewScreenProps {
 
 const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) => {
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
 
   const toggleCardSelection = (index: number) => {
     soundManager.playSound('card_click');
@@ -18,9 +20,13 @@ const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) 
       const newSelection = new Set(prev);
       if (newSelection.has(index)) {
         newSelection.delete(index);
+        if (lastSelectedIndex === index) {
+          setLastSelectedIndex(null);
+        }
       } else {
         if (newSelection.size < PLAYER_NG_PLUS_CARRY_OVER_LIMIT) {
           newSelection.add(index);
+          setLastSelectedIndex(index);
         }
       }
       return newSelection;
@@ -42,6 +48,8 @@ const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) 
     unselectedCards.reduce((total, card) => total + (card.sellValue || 0), 0),
     [unselectedCards]
   );
+
+  const cardForDescription = lastSelectedIndex !== null ? deck[lastSelectedIndex] : null;
 
   return (
     <div className="flex flex-col items-center p-4 bg-[rgba(0,0,0,0.6)] rounded-lg">
@@ -78,6 +86,15 @@ const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) 
       >
         Confirm Deck & Begin NG+
       </button>
+
+      {cardForDescription && (
+        <div
+          id="cardDescriptionDeckReviewArea"
+          className="w-full max-w-4xl mt-4 p-3 bg-[rgba(244,241,234,0.8)] rounded shadow-inner text-sm"
+          aria-live="polite"
+          dangerouslySetInnerHTML={{ __html: getCardDescriptionHtml(cardForDescription, CardContext.DECK_REVIEW) }}
+        />
+      )}
     </div>
   );
 };

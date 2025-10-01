@@ -647,3 +647,35 @@ export const getCardCategory = (card: CardData | null): number => {
     if (card.type === 'Action') return 5;
     return 6;
 };
+
+export function getCardDescriptionHtml(card: CardData | null, source: string, playerDetails?: PlayerDetails) {
+    if (!card || !card.id || !card.name || !card.type) {
+        console.error("Card data is incomplete for description:", card);
+        return 'Card details are currently unavailable.';
+    }
+
+    let desc = `<p class="font-bold text-lg text-[var(--ink-main)]">${card.name}</p>`;
+    desc += `<p class="text-sm italic text-[var(--ink-secondary)] mb-2">${card.type} ${card.subType ? `- ${card.subType}` : ''}</p>`;
+
+    if (card.description) {
+        desc += `<p class="my-2 text-sm text-[var(--ink-main)]">${card.description}</p>`;
+    }
+
+    const effectText = getFormattedEffectText(card, source as CardContext, playerDetails);
+    if(effectText) {
+        desc += `<p class="mt-2 font-semibold text-sm text-blue-800">${effectText}</p>`;
+    }
+
+    if (source === CardContext.STORE && card.buyCost) {
+        const actualBuyCost = card.buyCost;
+        desc += `<p class="mt-2 font-semibold">Cost: ${actualBuyCost} Gold</p>`;
+    } else if ((source === CardContext.HAND || source === CardContext.EQUIPPED) && card.sellValue && (card.type === 'Trophy' || card.type === 'Objective Proof' || card.id.startsWith('item_gold_nugget') || card.id.startsWith('item_jewelry'))) {
+         desc += `<p class="mt-2 font-semibold">Sell Value: ${card.sellValue} Gold</p>`;
+    } else if ((source === CardContext.HAND || source === CardContext.SATCHEL_VIEW) && card.sellValue && card.type !== 'Trophy' && card.type !== 'Objective Proof' && !card.id.startsWith('item_gold_nugget') && !card.id.startsWith('item_jewelry')) {
+         desc += `<p class="mt-1 text-xs">Sell for: ${card.sellValue}G</p>`;
+    } else if (source === CardContext.DECK_REVIEW && card.sellValue && card.sellValue > 0) {
+        desc += `<p class="mt-1 text-xs font-semibold">Sells for: ${card.sellValue}G if not kept.</p>`;
+    }
+
+    return desc;
+  };

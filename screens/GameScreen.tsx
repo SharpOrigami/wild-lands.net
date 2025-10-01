@@ -323,8 +323,22 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const totalPlayerCards = (playerDetails.playerDeck?.length || 0) + (playerDetails.playerDiscard?.length || 0) + handCardsCount;
 
 
-  const isPlayerCardSelected = selectedCardDetails &&
-                              (selectedCardDetails.source === CardContext.HAND || selectedCardDetails.source === CardContext.EQUIPPED);
+  let cardForPlayerDescription: CardData | null = null;
+  let sourceForPlayerDescription: string | null = null;
+
+  if (selectedCardDetails) {
+    if (selectedCardDetails.source === CardContext.HAND || selectedCardDetails.source === CardContext.EQUIPPED) {
+      cardForPlayerDescription = selectedCardDetails.card;
+      sourceForPlayerDescription = selectedCardDetails.source;
+    } else if (selectedCardDetails.source === CardContext.SATCHEL_VIEW) {
+      const satchelIndex = selectedCardDetails.index;
+      const satchelContents = playerDetails.satchels[satchelIndex] || [];
+      if (satchelContents.length > 0 && viewedSatchelItemIndex < satchelContents.length) {
+        cardForPlayerDescription = satchelContents[viewedSatchelItemIndex];
+        sourceForPlayerDescription = CardContext.SATCHEL_VIEW;
+      }
+    }
+  }
 
   // Health status for visual indicators
   const healthPercentage = playerDetails.maxHealth > 0 ? playerDetails.health / playerDetails.maxHealth : 0;
@@ -680,12 +694,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
                   );
               })}
           </div>
-          {isPlayerCardSelected && selectedCardDetails && selectedCardDetails.card && (
+          {cardForPlayerDescription && sourceForPlayerDescription && (
               <div
                 id="cardDescriptionPlayerArea"
                 className="my-2 p-3 bg-[rgba(244,241,234,0.8)] rounded shadow-inner min-h-[6rem] text-sm"
                 aria-live="polite"
-                dangerouslySetInnerHTML={{ __html: getCardDescriptionHtml(selectedCardDetails.card, selectedCardDetails.source) }}
+                dangerouslySetInnerHTML={{ __html: getCardDescriptionHtml(cardForPlayerDescription, sourceForPlayerDescription) }}
               />
           )}
       </div>

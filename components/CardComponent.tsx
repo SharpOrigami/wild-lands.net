@@ -164,7 +164,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
   }
 
   const cardFaceStyle = `text-[var(--ink-main)] bg-[var(--card-bg)]`;
-  const selectedStyle = isSelected ? 'selected scale-105 -translate-y-2 -rotate-1' : '';
+  const selectedStyle = isSelected ? 'selected scale-105 -translate-y-1 -rotate-1' : '';
   const nameStyle = "font-['Special_Elite'] font-bold break-words w-full text-[var(--ink-main)] uppercase text-[1.1em] lg:text-[1.15em]";
   const typeStyle = "font-['Merriweather'] italic text-[var(--ink-secondary)] text-[0.85em]";
   const bottomStatStyle = "font-['Special_Elite'] font-bold mt-auto text-[1em]";

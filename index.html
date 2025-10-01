@@ -793,6 +793,7 @@
             box-shadow: 3px 3px 8px rgba(0,0,0,0.2);
             transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.25s ease-out, border-color 0.25s ease-out;
             transform: translateZ(0); /* Promotes to own layer to prevent animation flicker */
+            will-change: transform, box-shadow; /* Hint for browser to optimize animations */
         }
         .card-face:not([disabled]) {
             cursor: pointer;
@@ -878,6 +879,10 @@
         .selected[data-card-type-id='player-upgrade'] {
             border-color: var(--glow-color-player-upgrade) !important;
             box-shadow: 0 0 0 1px var(--glow-color-player-upgrade), var(--glow-shadow-player-upgrade) !important;
+        }
+        .card-face[data-context='deck_review'].selected {
+            border-color: var(--glow-color-item-gold) !important;
+            box-shadow: 0 0 0 1px var(--glow-color-item-gold), var(--glow-shadow-item-gold) !important;
         }
 
         .frontier-card-glow { transition: box-shadow 0.3s ease, border-color 0.3s ease; }
