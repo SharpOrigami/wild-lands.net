@@ -668,21 +668,23 @@ export const applyImmediateEventAndCheckEndTurn = (
                 const itemsToDiscard: CardData[] = [];
                 const remainingEquippedItems: CardData[] = [];
                 const discardedItemNamesArr: string[] = [];
-                const satchelContentsToDiscard: CardData[] = [];
-
+                
                 originalEquippedItems.forEach((item, index) => {
                     if (item.id.includes('upgrade_iron_will')) {
                         remainingEquippedItems.push(item);
                     } else {
-                        itemsToDiscard.push(item);
+                        let itemToDiscardInstance = { ...item }; // copy instance
                         discardedItemNamesArr.push(item.name);
                         
                         if (item.effect?.subtype === 'storage') {
                             const contents = modifiablePlayer.satchels[index] || [];
                             if (contents.length > 0) {
-                                satchelContentsToDiscard.push(...contents);
+                                // Attach contents to the instance being discarded
+                                itemToDiscardInstance.satchelContents = [...contents];
                             }
                         }
+
+                        itemsToDiscard.push(itemToDiscardInstance);
 
                         if (item.effect?.subtype === 'max_health' && item.effect.amount) {
                             modifiablePlayer.maxHealth = Math.max(1, modifiablePlayer.maxHealth - item.effect.amount);
@@ -696,14 +698,15 @@ export const applyImmediateEventAndCheckEndTurn = (
 
                 if (itemsToDiscard.length > 0) {
                     _log(getRandomLogVariation('rockslideDiscardEquipped', { eventName: event.name, discardedItemNames: discardedItemNamesArr.join(', ') }, theme, modifiablePlayer, event, isBossEvent), 'event');
-                    const baseItemsToDiscard = itemsToDiscard.map(i => getBaseCardByIdentifier(i)).filter(Boolean);
-                    const baseContentsToDiscard = satchelContentsToDiscard.map(c => getBaseCardByIdentifier(c)).filter(Boolean);
                     
-                    modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, ...baseItemsToDiscard as CardData[], ...baseContentsToDiscard as CardData[]];
+                    const processedItemsToDiscard = itemsToDiscard.map(item => {
+                        if (item.satchelContents && item.satchelContents.length > 0) {
+                            return item; // Keep instance with contents
+                        }
+                        return getBaseCardByIdentifier(item); // Get base card for others
+                    }).filter((c): c is CardData => c !== null);
                     
-                    if (satchelContentsToDiscard.length > 0) {
-                        _log(`The contents of your satchel(s) were also lost and have been discarded.`, 'event');
-                    }
+                    modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, ...processedItemsToDiscard];
                     
                     const oldSatchels = { ...modifiablePlayer.satchels };
                     modifiablePlayer.equippedItems = remainingEquippedItems;

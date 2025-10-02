@@ -1,4 +1,3 @@
-
 // FIX: Add React import to resolve TypeScript errors for React types like Dispatch and MutableRefObject.
 import React from 'react';
 import { GameState, PlayerDetails, LogEntry, CardData, CardContext, ActiveGameBannerState, RunStats } from '../types.ts';
@@ -46,7 +45,7 @@ const reIndexSatchelsAfterRemoval = (
         if (satchelContents.length > 0) {
             const contentsToDiscard = satchelContents.map(c => getBaseCardByIdentifier(c)).filter((c): c is CardData => c !== null);
             modPlayer.playerDiscard = [...modPlayer.playerDiscard, ...contentsToDiscard];
-            _log(`Contents of discarded ${removedItem.name} (${contentsToDiscard.map(c => c.name).join(', ')}) were also discarded.`, 'info');
+            _log(`Contents of discarded ${removedItem.name} (${satchelContents.map(c => c.name).join(', ')}) were also discarded.`, 'info');
         }
     }
 
@@ -533,6 +532,7 @@ export const handleEquipItem = ({ player, payload, helpers }: ActionHandlerArgs)
 
     soundManager.playSound('card_play');
     modPlayer.equippedItems = [...modPlayer.equippedItems, card];
+    const newEquipIndex = modPlayer.equippedItems.length - 1;
     if (source === CardContext.HAND && index !== undefined) modPlayer.hand[index] = null;
     
     if (card.isCheat) {
@@ -542,8 +542,14 @@ export const handleEquipItem = ({ player, payload, helpers }: ActionHandlerArgs)
     }
 
     modPlayer.hasEquippedThisTurn = true;
-    // FIX: Replaced non-existent 'triggerEquipAnimation' with 'equipAnimationIndex' to trigger the animation.
-    gameUpdates.equipAnimationIndex = modPlayer.equippedItems.length - 1;
+    gameUpdates.equipAnimationIndex = newEquipIndex;
+    
+    if (card.effect?.subtype === 'storage' && card.satchelContents && card.satchelContents.length > 0) {
+        modPlayer.satchels[newEquipIndex] = [...card.satchelContents];
+        _log(`The ${card.name} still contained its items: ${card.satchelContents.map(c => c.name).join(', ')}.`, 'info');
+        const equippedCardInstance = modPlayer.equippedItems[newEquipIndex];
+        delete equippedCardInstance.satchelContents;
+    }
 
     if (card.effect?.persistent && card.type === 'Player Upgrade') {
         const effect = card.effect;
@@ -824,6 +830,11 @@ export const handleSellItem = ({ player, gameState, payload, helpers }: ActionHa
     
     if (source === CardContext.HAND && index !== undefined) {
         modPlayer.hand[index] = null;
+        if (card.effect?.subtype === 'storage' && card.satchelContents && card.satchelContents.length > 0) {
+            const contentsToDiscard = card.satchelContents.map(c => getBaseCardByIdentifier(c)).filter(Boolean);
+            modPlayer.playerDiscard = [...modPlayer.playerDiscard, ...contentsToDiscard as CardData[]];
+            _log(`Contents of sold ${card.name} (${card.satchelContents.map(c => c.name).join(', ')}) were also discarded.`, 'info');
+        }
     } else if (source === CardContext.EQUIPPED && index !== undefined) {
         const soldEquippedItem = modPlayer.equippedItems[index];
         modPlayer = reIndexSatchelsAfterRemoval(modPlayer, soldEquippedItem, index, helpers);
@@ -920,34 +931,56 @@ export const handleDiscardEquippedItem = ({ player, payload, helpers }: ActionHa
     const { index } = payload;
     const { _log, getBaseCardByIdentifier } = helpers;
     let modPlayer = { ...player };
+    const gameUpdates: Partial<GameState> = {};
     const theme = getThemeName(modPlayer.ngPlusLevel);
 
     if (modPlayer.turnEnded || index === undefined || !modPlayer.equippedItems[index]) {
         _log("Cannot discard.", "error");
-        return { player, gameUpdates: {} };
+        return { player, gameUpdates };
     }
     
     const itemToDiscard = modPlayer.equippedItems[index];
     _log(getRandomLogVariation('itemDiscarded', { itemName: itemToDiscard.name }, theme, modPlayer, itemToDiscard), 'action');
     
-    modPlayer = reIndexSatchelsAfterRemoval(modPlayer, itemToDiscard, index, helpers);
+    let itemInstanceToDiscard = { ...itemToDiscard };
+    if (itemToDiscard.effect?.subtype === 'storage') {
+        const contents = modPlayer.satchels[index] || [];
+        if (contents.length > 0) {
+            itemInstanceToDiscard.satchelContents = [...contents];
+        }
+    }
+
     modPlayer.equippedItems = modPlayer.equippedItems.filter((_, i) => i !== index);
+
+    const newSatchels: { [key: number]: CardData[] } = {};
+    for (const key in modPlayer.satchels) {
+        const oldIndex = parseInt(key, 10);
+        if (oldIndex < index) {
+            newSatchels[oldIndex] = modPlayer.satchels[key];
+        } else if (oldIndex > index) {
+            newSatchels[oldIndex - 1] = modPlayer.satchels[key];
+        }
+    }
+    modPlayer.satchels = newSatchels;
+
+    const cardForDiscard = (itemInstanceToDiscard.satchelContents && itemInstanceToDiscard.satchelContents.length > 0) 
+        ? itemInstanceToDiscard 
+        : getBaseCardByIdentifier(itemToDiscard);
     
-    const baseEquippedToDiscard = getBaseCardByIdentifier(itemToDiscard);
-    if (baseEquippedToDiscard) modPlayer.playerDiscard = [...modPlayer.playerDiscard, baseEquippedToDiscard];
+    if (cardForDiscard) modPlayer.playerDiscard = [...modPlayer.playerDiscard, cardForDiscard];
     
     if (itemToDiscard.type === 'Player Upgrade' && itemToDiscard.effect?.persistent) {
         const effect = itemToDiscard.effect;
         if (effect.subtype === 'max_health' && typeof effect.amount === 'number') modPlayer.maxHealth = Math.max(1, modPlayer.maxHealth - effect.amount);
         
-        if (effect.subtype === 'damage_negation') {
+        if (effect.subtype === 'damage_negation') { 
             modPlayer.hatDamageNegationAvailable = false;
-            if (typeof effect.max_health === 'number') modPlayer.maxHealth = Math.max(1, modPlayer.maxHealth - effect.max_health);
+            if(typeof effect.max_health === 'number') modPlayer.maxHealth = Math.max(1, modPlayer.maxHealth - effect.max_health);
         }
         modPlayer.health = Math.min(modPlayer.health, modPlayer.maxHealth);
     }
     
-    return { player: modPlayer, gameUpdates: {} };
+    return { player: modPlayer, gameUpdates };
 };
 
 export const handleInteractWithThreat = ({ player, gameState, isBossActive, helpers }: ActionHandlerArgs): ActionHandlerResult => {
