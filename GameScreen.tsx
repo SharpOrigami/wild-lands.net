@@ -68,9 +68,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
   // --- State for status tooltip ---
   const [isStatusTooltipVisible, setIsStatusTooltipVisible] = useState(false);
   const statusTooltipTriggerRef = useRef<HTMLDivElement>(null);
-  const statusTooltipContentRef = useRef<HTMLDivElement>(null);
-  const [statusTooltipStyle, setStatusTooltipStyle] = useState<CSSProperties>({});
-
 
   const animatingIndices = useMemo(() => new Set(gameState.newlyDrawnCardIndices || []), [gameState.newlyDrawnCardIndices]);
   
@@ -86,44 +83,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       setIsStatusTooltipVisible(prev => !prev);
   };
   
-  useLayoutEffect(() => {
-    if (isStatusTooltipVisible) {
-        const trigger = statusTooltipTriggerRef.current;
-        const tooltip = statusTooltipContentRef.current;
-
-        if (trigger && tooltip) {
-            const triggerRect = trigger.getBoundingClientRect();
-            const tooltipRect = tooltip.getBoundingClientRect();
-            const viewportWidth = window.innerWidth;
-            
-            const style: CSSProperties = {};
-            const offset = 8; // 8px offset from the trigger
-
-            // Default position: centered above the trigger
-            let top = triggerRect.top - tooltipRect.height - offset;
-            let left = triggerRect.left + (triggerRect.width / 2) - (tooltipRect.width / 2);
-            
-            // If not enough space above, position below
-            if (top < offset) {
-                top = triggerRect.bottom + offset;
-            }
-            
-            // Clamp left position to stay within viewport
-            if (left < offset) {
-                left = offset;
-            } else if (left + tooltipRect.width > viewportWidth - offset) {
-                left = viewportWidth - tooltipRect.width - offset;
-            }
-
-            style.top = `${top}px`;
-            style.left = `${left}px`;
-            
-            setStatusTooltipStyle(style);
-        }
-    }
-  }, [isStatusTooltipVisible]);
-
-
   useEffect(() => {
     if (!isStatusTooltipVisible) return;
 
@@ -674,13 +633,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
                           </div>
                           <p>Gold: <span id="player1Gold" className={`font-bold text-yellow-500 text-lg ${gameState.goldFlashPlayer ? 'gold-gained' : ''}`}>{playerDetails.gold}</span></p>
                           
-                           <div className="relative w-fit" ref={statusTooltipTriggerRef}>
-                            <div className="flex items-center gap-2 select-none" aria-hidden="true">
-                                <p>Status: <span id="playerStatus" className={`${playerStatusStyle}`} style={{ color: playerStatusColor }}>{playerStatusText}</span></p>
+                          <div className="relative w-fit" ref={statusTooltipTriggerRef}>
+                            <div className="flex items-center gap-2" aria-hidden="true">
+                                <p className="select-none">Status: <span id="playerStatus" className={`${playerStatusStyle} select-none`} style={{ color: playerStatusColor }}>{playerStatusText}</span></p>
                                 <div className="flex gap-1 items-center">
-                                    {isIll && <span className="status-icon illness">&#9763;</span>}
-                                    {isCriticalHealth && <span className="status-icon">&#9888;</span>}
-                                    {!isCriticalHealth && isLowHealth && <span className="status-icon">&#9888;</span>}
+                                    {isIll && <span className="status-icon illness select-none">&#9763;</span>}
+                                    {isCriticalHealth && <span className="status-icon select-none">&#9888;</span>}
+                                    {!isCriticalHealth && isLowHealth && <span className="status-icon select-none">&#9888;</span>}
                                 </div>
                             </div>
                             
@@ -693,17 +652,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
                             
                             {isStatusTooltipVisible && statusTooltipHtml && (
                                 <div
-                                    ref={statusTooltipContentRef}
                                     id="status-tooltip-content"
                                     role="tooltip"
                                     className="tooltip visible"
-                                     style={{
-                                        position: 'fixed',
-                                        visibility: Object.keys(statusTooltipStyle).length > 0 ? 'visible' : 'hidden',
-                                        bottom: 'auto',
-                                        transform: 'none',
-                                        ...statusTooltipStyle,
-                                    }}
                                     dangerouslySetInnerHTML={{ __html: statusTooltipHtml }}
                                 />
                             )}

@@ -395,6 +395,8 @@ const App: React.FC = () => {
         return; // Early exit, no music to play
 
       case 'setup':
+      case 'generating_boss_intro':
+      case 'showing_boss_intro':
         const ngPlusLevel = gameState.ngPlusLevel;
         if (ngPlusLevel >= 40 && ngPlusLevel < 50) {
           musicToPlay = 'music_setup_cp';
@@ -428,12 +430,6 @@ const App: React.FC = () => {
         } else {
           musicToPlay = 'music_main';
         }
-        break;
-
-      case 'generating_boss_intro':
-      case 'showing_boss_intro':
-        // These are prelude-to-gameplay states, main music is appropriate
-        musicToPlay = 'music_main';
         break;
       
       default:
