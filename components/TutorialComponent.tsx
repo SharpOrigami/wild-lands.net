@@ -114,7 +114,7 @@ const TutorialComponent: React.FC<TutorialComponentProps> = ({ step, onNext, onE
           height: `${rect.height + 8}px`,
           boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.7)',
           border: '2px solid var(--tarnished-gold)',
-          borderRadius: '4px',
+          borderRadius: '8px',
           pointerEvents: 'none',
           transition: 'all 0.3s ease-in-out',
           zIndex: 10000,
@@ -229,7 +229,7 @@ const TutorialComponent: React.FC<TutorialComponentProps> = ({ step, onNext, onE
       <div 
         ref={textRef}
         style={textStyle} 
-        className="bg-[var(--paper-bg)] p-4 rounded-md shadow-lg w-72 max-w-[90vw] text-[var(--ink-main)] border border-[var(--ink-main)]"
+        className="bg-[var(--paper-bg)] p-4 rounded-lg shadow-lg w-72 max-w-[90vw] text-[var(--ink-main)] border border-[var(--ink-main)]"
         role="dialog"
         aria-labelledby="tutorial-title"
       >

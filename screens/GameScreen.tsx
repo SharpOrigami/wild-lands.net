@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback, CSSProperties, useLayoutEffect } from 'react';
 import { GameState, PlayerDetails, CardData, CardContext, LogEntry } from '../types.ts';
 import CardComponent from '../components/CardComponent.tsx';
 import GameLogComponent from '../components/GameLogComponent.tsx';
@@ -6,6 +6,8 @@ import { getCardCategory, getFormattedEffectText, calculateHealAmount, calculate
 import { REQUIRED_ACCURACY_METERS, MAX_LOG_ENTRIES } from '../constants.ts';
 import { soundManager } from '../utils/soundManager.ts';
 import { ttsManager } from '../utils/ttsManager.ts';
+import { CARD_ILLUSTRATIONS } from '../assets/card-illustrations/index.ts';
+import { imageManager } from '../utils/imageManager.ts';
 
 
 interface GameScreenProps {
@@ -65,6 +67,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const [satchelAnimation, setSatchelAnimation] = useState<'in' | 'out' | null>(null);
 
   const animatingIndices = useMemo(() => new Set(gameState.newlyDrawnCardIndices || []), [gameState.newlyDrawnCardIndices]);
+  
+  const characterIllustrationUrl = playerDetails.character ? imageManager.getCachedUrl(CARD_ILLUSTRATIONS[playerDetails.character.id]) : '';
 
   useEffect(() => {
     if (gameState.equipAnimationIndex !== null) {
@@ -427,6 +431,40 @@ const GameScreen: React.FC<GameScreenProps> = ({
     return fontClasses[(length - 1) % 5];
   };
   const playerNameFontClass = getPlayerNameFontClass(playerDetails.name);
+
+  // --- Dynamic Name Scaling Logic ---
+  const playerNameRef = useRef<HTMLHeadingElement>(null);
+  const playerNameContainerRef = useRef<HTMLDivElement>(null);
+  const [nameStyle, setNameStyle] = useState<CSSProperties>({});
+  const { name } = playerDetails; // Destructure for dependency array
+
+  useLayoutEffect(() => {
+    const nameEl = playerNameRef.current;
+    const containerEl = playerNameContainerRef.current;
+
+    if (nameEl && containerEl) {
+      // Reset styles to measure natural width
+      nameEl.style.transform = '';
+      nameEl.style.transformOrigin = '';
+
+      const containerWidth = containerEl.clientWidth;
+      const scrollWidth = nameEl.scrollWidth;
+
+      if (scrollWidth > containerWidth) {
+        const scale = containerWidth / scrollWidth;
+        // Clamp the scale to a minimum to avoid unreadable text
+        const clampedScale = Math.max(0.7, scale);
+        
+        setNameStyle({
+          transform: `scaleX(${clampedScale})`,
+          transformOrigin: 'left',
+        });
+      } else {
+        // If it fits, clear any scaling styles
+        setNameStyle({});
+      }
+    }
+  }, [name]); // Re-run when the name changes or on resize (implicitly via component re-render)
   
   const getHealthBreakdown = () => {
     const { character, cumulativeNGPlusMaxHealthBonus, equippedItems } = playerDetails;
@@ -494,52 +532,86 @@ const GameScreen: React.FC<GameScreenProps> = ({
       aria-atomic="true"
     >
       <div className={`absolute inset-0 rounded-sm pointer-events-none transition-opacity duration-300 ${overlayClass}`}></div>
-      <div className="relative">
-          <div className="flex justify-between items-end">
-              <div className="mb-0">
-                <h3 id="player1Name" className={`${playerNameFontClass} text-stone-800 text-5xl leading-tight`}>{playerDetails.name}</h3>
-                <p className="font-semibold text-lg">{playerDetails.character?.name}</p>
-                 <div className="tooltip-container">
-                    <p>Health: <span id="player1Health" className="font-bold text-lg" style={{ color: 'var(--blood-red)' }}><span className={healthAnimClass}>{playerDetails.health}</span> / {playerDetails.maxHealth}</span></p>
-                    {healthBreakdownHtml && (
-                        <div className="tooltip" dangerouslySetInnerHTML={{ __html: healthBreakdownHtml }} />
-                    )}
-                 </div>
-                <p>Gold: <span id="player1Gold" className={`font-bold text-yellow-500 text-lg ${gameState.goldFlashPlayer ? 'gold-gained' : ''}`}>{playerDetails.gold}</span></p>
-                <div className="flex items-center gap-2">
-                    <p>Status: <span id="player1Illness" className={playerStatusStyle} style={{color: playerStatusColor}}>{playerStatusText}</span></p>
-                    <div className="flex gap-1 items-center">
-                        {isIll && (
-                            <div className="tooltip-container">
-                                <span className="status-icon illness" title="You are ill!">&#9763;</span>
-                                <div className="tooltip">
-                                    <p className="font-bold">Active Illnesses:</p>
-                                    <ul className="list-disc list-inside">
-                                        {(playerDetails.currentIllnesses || []).map(ill => <li key={ill.id}>{ill.name}</li>)}
-                                        {playerDetails.mountainSicknessActive && <li>Mountain Sickness (Temp)</li>}
-                                    </ul>
-                                </div>
-                            </div>
-                        )}
-                        {isCriticalHealth && <span className="status-icon" title="Health is critical!">&#9888;</span>}
-                        {!isCriticalHealth && isLowHealth && <span className="status-icon" title="Health is low.">&#9888;</span>}
-                    </div>
-                </div>
-              </div>
-              <div>
-                {gameState.ngPlusLevel > 0 && (
-                  <div className="font-western text-yellow-600 text-2xl text-right mb-1" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
-                    NG+{gameState.ngPlusLevel}
+      {characterIllustrationUrl && (
+          <div className="absolute inset-x-0 top-4 flex justify-center items-end z-0 pointer-events-none opacity-20">
+              <img
+                  src={characterIllustrationUrl}
+                  alt={playerDetails.character?.name || 'Character'}
+                  className="h-[14rem] md:h-[16rem] lg:h-[18rem] xl:h-[20rem] 2xl:h-[22rem] w-auto object-contain"
+              />
+          </div>
+      )}
+      <div className="relative z-10">
+          <div className="relative">
+              <div className="relative z-10 flex flex-col">
+                  {/* Row 1: Player Name */}
+                  <div ref={playerNameContainerRef} className="relative w-full overflow-hidden">
+                      <h3 
+                        ref={playerNameRef}
+                        id="player1Name" 
+                        className={`${playerNameFontClass} text-stone-800 text-5xl leading-tight whitespace-nowrap`}
+                        style={nameStyle}
+                      >
+                        {playerDetails.name}
+                      </h3>
+                      {gameState.ngPlusLevel > 0 && (
+                          <div 
+                              className="absolute top-2 right-0 font-western text-yellow-600 text-2xl" 
+                              style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
+                              NG+{gameState.ngPlusLevel}
+                          </div>
+                      )}
                   </div>
-                )}
-                <h4 className="font-semibold text-right text-lg">Deck Info</h4>
-                <p className="text-right">Total Cards: <span id="playerDeckTotalCount" className="font-bold text-blue-600 text-lg">{totalPlayerCards}</span></p>
-                <p className="text-right">Deck: <span id="playerDeckCount" className="font-bold text-blue-600 text-lg">{playerDetails.playerDeck?.length || 0}</span></p>
-                <p className="text-right">Discard: <span id="playerDiscardCount" className="font-bold text-blue-400 text-lg">{playerDetails.playerDiscard?.length || 0}</span></p>
+
+                  {/* Row 2: Headers (Gunslinger & Deck Info) */}
+                  <div className="flex justify-between items-baseline mb-2">
+                      <p className="font-semibold text-lg">{playerDetails.character?.name}</p>
+                      <div className="text-right">
+                          <h4 className="font-semibold text-right text-lg">Deck Info</h4>
+                      </div>
+                  </div>
+
+                  {/* Row 3: Stats */}
+                  <div className="flex justify-between items-start">
+                      <div className="w-3/5 mb-0">
+                          <div className="tooltip-container">
+                              <p>Health: <span id="player1Health" className="font-bold text-lg" style={{ color: 'var(--blood-red)' }}><span className={healthAnimClass}>{playerDetails.health}</span> / {playerDetails.maxHealth}</span></p>
+                              {healthBreakdownHtml && (
+                                  <div className="tooltip" dangerouslySetInnerHTML={{ __html: healthBreakdownHtml }} />
+                              )}
+                          </div>
+                          <p>Gold: <span id="player1Gold" className={`font-bold text-yellow-500 text-lg ${gameState.goldFlashPlayer ? 'gold-gained' : ''}`}>{playerDetails.gold}</span></p>
+                          <div className="flex items-center gap-2">
+                              <p>Status: <span id="player1Illness" className={playerStatusStyle} style={{color: playerStatusColor}}>{playerStatusText}</span></p>
+                              <div className="flex gap-1 items-center">
+                                  {isIll && (
+                                      <div className="tooltip-container">
+                                          <span className="status-icon illness" title="You are ill!">&#9763;</span>
+                                          <div className="tooltip">
+                                              <p className="font-bold">Active Illnesses:</p>
+                                              <ul className="list-disc list-inside">
+                                                  {(playerDetails.currentIllnesses || []).map(ill => <li key={ill.id}>{ill.name}</li>)}
+                                                  {playerDetails.mountainSicknessActive && <li>Mountain Sickness (Temp)</li>}
+                                              </ul>
+                                          </div>
+                                      </div>
+                                  )}
+                                  {isCriticalHealth && <span className="status-icon" title="Health is critical!">&#9888;</span>}
+                                  {!isCriticalHealth && isLowHealth && <span className="status-icon" title="Health is low.">&#9888;</span>}
+                              </div>
+                          </div>
+                      </div>
+                      <div className="w-2/5 text-right">
+                          <p className="text-right">Total Cards: <span id="playerDeckTotalCount" className="font-bold text-blue-600 text-lg">{totalPlayerCards}</span></p>
+                          <p className="text-right">Deck: <span id="playerDeckCount" className="font-bold text-blue-600 text-lg">{playerDetails.playerDeck?.length || 0}</span></p>
+                          <p className="text-right">Discard: <span id="playerDiscardCount" className="font-bold text-blue-400 text-lg">{playerDetails.playerDiscard?.length || 0}</span></p>
+                      </div>
+                  </div>
               </div>
           </div>
 
-          <div className="flex justify-between items-center mt-3">
+
+          <div className="flex justify-between items-end mt-3">
             <h4 className="font-semibold">Equipped ({playerDetails.equippedItems?.length || 0}/{playerDetails.equipSlots}):</h4>
             {gameState.pedometerFeatureEnabledByUser && (
               <button

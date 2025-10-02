@@ -102,12 +102,12 @@ const CardComponent: React.FC<CardComponentProps> = ({
     2xl:w-[12.5rem] 2xl:h-[17.5rem] 2xl:text-[0.85rem] 2xl:p-3
   `;
 
-  const cardBaseStructure = `rounded m-1 text-center transition-all duration-200 ease-out flex flex-col relative flex-shrink-0`;
+  const cardBaseStructure = `rounded-md m-1 text-center transition-all duration-200 ease-out flex flex-col relative flex-shrink-0`;
 
   if (!cardOrChar) {
      if (context === CardContext.STORE || context === CardContext.EQUIPPED || context === CardContext.HAND) {
       return (
-        <div className={`flex items-center justify-center text-center ${cardResponsiveDimensions} flex-shrink-0 border-2 border-dashed border-[var(--border-color)] rounded text-[var(--border-color)] bg-[rgba(0,0,0,0.03)] ${className}`}>
+        <div className={`flex items-center justify-center text-center ${cardResponsiveDimensions} flex-shrink-0 border-2 border-dashed border-[var(--border-color)] rounded-md text-[var(--border-color)] bg-[rgba(0,0,0,0.03)] ${className}`}>
           {context === CardContext.STORE ? 'Sold Out' : context === CardContext.EQUIPPED ? 'Equip Slot' : 'Empty Slot'}
         </div>
       );
@@ -435,8 +435,12 @@ const CardComponent: React.FC<CardComponentProps> = ({
         role="button" tabIndex={onClick && !isDisabled ? 0 : -1} aria-label={`Character: ${character.name}`}
         aria-disabled={isDisabled}
       >
-        <div className="flex flex-col h-full items-center justify-start"> {/* Use justify-start */}
-            <div className="flex flex-col justify-center items-center h-8 md:h-10 lg:h-12 2xl:h-14 w-full">
+        <div className="relative z-10 flex flex-col h-full items-center justify-start"> {/* Use justify-start */}
+            <div className="flex justify-between items-start w-full px-0.5 text-[0.85em] md:text-[0.9em] lg:text-[1em] font-bold">
+              <span className="text-[var(--blood-red)]">❤️ {displayHealth}</span>
+              <span className="text-yellow-600">💰 {character.gold}</span>
+            </div>
+            <div className="flex flex-col items-center w-full pt-px my-1">
               <div className={`${nameStyle} mt-0.5`}>{character.name}</div>
               <div className={`${typeStyle} mb-1`}>Character</div>
             </div>
@@ -448,12 +452,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
             </div>
             
             <div className={`${bottomStatStyle} flex justify-center items-center w-full h-auto py-0.5`}>
-              <span 
-                className={nameStyle}
-                style={{ transform: 'translateZ(0)' }} 
-              >
-                HEALTH: {displayHealth}
-              </span>
+              {/* Health is now at the top, this can be empty or used for something else */}
             </div>
         </div>
       </div>
@@ -499,41 +498,48 @@ const CardComponent: React.FC<CardComponentProps> = ({
           </svg>
         </button>
       )}
-      {tintClass && <div className={`absolute inset-0 ${tintClass} rounded-sm pointer-events-none z-0`}></div>}
+      {tintClass && <div className={`absolute inset-0 ${tintClass} rounded-md pointer-events-none z-0`}></div>}
       <div className="relative z-10 flex flex-col h-full"> {/* Main content wrapper */}
-        <div className="flex justify-between items-start w-full px-0.5 text-[0.75em] font-bold h-4">
-            <div 
-              className="tooltip-container"
-              ref={tooltipContainerRef}
-              onMouseEnter={handleTooltipMouseEnter}
-              onMouseLeave={handleTooltipMouseLeave}
-            >
-              <span style={{color: primaryStat?.includes('HP') ? 'var(--heal-green)' : (primaryStat ? 'var(--blood-red)' : undefined)}}>{primaryStat || ''}</span>
-              {attackBreakdown && (
-                <div
-                    ref={tooltipRef}
-                    className={`tooltip ${isTooltipVisible ? 'visible' : ''}`}
-                    style={tooltipStyle}
-                    dangerouslySetInnerHTML={{ __html: attackBreakdown }}
-                />
-              )}
-            </div>
-          <span className="text-yellow-600">{gold || ''}</span>
-        </div>
-        
-        <div className="flex flex-col justify-center items-center h-8 md:h-10 lg:h-12 2xl:h-14 w-full pt-px">
-            <div className={`${nameStyle}`}>{card.name}</div>
-            <div className={typeStyle}>
-              {context !== CardContext.CHARACTER_SELECTION && <>{card.type} {card.subType ? ` - ${card.subType}` : ''}</>}
-            </div>
+        {/* Header Block: Contains stats and name/type. Will grow vertically with long names. */}
+        <div className="flex-shrink-0">
+          {/* Stats: Has a minimum height to reserve space even if empty. */}
+          <div className="flex justify-between items-start w-full px-0.5 text-[0.75em] font-bold min-h-[1.25em]">
+              <div 
+                className="tooltip-container"
+                ref={tooltipContainerRef}
+                onMouseEnter={handleTooltipMouseEnter}
+                onMouseLeave={handleTooltipMouseLeave}
+              >
+                <span style={{color: primaryStat?.includes('HP') ? 'var(--heal-green)' : (primaryStat ? 'var(--blood-red)' : undefined)}}>{primaryStat || ''}</span>
+                {attackBreakdown && (
+                  <div
+                      ref={tooltipRef}
+                      className={`tooltip ${isTooltipVisible ? 'visible' : ''}`}
+                      style={tooltipStyle}
+                      dangerouslySetInnerHTML={{ __html: attackBreakdown }}
+                  />
+                )}
+              </div>
+            <span className="text-yellow-600">{gold || ''}</span>
+          </div>
+          
+          {/* Name and Type: No vertical margins, allowing it to sit right under stats. */}
+          <div className="flex flex-col items-center w-full pt-px">
+              <div className={`${nameStyle}`}>{card.name}</div>
+              <div className={typeStyle}>
+                {context !== CardContext.CHARACTER_SELECTION && <>{card.type} {card.subType ? ` - ${card.subType}` : ''}</>}
+              </div>
+          </div>
         </div>
 
+        {/* Image: Fills remaining space and shrinks as header grows. */}
         <div className="flex-grow my-1 w-full overflow-hidden flex items-center justify-center">
           {finalImageUrl ? (
             <img src={finalImageUrl} alt={card.name} className="w-full h-full object-contain" />
           ) : null}
         </div>
 
+        {/* Footer: Pushed to the bottom by mt-auto from bottomStatStyle */}
         <div className={`${bottomStatStyle} flex justify-center items-center w-full h-auto py-0.5`}>
           {context === CardContext.EVENT && card.health !== undefined && card.type === 'Event' && (
             <span className={`${nameStyle} ${statAnimationClass || ''}`}>HEALTH: {card.health}</span>
@@ -547,7 +553,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
       {/* Action Buttons Area - positioned at the bottom */}
       {actionButtons.length > 0 && (
         <div 
-          className="action-buttons-enter absolute bottom-0 left-0 right-0 p-1 flex flex-col-reverse items-center gap-1 rounded-b-sm z-10"
+          className="action-buttons-enter absolute bottom-0 left-0 right-0 p-1 flex flex-col-reverse items-center gap-1 rounded-b-md z-10"
         >
           {actionButtons.map((button, index) => (
              <div key={index} className="w-full flex justify-center">

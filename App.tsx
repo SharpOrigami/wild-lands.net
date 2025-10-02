@@ -119,7 +119,7 @@ const SoundControls: React.FC<{ toggleTTSModal: () => void }> = ({ toggleTTSModa
         {isAllMuted ? '🔇' : '🔊'}
       </button>
       {isOpen && (
-        <div className="absolute bottom-20 right-0 bg-[var(--paper-bg)] p-4 rounded-md shadow-lg w-80 border-2 border-[var(--ink-main)] text-[var(--ink-main)]">
+        <div className="absolute bottom-20 right-0 bg-[var(--paper-bg)] p-4 rounded-lg shadow-lg w-80 border-2 border-[var(--ink-main)] text-[var(--ink-main)]">
           <div className="flex flex-col gap-4 font-pulp-title text-lg">
             
             <div className="flex items-center justify-between">
@@ -650,7 +650,7 @@ const App: React.FC = () => {
   return (
     <div className={containerClasses} onClick={deselectAllCards} aria-live="polite">
       {isBackgroundLoading && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-stone-800/80 text-white font-pulp-title px-4 py-2 rounded-md shadow-lg z-[6000]">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-stone-800/80 text-white font-pulp-title px-4 py-2 rounded-lg shadow-lg z-[6000]">
           Preloading assets...
         </div>
       )}

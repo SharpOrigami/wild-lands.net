@@ -95,7 +95,7 @@ const SaveSlot: React.FC<{
   const isCurrentGame = slotData?.runId && slotData.runId === currentRunId;
 
   return (
-    <div className={`flex flex-col items-center justify-between p-3 border-2 rounded-md transition-all 
+    <div className={`flex flex-col items-center justify-between p-3 border-2 rounded-lg transition-all 
       ${isDisabled ? 'bg-gray-200 border-gray-300 opacity-60' : 'bg-white border-[var(--border-color)]'}
       ${isCurrentGame ? '!border-4 !border-[var(--tarnished-gold)] !shadow-lg' : ''}
     `}>

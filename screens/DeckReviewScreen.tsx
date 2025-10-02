@@ -56,7 +56,7 @@ const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) 
       <h2 className="text-3xl font-western text-center text-stone-200 mb-2" style={{ textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 3px 3px 5px rgba(0,0,0,0.7)' }}>Deck Review</h2>
       <p className="text-stone-300 mb-4 text-center max-w-2xl">Your journey was victorious! Now, prepare for the next. Choose up to {PLAYER_NG_PLUS_CARRY_OVER_LIMIT} cards to carry over into your NG+ run. Any cards left behind will be sold for gold.</p>
       
-      <div className="w-full bg-[rgba(244,241,234,0.8)] p-3 rounded-md shadow-lg mb-4 text-center">
+      <div className="w-full bg-[rgba(244,241,234,0.8)] p-3 rounded-lg shadow-lg mb-4 text-center">
         <p className="text-xl font-bold font-pulp-title text-[var(--ink-main)]">
           {selectedIndices.size} / {PLAYER_NG_PLUS_CARRY_OVER_LIMIT} cards selected
         </p>
@@ -65,7 +65,7 @@ const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) 
         </p>
       </div>
 
-      <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 justify-center mb-6 overflow-y-auto max-h-[60vh] p-4 bg-[rgba(0,0,0,0.2)] rounded">
+      <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 justify-center mb-6 overflow-y-auto max-h-[60vh] p-4 bg-[rgba(0,0,0,0.2)] rounded-lg">
         {deck.map((card, index) => (
           <CardComponent
             key={`${card.id}-${index}`}
@@ -90,7 +90,7 @@ const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) 
       {cardForDescription && (
         <div
           id="cardDescriptionDeckReviewArea"
-          className="w-full max-w-4xl mt-4 p-3 bg-[rgba(244,241,234,0.8)] rounded shadow-inner text-sm"
+          className="w-full max-w-4xl mt-4 p-3 bg-[rgba(244,241,234,0.8)] rounded-lg shadow-inner text-sm"
           aria-live="polite"
           dangerouslySetInnerHTML={{ __html: getCardDescriptionHtml(cardForDescription, CardContext.DECK_REVIEW) }}
         />

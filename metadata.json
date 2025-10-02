@@ -1,6 +1,6 @@
 {
   "name": "Ready for testing - Wild Lands",
-  "description": "Added dynamic hdr colors and glow effects. Working on buff calculation methods",
+  "description": "Added dynamic hdr colors and glow effects. Working on buff calculation methods. Working on planer name header",
   "requestFramePermissions": [
     "geolocation"
   ],

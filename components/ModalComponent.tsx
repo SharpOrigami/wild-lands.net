@@ -131,7 +131,7 @@ const ModalComponent: React.FC<ModalProps> = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.75)] z-[1010]" onClick={handleClose}>
       <div 
-        className="bg-[var(--paper-bg)] p-8 rounded-sm shadow-[0_10px_25px_rgba(0,0,0,0.2)] w-[90vw] max-w-2xl text-left border-2 border-[var(--ink-main)] text-[var(--ink-main)] flex flex-col gap-4"
+        className="bg-[var(--paper-bg)] p-8 rounded-lg shadow-[0_10px_25px_rgba(0,0,0,0.2)] w-[90vw] max-w-2xl text-left border-2 border-[var(--ink-main)] text-[var(--ink-main)] flex flex-col gap-4"
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
       >
         <h3 className="font-['Rye'] text-3xl text-[var(--ink-main)] text-center">{title}</h3>

@@ -129,7 +129,7 @@ const GameLogComponent: React.FC<GameLogProps> = ({ logEntries }) => {
       <h3 className="text-xl font-western text-center text-[var(--ink-main)] mb-2">Town Crier</h3>
       <div 
         ref={logContainerRef}
-        className="log-area max-h-[150px] overflow-y-auto border border-[var(--border-color)] p-3 rounded-sm bg-[#faf8f2] font-['Special_Elite'] text-sm leading-normal text-[#4a4a4a] shadow"
+        className="log-area max-h-[150px] overflow-y-auto border border-[var(--border-color)] p-3 rounded-lg bg-[#faf8f2] font-['Special_Elite'] text-sm leading-normal text-[#4a4a4a] shadow"
         aria-live="polite" 
         aria-atomic="false"
       >

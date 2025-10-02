@@ -171,7 +171,7 @@ const BossIntroStoryComponent: React.FC<BossIntroStoryProps> = ({
       {!isLoading && (
         <div 
           className={`transition-opacity duration-1000 ease-in-out ${showText ? 'opacity-100' : 'opacity-0'} 
-                      bg-[var(--paper-bg)] p-6 sm:p-8 rounded-sm shadow-[0_10px_25px_rgba(255,255,255,0.1)] 
+                      bg-[var(--paper-bg)] p-6 sm:p-8 rounded-lg shadow-[0_10px_25px_rgba(255,255,255,0.1)] 
                       w-[90vw] max-w-2xl text-left border-2 border-[var(--ink-main)] text-[var(--ink-main)] 
                       flex flex-col gap-4 max-h-[85vh] sm:max-h-[80vh]`}
         >

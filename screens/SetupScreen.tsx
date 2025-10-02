@@ -183,11 +183,11 @@ const SetupScreen: React.FC<SetupScreenProps> = ({
           <h2 className="text-lg font-pulp-title text-stone-300" style={{ textShadow: '1px 1px 2px #000' }}>A Deckbuilding Game</h2>
       </div>
       
-      <h2 className="text-2xl font-western text-center text-stone-200 mb-6" style={{ textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 3px 3px 5px rgba(0,0,0,0.7)' }}>Choose Your Character</h2>
+      <h2 className="text-2xl font-western text-center text-stone-200 mb-4" style={{ textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 3px 3px 5px rgba(0,0,0,0.7)' }}>Choose Your Character</h2>
       
       <div
         id="characterCardGrid"
-        className="grid grid-cols-2 sm:grid-cols-4 justify-items-center mb-6 w-full gap-2 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5"
+        className="grid grid-cols-2 sm:grid-cols-4 justify-items-center mb-4 w-full gap-2 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5"
       >
         {sortedCharacters.map(char => {
           let displayHealth = char.health + (cumulativeNGPlusMaxHealthBonus || 0);
