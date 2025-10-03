@@ -343,6 +343,10 @@
             /* Gold */
             --glow-color-item-gold: #ffeb3b;
             --glow-shadow-item-gold: 0 0 18px rgba(255, 235, 59, 0.8), 0 0 5px #fff;
+
+            /* Trap */
+            --glow-color-item-trap: #f50057; /* Neon Pink */
+            --glow-shadow-item-trap: 0 0 20px var(--glow-color-item-trap), 0 0 6px #fff;
             
             /* Tints */
             --tint-event: rgba(255, 23, 68, 0.05);
@@ -358,8 +362,34 @@
             --tint-trophy-bounty: rgba(0, 255, 255, 0.04);
         }
         body.ng-plus-40-theme .card-face:not(.selected) {
-            transition: box-shadow 0.3s ease-in-out;
-            box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+            transition: box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+            box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color-default) 50%, transparent);
+            border-color: color-mix(in srgb, var(--glow-color-default) 60%, transparent);
+        }
+        body.ng-plus-40-theme .card-face:not(.selected)[data-card-type-id='event'][data-is-threat="true"],
+        body.ng-plus-40-theme .card-face:not(.selected)[data-card-type-id='item-weapon'] {
+            box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color-threat) 50%, transparent);
+            border-color: color-mix(in srgb, var(--glow-color-threat) 60%, transparent);
+        }
+        body.ng-plus-40-theme .card-face:not(.selected)[data-card-type-id='provision-heal'] {
+            box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color-provision-heal) 50%, transparent);
+            border-color: color-mix(in srgb, var(--glow-color-provision-heal) 60%, transparent);
+        }
+        body.ng-plus-40-theme .card-face:not(.selected)[data-card-type-id='provision-draw'] {
+            box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color-provision-draw) 50%, transparent);
+            border-color: color-mix(in srgb, var(--glow-color-provision-draw) 60%, transparent);
+        }
+        body.ng-plus-40-theme .card-face:not(.selected)[data-card-type-id='player-upgrade'] {
+            box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color-player-upgrade) 50%, transparent);
+            border-color: color-mix(in srgb, var(--glow-color-player-upgrade) 60%, transparent);
+        }
+        body.ng-plus-40-theme .card-face:not(.selected)[data-card-type-id='item-gold'] {
+            box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color-item-gold) 50%, transparent);
+            border-color: color-mix(in srgb, var(--glow-color-item-gold) 60%, transparent);
+        }
+        body.ng-plus-40-theme .card-face:not(.selected)[data-card-type-id='item-trap'] {
+            box-shadow: 0 0 10px color-mix(in srgb, var(--glow-color-item-trap) 50%, transparent);
+            border-color: color-mix(in srgb, var(--glow-color-item-trap) 60%, transparent);
         }
         body.ng-plus-40-theme #characterCardGrid .selected {
             border-color: var(--glow-color-default) !important;

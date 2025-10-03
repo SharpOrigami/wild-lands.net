@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, PlayerDetails, Character, CardData, LogEntry, CardContext, ModalState, ActiveGameBannerState, RunStats } from '../types.ts';
 import {
@@ -1297,7 +1298,6 @@ export const useGameState = () => {
         
         if (level >= 1 && level < 10) {
             remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-// FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
             cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
             const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => !/_fj$|_as$|_sh$|_cp$/.test(c.id));
             const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
@@ -1334,7 +1334,6 @@ export const useGameState = () => {
         else if (level > 10) {
             const CARDS_TO_REMIX_PER_LEVEL = 10;
             remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-// FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
             cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
             const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => themeSuffix ? c.id.endsWith(themeSuffix) : false);
             const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
@@ -1436,13 +1435,11 @@ export const useGameState = () => {
         let finalRemixedCards: { [id: string]: CardData } = {};
         if (level > 0 && level < 10) {
             const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-// FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
             finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
         } 
         else if (level >= 10) {
             const themeName = getThemeName(level);
             const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-// FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
             finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
         }
 
@@ -1461,7 +1458,6 @@ export const useGameState = () => {
                  const storedPlayerDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
                  if (storedPlayerDetailsString) {
                      try {
-// FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
                          const storedPlayerDetails = JSON.parse(storedPlayerDetailsString) as any;
                          if (storedPlayerDetails.name && storedPlayerDetails.characterId) {
                              updatedPlayer.name = storedPlayerDetails.name;
@@ -1474,7 +1470,6 @@ export const useGameState = () => {
                  }
                  const runStartStateString = localStorage.getItem('wildWestRunStartState_WWS');
                  if (runStartStateString) {
-// FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
                      try { runStartState = JSON.parse(runStartStateString) as any; } catch (e) { localStorage.removeItem('wildWestRunStartState_WWS'); }
                  }
             }
@@ -1542,14 +1537,16 @@ export const useGameState = () => {
   }, [_log, pregenerateNextLevelRemix]);
 
   const selectCharacter = useCallback((character: Character) => {
-    // Update localStorage with the new character and their default personality
     const storedDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
-    // FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
     const storedDetails = storedDetailsString ? JSON.parse(storedDetailsString) as any : {};
+
+    const isNewCharacter = storedDetails.characterId !== character.id;
+    const personalityToSet = isNewCharacter ? character.personality : (storedDetails.personality || character.personality);
+
     localStorage.setItem('wildWestPlayerDetailsForNGPlus_WWS', JSON.stringify({
         ...storedDetails,
         characterId: character.id,
-        personality: character.personality // Save new default personality
+        personality: personalityToSet
     }));
 
     setGameState(prev => {
@@ -1617,7 +1614,7 @@ export const useGameState = () => {
         mountainSicknessActive: false, mountainSicknessTurnsRemaining: 0, 
         hatDamageNegationAvailable: equippedItemsForCharacterSelection.some(item => item.effect?.subtype === 'damage_negation'),
         runStats: { ...JSON.parse(JSON.stringify(INITIAL_RUN_STATS)), highestNGPlusLevel: currentNGPlusLevel },
-        personality: character.personality,
+        personality: personalityToSet,
       };
       _log(`${character.name} selected for NG+${currentNGPlusLevel}.`, 'system');
       return { ...prev, playerDetails: { [PLAYER_ID]: updatedPlayerDetails } };
@@ -2321,10 +2318,12 @@ export const useGameState = () => {
       let remixedCards: { [id: string]: CardData } = {};
       if (savedState.ngPlusLevel > 0 && savedState.ngPlusLevel < 10) {
           const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-          remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+          // FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
+          remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
       } else if (savedState.ngPlusLevel >= 10) {
           const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-          remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
+          // FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
+          remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
       }
 
       const finalCardsData = { ...ALL_CARDS_DATA_MAP, ...remixedCards };
@@ -2515,11 +2514,9 @@ export const useGameState = () => {
           let remixedCards: { [id: string]: CardData } = {};
           if (savedState.ngPlusLevel > 0 && savedState.ngPlusLevel < 10) {
               const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-// FIX: Cast result of JSON.parse to avoid potential 'unknown' type errors.
               remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
           } else if (savedState.ngPlusLevel >= 10) {
               const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-// FIX: Cast result of JSON.parse to avoid potential 'unknown' type errors.
               remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
           }
           // ** END FIX **
