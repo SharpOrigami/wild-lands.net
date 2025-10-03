@@ -759,6 +759,34 @@ const logTemplates: Record<string, Partial<Record<Theme, string[]>>> = {
     horror: ["{playerName}'s will proves stronger than the ancient stones! Their gear is saved from the {eventName}.", "By sheer force of will, {playerName} holds onto their equipment through the unholy tremor."],
     cyberpunk: ["{playerName}'s mag-boots hold firm against the collapse! Their gear is secure.", "Emergency shielding protects {playerName}'s hardware from the worst of the {eventName}!"],
   },
+  scoutAhead: {
+    western: [
+      "{playerName} scouts the trail ahead, spotting a {eventName}.",
+      "A cautious look over the next rise reveals a {eventName}.",
+      "Better to be safe than sorry. Scouting ahead shows a {eventName} is coming.",
+      "The trail ahead holds a {eventName}. Good to know.",
+    ],
+    japan: [
+      "{playerName} scouts the path ahead, spotting a {eventName}.",
+      "A moment of caution. A {eventName} lies on the road ahead.",
+      "The wind whispers of what's to come: a {eventName}.",
+    ],
+    safari: [
+      "{playerName} checks the tracks, revealing a {eventName} is nearby.",
+      "The guide points. A {eventName} is just over the next dune.",
+      "Good instincts. Scouting ahead reveals a {eventName}.",
+    ],
+    horror: [
+      "{playerName} peers into the oppressive darkness, glimpsing a {eventName}.",
+      "A gut feeling... Something is wrong up ahead. It's a {eventName}.",
+      "The shadows part for a moment, revealing a {eventName} in the path.",
+    ],
+    cyberpunk: [
+      "{playerName} scans the sector, detecting a {eventName} on the grid.",
+      "A quick network scan shows a {eventName} is approaching.",
+      "Running a quick diagnostic on the area reveals a {eventName}.",
+    ],
+  },
   storeRestock: { 
     western: ["{playerName} pays the storekeep {cost} Gold to clear the shelves and put out new stock.", "'This merchant's stock is stale.' {playerName} pays {cost} Gold for a fresh selection."],
     japan: ["{playerName} pays the merchant {cost} mon to bring out new wares from the back.", "The current selection is uninspiring. {playerName} spends {cost} mon to see new goods."],
