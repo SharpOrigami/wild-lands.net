@@ -253,6 +253,14 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // Reset the NG+ cheat buttons whenever the game leaves the setup screen.
+    // This makes the "whistle dixie" cheat a one-time use per run.
+    if (gameState && gameState.status !== 'setup' && ngPlusButtonsVisible) {
+      setNgPlusButtonsVisible(false);
+    }
+  }, [gameState?.status, ngPlusButtonsVisible]);
+
+  useEffect(() => {
     setLifetimeStats(loadLifetimeStats());
   }, []);
   
@@ -711,6 +719,7 @@ const App: React.FC = () => {
         <DeckReviewScreen
           deck={gameState.deckForReview || []}
           onConfirm={confirmDeckSelection}
+          ngPlusLevel={gameState.ngPlusLevel}
         />
       )}
 

@@ -1,6 +1,6 @@
 // FIX: Add React import to resolve TypeScript error for React.MutableRefObject.
 import React from 'react';
-import { PlayerDetails, CardData, LogEntry, ActiveGameBannerState } from '../types.ts';
+import { PlayerDetails, CardData, LogEntry, ActiveGameBannerState, RunStats } from '../types.ts';
 import { soundManager } from './soundManager.ts';
 import { getRandomLogVariation } from './logUtils.ts';
 import { createTrophyOrBountyCard } from './cardUtils.ts';
@@ -100,7 +100,23 @@ export const applyDamageAndGetAnimation = (
 
         incomingDamage -= damageNegatedByHat;
 
+        const hatIndex = modPlayer.equippedItems.findIndex(item => item.id === equippedHat.id);
         modPlayer.equippedItems = modPlayer.equippedItems.filter(item => item.id !== equippedHat.id);
+
+        // Re-index satchels after removing the hat
+        if (hatIndex !== -1) {
+            const newSatchels: { [key: number]: CardData[] } = {};
+            for (const key in modPlayer.satchels) {
+                const oldIndex = parseInt(key, 10);
+                if (oldIndex < hatIndex) {
+                    newSatchels[oldIndex] = modPlayer.satchels[key];
+                } else if (oldIndex > hatIndex) {
+                    newSatchels[oldIndex - 1] = modPlayer.satchels[key];
+                }
+            }
+            modPlayer.satchels = newSatchels;
+        }
+
         modPlayer.maxHealth = Math.max(1, modPlayer.maxHealth - hatHealthBonus);
         modPlayer.health = Math.min(modPlayer.health, modPlayer.maxHealth);
         const baseEquippedHat = getBaseCardByIdentifier(equippedHat);
@@ -172,11 +188,17 @@ export const handleTrapInteractionWithEvent = (
     let finalDamageDealt = 0;
 
     const targetHealth = modEvent.health || 0;
-    const trapSize = trap.effect?.size;
+    const trapEffect = trap.effect;
     let trapThreshold = 0;
-    if (trapSize === 'small') trapThreshold = 4;
-    else if (trapSize === 'medium') trapThreshold = 6;
-    else if (trapSize === 'large') trapThreshold = 8;
+
+    if (trapEffect?.trapThreshold) {
+        trapThreshold = trapEffect.trapThreshold;
+    } else if (trapEffect?.size) {
+        // Fallback to old hardcoded values for backward compatibility
+        if (trapEffect.size === 'small') trapThreshold = 4;
+        else if (trapEffect.size === 'medium') trapThreshold = 6;
+        else if (trapEffect.size === 'large') trapThreshold = 8;
+    }
 
     let caughtByThreshold = false;
     if (modEvent.subType === 'animal' && targetHealth <= trapThreshold) {
@@ -331,7 +353,7 @@ export const handleObjectiveCompletionChecks = (
             if (boss.subType === 'human') {
                 success = true;
                 localStorage.setItem('objectiveReward_mans_inhumanity_WWS', 'true');
-                rewardLog = `Congratulations!\nThe final boss was a human!\n\nReward: You'll start your next run with an AI-remixed legendary 'themed weapon'.`;
+                rewardLog = `Congratulations!\nThe final boss was a human!\n\nReward: Start your next run with an AI-remixed legendary 'themed weapon'.`;
             } else {
                 failureLog = `Optional Objective Failed.\nThe final boss was not a human.`;
             }
@@ -521,7 +543,8 @@ export const applyImmediateEventAndCheckEndTurn = (
             case 'animal':
             case 'human':
                 soundManager.playSound('threat_reveal');
-                if (currentEventInstance.subType === 'animal') {
+                const isBoss = currentAIBoss?.id === currentEventInstance.id;
+                if (currentEventInstance.subType === 'animal' && !isBoss) {
                     setTimeout(() => soundManager.playSound(currentEventInstance.id), 500);
                 } else if (currentEventInstance.subType === 'human') {
                     setTimeout(() => soundManager.playSound('human_threat_reveal'), 500);
@@ -679,7 +702,6 @@ export const applyImmediateEventAndCheckEndTurn = (
                         if (item.effect?.subtype === 'storage') {
                             const contents = modifiablePlayer.satchels[index] || [];
                             if (contents.length > 0) {
-                                // Attach contents to the instance being discarded
                                 itemToDiscardInstance.satchelContents = [...contents];
                             }
                         }
@@ -699,14 +721,14 @@ export const applyImmediateEventAndCheckEndTurn = (
                 if (itemsToDiscard.length > 0) {
                     _log(getRandomLogVariation('rockslideDiscardEquipped', { eventName: event.name, discardedItemNames: discardedItemNamesArr.join(', ') }, theme, modifiablePlayer, event, isBossEvent), 'event');
                     
-                    const processedItemsToDiscard = itemsToDiscard.map(item => {
-                        if (item.satchelContents && item.satchelContents.length > 0) {
-                            return item; // Keep instance with contents
+                    const processedItems = itemsToDiscard.map(item => {
+                        if (item.effect?.subtype === 'storage') {
+                            return item;
                         }
-                        return getBaseCardByIdentifier(item); // Get base card for others
+                        return getBaseCardByIdentifier(item);
                     }).filter((c): c is CardData => c !== null);
-                    
-                    modifiablePlayer.playerDiscard = [...modifiablePlayer.playerDiscard, ...processedItemsToDiscard];
+
+                    modifiablePlayer.playerDiscard.push(...processedItems);
                     
                     const oldSatchels = { ...modifiablePlayer.satchels };
                     modifiablePlayer.equippedItems = remainingEquippedItems;

@@ -1,4 +1,5 @@
 
+
 import { CardData, Character, RunStats, LifetimeStats } from './types.ts';
 import { ALL_CARDS_DATA_MAP as allCards } from './constants/card-data/index.ts';
 
@@ -11,7 +12,6 @@ export const EQUIP_LIMIT = 3;
 export const STORE_DISPLAY_LIMIT = 3;
 export const EVENT_DECK_SIZE = 20;
 export const PLAYER_DECK_TARGET_SIZE = 13;
-export const PLAYER_NG_PLUS_CARRY_OVER_LIMIT = 7;
 export const STORE_DECK_TARGET_SIZE = 30;
 export const MAX_DAYS_BEFORE_BOSS_FINDS_PLAYER = 40;
 export const NG_PLUS_THEME_MILESTONE_INTERVAL = 10;

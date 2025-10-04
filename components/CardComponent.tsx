@@ -269,7 +269,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
       } else {
         // For general items in hand
         let isCardPlayableNow = false;
-        const usableEffects = ['heal', 'weapon', 'conditional_weapon', 'campfire', 'gold', 'draw', 'trap', 'escape', 'fire_arrow', 'trick_shot', 'discard_gold', 'scout'];
+        const usableEffects = ['heal', 'weapon', 'conditional_weapon', 'campfire', 'gold', 'draw', 'trap', 'escape', 'fire_arrow', 'trick_shot', 'discard_gold', 'scout', 'bladed_technique'];
         if (card.effect && usableEffects.includes(card.effect.type) && card.id !== 'upgrade_satchel') {
           isCardPlayableNow = true;
         }
@@ -297,7 +297,7 @@ const CardComponent: React.FC<CardComponentProps> = ({
         // PUSH 3: PLAY (will be at top)
         if (isCardPlayableNow) {
           let useDisabled = turnEnded || !isPlayable;
-           if (card.effect!.type === 'weapon' || card.effect!.type === 'conditional_weapon' || card.effect!.type === 'fire_arrow' || card.effect!.type === 'trick_shot') { 
+           if (card.effect!.type === 'weapon' || card.effect!.type === 'conditional_weapon' || card.effect!.type === 'fire_arrow' || card.effect!.type === 'trick_shot' || card.effect!.type === 'bladed_technique') { 
              if (!playerDetails.activeEventForAttack || playerDetails.activeEventForAttack.health <= 0 || playerDetails.activeEventForAttack.type !== 'Event') {
                  useDisabled = true;
              }

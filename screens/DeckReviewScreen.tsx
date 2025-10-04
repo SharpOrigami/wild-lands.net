@@ -1,18 +1,22 @@
 import React, { useState, useMemo } from 'react';
 import { CardData, CardContext } from '../types.ts';
 import CardComponent from '../components/CardComponent.tsx';
-import { PLAYER_NG_PLUS_CARRY_OVER_LIMIT } from '../constants.ts';
 import { soundManager } from '../utils/soundManager.ts';
 import { getCardDescriptionHtml } from '../utils/cardUtils.ts';
 
 interface DeckReviewScreenProps {
   deck: CardData[];
   onConfirm: (selectedIndices: number[]) => void;
+  ngPlusLevel: number;
 }
 
-const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) => {
+const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm, ngPlusLevel }) => {
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+
+  const carryOverLimit = useMemo(() => {
+    return Math.min(13, 7 + Math.floor(ngPlusLevel / 10));
+  }, [ngPlusLevel]);
 
   const toggleCardSelection = (index: number) => {
     soundManager.playSound('card_click');
@@ -24,7 +28,7 @@ const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) 
           setLastSelectedIndex(null);
         }
       } else {
-        if (newSelection.size < PLAYER_NG_PLUS_CARRY_OVER_LIMIT) {
+        if (newSelection.size < carryOverLimit) {
           newSelection.add(index);
           setLastSelectedIndex(index);
         }
@@ -54,11 +58,11 @@ const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) 
   return (
     <div className="flex flex-col items-center p-4 bg-[rgba(0,0,0,0.6)] rounded-lg">
       <h2 className="text-3xl font-western text-center text-stone-200 mb-2" style={{ textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 3px 3px 5px rgba(0,0,0,0.7)' }}>Deck Review</h2>
-      <p className="text-stone-300 mb-4 text-center max-w-2xl">Your journey was victorious! Now, prepare for the next. Choose up to {PLAYER_NG_PLUS_CARRY_OVER_LIMIT} cards to carry over into your NG+ run. Any cards left behind will be sold for gold.</p>
+      <p className="text-stone-300 mb-4 text-center max-w-2xl">Your journey was victorious! Now, prepare for the next. Choose up to {carryOverLimit} cards to carry over into your NG+ run. Any cards left behind will be sold for gold.</p>
       
       <div className="w-full bg-[rgba(244,241,234,0.8)] p-3 rounded-lg shadow-lg mb-4 text-center">
         <p className="text-xl font-bold font-pulp-title text-[var(--ink-main)]">
-          {selectedIndices.size} / {PLAYER_NG_PLUS_CARRY_OVER_LIMIT} cards selected
+          {selectedIndices.size} / {carryOverLimit} cards selected
         </p>
         <p className="text-md text-[var(--ink-secondary)] mt-1">
           {unselectedCards.length} cards will be sold for <span className="font-bold text-[var(--tarnished-gold)]">{goldFromSales}G</span>
@@ -73,7 +77,7 @@ const DeckReviewScreen: React.FC<DeckReviewScreenProps> = ({ deck, onConfirm }) 
             context={CardContext.DECK_REVIEW}
             onClick={() => toggleCardSelection(index)}
             isSelected={selectedIndices.has(index)}
-            isDisabled={selectedIndices.size >= PLAYER_NG_PLUS_CARRY_OVER_LIMIT && !selectedIndices.has(index)}
+            isDisabled={selectedIndices.size >= carryOverLimit && !selectedIndices.has(index)}
           />
         ))}
       </div>

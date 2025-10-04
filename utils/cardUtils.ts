@@ -531,9 +531,15 @@ export function getFormattedEffectText(card: CardData, source: CardContext, play
             return `Next day, draw ${effect.amount || 1} fewer cards. Temporary.`;
         case 'trap':
             let trapEffectiveness = '';
-            if (effect.size === 'small') trapEffectiveness = 'up to 4 HP';
-            else if (effect.size === 'medium') trapEffectiveness = 'up to 6 HP';
-            else if (effect.size === 'large') trapEffectiveness = 'up to 8 HP';
+            if (effect.trapThreshold) {
+                trapEffectiveness = `up to ${effect.trapThreshold} HP`;
+            } else if (effect.size === 'small') {
+                trapEffectiveness = 'up to 4 HP';
+            } else if (effect.size === 'medium') {
+                trapEffectiveness = 'up to 6 HP';
+            } else if (effect.size === 'large') {
+                trapEffectiveness = 'up to 8 HP';
+            }
             let breakDamageText = '';
             if (effect.breakDamage && effect.breakDamage > 0) {
                 breakDamageText = ` Deals ${effect.breakDamage} if broken by larger target.`;

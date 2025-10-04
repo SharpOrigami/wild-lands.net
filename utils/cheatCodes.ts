@@ -33,7 +33,8 @@ export type CheatPhraseCategory =
   | 'trapCaught'
   | 'trapSet'
   | 'useCheatItem'
-  | 'itemEquipped';
+  | 'itemEquipped'
+  | 'deEscalate';
 
 /**
  * Defines the effects of a pop culture cheat code.
@@ -629,7 +630,7 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
       addGold: 50,
       addMaxHealth: 3,
       addCustomCards: [
-        { id: 'custom_crockett_rifle', name: "Old Betsy", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "A trusty rifle that's seen the far side of the frontier.", sellValue: 25, isCheat: true, illustrationId: 'item_rifle_t1' },
+        { id: 'custom_crockett_rifle', name: "Old Betsy", type: 'Item', effect: { type: 'weapon', attack: 11 }, description: "A trusty rifle that's seen the far side of the frontier.", sellValue: 25, isCheat: true, illustrationId: 'item_hunting_rifle_t1' },
         { id: 'custom_crockett_cap', name: "Coonskin Cap", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'damage_negation', max_health: 6, persistent: true }, description: "King of the Wild Frontier.", sellValue: 10, isCheat: true, illustrationId: 'upgrade_raccoon_skin_hat' },
       ],
       catchphrases: {
@@ -672,7 +673,7 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
           'custom_lewis_journal': ["He equips his Journal. 'For the purposes of scientific discovery.'"]
         },
         useCheatItem: {
-          'custom_lewis_scout': ["He uses his knowledge from the Corps of Discovery to scout the path ahead."],
+          'custom_lewis_scout': ["He uses his knowledge as a guide to find the safest path."],
           'custom_lewis_journal': ["He makes an entry in his journal about a new discovery."]
         }
       }
@@ -1245,6 +1246,41 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
     },
   },
   {
+    name: "ace ventura",
+    requiredCharacterId: 'trapper',
+    effects: {
+        addGold: 100,
+        addMaxHealth: 2,
+        addCustomCards: [
+            { id: 'custom_ace_dart_gun', name: "Tranquilizer Dart Gun", type: 'Item', effect: { type: 'weapon', attack: 5 }, description: "For putting unruly beasts to sleep... or just really, really annoying them. Do NOT use on humans.", sellValue: 5, isCheat: true, illustrationId: 'item_six_shooter_t1' },
+            { id: 'custom_ace_card', name: "Pet Detective Business Card", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'sell_boost', amount: 5, persistent: true }, description: "Ace Ventura, Pet Detective. At your service.", sellValue: 1, isCheat: true, illustrationId: 'upgrade_treasure_map' },
+            { id: 'custom_ace_hair', name: "The Hair", type: 'Player Upgrade', effect: { type: 'upgrade', subtype: 'max_health', amount: 5, persistent: true }, description: "This hair isn't just for show. It's... aerodynamic. And provides surprising protection from head trauma.", sellValue: 1, isCheat: true, illustrationId: 'upgrade_cavalry_hat' },
+        ],
+        catchphrases: {
+            newDay: [ "Allllllrighty then! Time to get this party started!", "A new day, a new crime scene. Spank you, smacks!", "Re-he-he-heally? Morning already?" ],
+            eventRevealThreat: [ "Well, what do we have here? Captain Winkie!", "Holy testicle Tuesday! A {enemyName}!", "Warning! Assholes are closer than they appear! It's a {enemyName}!" ],
+            playerAttack: [ "Let me show you something!", "Take that, you lousy... animal... thing!", "I'm ready for my close-up, Mr. DeMille!", "Do NOT go in there! Wooo!" ],
+            playerAttackAnimal: [ "Come to me, my jungle friends!", "That's a lovely Accent you have. New Jersey?", "This is a lovely room of death.", "I'm gonna get you, you furry little football!" ],
+            playerDamage: [ "Kinda hot in these rhinos...", "I'm in psychoville and Finkle's the mayor.", "Ouch! Right in the fun-buns!", "That's a big-a-boy!" ],
+            playerHeal: [ "Like a glove!", "I feel... reborn!", "Ah, that's better. Now, where was I?" ],
+            threatDefeated: [ "And you get a plunger! And you get a plunger!", "Loooooser!", "And that's how you do that. Allllllrighty then!" ],
+            threatDefeatedAnimal: [ "Your ball is in my court now, pretty boy!", "The beast is... sleeping. With his eyes open.", "Gotcha! Another case solved." ],
+            goldFound: [ "Money, money, money! All for me!", "This will buy a lot of bird seed.", "'Finders keepers, losers weepers.' But I'm not a weeper!" ],
+            itemBought: [ "This is a lovely piece of equipment. Re-he-he-heally!", "I'll take it! This is my department, and it's all part of the job." ],
+            itemSold: [ "Take it. I don't want it. It's got... cooties.", "One man's trash is another man's... well, still trash." ],
+            bountySold: [ "Here's your man... or what's left of him. Case closed!", "Another one for the books. The Pet Detective always gets his man... or beast." ],
+            illnessContracts: [ "I'm feeling a little... under the weather. Like, a hurricane is on my head.", "My body is a temple... of doom!", "That's not a food berry... that's a bad berry!" ],
+            trapSet: [ "It's a trap! But, like, my trap. So it's a good trap.", "This should work. If it doesn't... deny everything.", "Shh! Be vewy, vewy quiet. I'm huntin'... animals." ],
+            trapCaught: [ "Gotcha! It's all in the reflexes.", "Aha! Another successful capture for Ace Ventura, Pet Detective!", "It's... it's alive! IT'S ALIVE!" ],
+            laudanumAbuse: [ "This stuff is... magical. I can see the animals talking.", "Whoa, everything is so... colorful. And fuzzy.", "I'm not drunk! I'm... uh... performance-enhanced." ],
+            itemEquipped: [ "This new accessory really brings the whole outfit together.", "Lookin' sharp! And ready for action!", "New gear? Allllllrighty then!" ],
+            campfireBuilt: [ "Let there be light! And s'mores! Anyone got s'mores?", "Kumbaya, my lord, kumbaya... Oh, sorry. Got carried away.", "A nice, toasty fire. Perfect for... telling scary stories!" ],
+            scoutAhead: [ "Let me just... take a peek-a-loo.", "I see you... and you... and you!", "The coast is clear! Or... is it? Dun dun DUNNNN!" ],
+            deEscalate: [ "All righty then! Let's just talk this out.", "'Scuse me, I'd like to ass you a few questions.", "I have to go now. I'm having a baby. It's a... boy." ]
+        }
+    }
+  },
+  {
     name: "hugh glass",
     requiredCharacterId: 'trapper',
     effects: {
@@ -1264,7 +1300,7 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         threatDefeatedAnimal: ["The beast falls. 'It is done.' He moves on, his purpose unchanged.", "He looks at the animal. 'The world is filled with things that will kill you.'", "'Another ghost for the forest.'"],
         playerDamage: ["He takes the hit, unfazed. 'I ain't afraid to die anymore. I'd done it already.'", "'I'm right here. I'll be right here.'", "He takes a hit, remembering the bear."],
         playerHeal: ["'I must survive.'", "'My son... he watches over me.'"],
-        itemTaken: ["'This will help me survive.'", "'The earth provides.'"],
+        itemTaken: ["'This will be useful.'", "'The earth provides.'"],
         equipCheatItem: {
           'custom_glass_hide': ["He wears the Grizzly Hide. 'It keeps me warm.'"]
         },
@@ -1614,7 +1650,7 @@ export const POP_CULTURE_CHEATS: PopCultureCheat[] = [
         { id: 'custom_pete_nugget2', name: "Large Gold Nugget", type: 'Item', effect: { type: 'gold' }, sellValue: 50, description: "It's a motherlode!", isCheat: true, illustrationId: 'item_gold_nugget_t2' },
       ],
       catchphrases: {
-        goldFound: ["'It's a gold rush!'", "'Yee-haw!'", "'I'm a prospector! I'm a connoisseur of dirt!'"],
+        goldFound: ["'It's a gold rush!'", "'Yee-haw!'", "'I'm rich! I'm rich!'"],
         itemTaken: ["'That's not for you!'", "'This is my chance!'", "'I've been waiting for this for years!'"],
         playerAttack: ["'You can't rush art.'", "'Get away from me!'"],
         threatDefeated: ["'This is my moment!'", "'I'm free!'"],

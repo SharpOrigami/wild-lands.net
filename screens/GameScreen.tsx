@@ -1066,7 +1066,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       </div>
 
       <div
-        className="lg:hidden"
+        className="lg:hidden overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >

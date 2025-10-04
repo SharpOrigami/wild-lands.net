@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameState, PlayerDetails, Character, CardData, LogEntry, CardContext, ModalState, ActiveGameBannerState, RunStats } from '../types.ts';
 import {
@@ -81,6 +80,89 @@ function smoothScrollTo(endY: number, duration: number) {
 
     animationFrameId = requestAnimationFrame(animation);
 }
+
+/**
+ * Migrates a loaded game state to the latest data version.
+ * This handles changes like new card properties or data structure updates.
+ * @param gameStateToMigrate The game state object loaded from storage.
+ * @returns A migrated game state object.
+ */
+const migrateGameState = (gameStateToMigrate: GameState): GameState => {
+    const originalStateString = JSON.stringify(gameStateToMigrate);
+    const migratedState = JSON.parse(originalStateString); // Deep copy
+    let migrationApplied = false;
+
+    const migrateCard = (card: CardData | null): CardData | null => {
+        if (!card) return null;
+        let modifiedCard = { ...card };
+        let cardWasModified = false;
+
+        // Migration 1: Trap Threshold
+        if (modifiedCard.effect?.type === 'trap' && modifiedCard.effect.trapThreshold === undefined) {
+            const latestCardVersion = ALL_CARDS_DATA_MAP[modifiedCard.id];
+            if (latestCardVersion && latestCardVersion.effect?.trapThreshold !== undefined) {
+                modifiedCard = latestCardVersion;
+                cardWasModified = true;
+            }
+        }
+        
+        // Migration 2: Flowing Water Slash
+        const newFlowingWaterSlashCard = ALL_CARDS_DATA_MAP['action_trick_shot_fj'];
+        if (newFlowingWaterSlashCard && modifiedCard.id === 'action_trick_shot_fj' && modifiedCard.effect?.type !== 'bladed_technique') {
+            modifiedCard = newFlowingWaterSlashCard;
+            cardWasModified = true;
+        }
+
+        if (cardWasModified) {
+            migrationApplied = true;
+        }
+        return modifiedCard;
+    };
+    
+    const migrateCardArray = (cards: (CardData | null)[]): (CardData | null)[] => {
+        return cards.map(migrateCard);
+    };
+
+    // Player Details
+    const player = migratedState.playerDetails?.[PLAYER_ID];
+    if (player) {
+        // Migration 3: Old Satchel format (must run before satchel content migration)
+        if ((player as any).satchel && !player.satchels) {
+            migrationApplied = true;
+            const newSatchels: { [key: number]: CardData[] } = {};
+            const equippedItems = player.equippedItems || [];
+            const satchelIndex = equippedItems.findIndex((item: CardData) => item?.effect?.subtype === 'storage');
+            if (satchelIndex !== -1) {
+                newSatchels[satchelIndex] = (player as any).satchel;
+            }
+            player.satchels = newSatchels;
+            delete (player as any).satchel;
+        }
+
+        player.hand = migrateCardArray(player.hand || []);
+        player.equippedItems = migrateCardArray(player.equippedItems || []) as CardData[];
+        player.activeTrap = migrateCard(player.activeTrap || null);
+        player.playerDeck = migrateCardArray(player.playerDeck || []) as CardData[];
+        player.playerDiscard = migrateCardArray(player.playerDiscard || []) as CardData[];
+        if (player.satchels) {
+            for (const key in player.satchels) {
+                player.satchels[key] = migrateCardArray(player.satchels[key] || []) as CardData[];
+            }
+        }
+    }
+    
+    // Game State top-level
+    migratedState.eventDeck = migrateCardArray(migratedState.eventDeck || []) as CardData[];
+    migratedState.eventDiscardPile = migrateCardArray(migratedState.eventDiscardPile || []) as CardData[];
+    migratedState.activeEvent = migrateCard(migratedState.activeEvent || null);
+    migratedState.storeItemDeck = migrateCardArray(migratedState.storeItemDeck || []) as CardData[];
+    migratedState.storeDisplayItems = migrateCardArray(migratedState.storeDisplayItems || []);
+    migratedState.storeItemDiscardPile = migrateCardArray(migratedState.storeItemDiscardPile || []) as CardData[];
+    migratedState.deckForReview = migratedState.deckForReview ? migrateCardArray(migratedState.deckForReview) as CardData[] : undefined;
+    migratedState.aiBoss = migratedState.aiBoss ? migrateCard(migratedState.aiBoss) : undefined;
+
+    return migrationApplied ? migratedState : gameStateToMigrate;
+};
 
 export const useGameState = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -479,6 +561,7 @@ export const useGameState = () => {
         await new Promise(resolve => setTimeout(resolve, 750));
 
         let modifiableGameStateUpdates: Partial<GameState> = {};
+        let threatAttackedAtNight = false;
         
         let eventActiveAtNight = initialTurnState.activeEvent;
         if (eventActiveAtNight && eventActiveAtNight.subType === 'objective') {
@@ -533,6 +616,7 @@ export const useGameState = () => {
 
                 if (!isCampfireProtectiveForNightThreat) {
                     _log(getRandomLogVariation('enemyAttackEndOfDay', { enemyName: nightThreat.name, playerName: modifiablePlayer.name || 'Player' }, theme, modifiablePlayer, nightThreat, isBossActiveDuringNight), 'event');
+                    threatAttackedAtNight = true;
                     
                     if (isSkunk && nightThreat.effect?.type === 'damage' && nightThreat.effect.amount) {
                         modifiableGameStateUpdates.skunkSprayVisualActive = true;
@@ -715,12 +799,12 @@ export const useGameState = () => {
         let currentEventDiscard = [...(modifiableGameStateUpdates.eventDiscardPile || initialTurnState.eventDiscardPile || [])]; 
         modifiableGameStateUpdates.activeEventJustAttacked = false;
         let turnActuallyEndedByImmediateEvent = false;
-        let eventWasNewlyDrawnThisTurn = false;
 
         if (!gameShouldEnd) {
             if (currentActiveEventForNewDay === null && !modifiablePlayer.isCampfireActive) {
-                eventWasNewlyDrawnThisTurn = true;
-                currentEventDeck = modifiableGameStateUpdates.eventDeck || currentEventDeck;
+                let eventToProcess: CardData | null = null;
+                let originalEventCardForDiscard: CardData | null = null;
+
                 let bossShouldAppear = false;
                 let bossTriggerReason = "";
 
@@ -742,61 +826,56 @@ export const useGameState = () => {
                     _log(bossTriggerReason, "event");
                     const bossBaseCard = CURRENT_CARDS_DATA[initialTurnState.aiBoss!.id];
                     if (bossBaseCard) {
-                        currentActiveEventForNewDay = getScaledCard(bossBaseCard, initialTurnState.ngPlusLevel);
-                        if (currentActiveEventForNewDay && (initialTurnState.eventDifficultyBonus || 0) > 0) {
-                            currentActiveEventForNewDay = applyDifficultyBonus(currentActiveEventForNewDay, initialTurnState.eventDifficultyBonus || 0);
+                        eventToProcess = getScaledCard(bossBaseCard, initialTurnState.ngPlusLevel);
+                        if (eventToProcess && (initialTurnState.eventDifficultyBonus || 0) > 0) {
+                            eventToProcess = applyDifficultyBonus(eventToProcess, initialTurnState.eventDifficultyBonus || 0);
                         }
-                        const health = currentActiveEventForNewDay!.health || 0;
-                        let tier: 'Low' | 'Mid' | 'High' = 'Low';
-                        if (health > 15) tier = 'High';
-                        else if (health > 8) tier = 'Mid';
-                        _log(getRandomLogVariation(`eventRevealThreat${tier}`, { enemyName: currentActiveEventForNewDay!.name, playerName: modifiablePlayer.name || 'Player' }, theme, modifiablePlayer, currentActiveEventForNewDay, true), "event");
                     } else {
-                        currentActiveEventForNewDay = null;
+                        eventToProcess = null;
                         _log(`CRITICAL ERROR: AI Boss card '${initialTurnState.aiBoss!.id}' not found.`, "error");
                     }
-                    modifiableGameStateUpdates.activeEventTurnCounter = 1;
                     modifiableGameStateUpdates.isBossFightActive = true;
+                    soundManager.playMusic('music_boss');
                 } else if (currentEventDeck.length > 0) {
-                    let newEventOriginal = currentEventDeck.shift()!;
+                    originalEventCardForDiscard = currentEventDeck.shift()!;
+                    eventToProcess = getScaledCard(originalEventCardForDiscard, initialTurnState.ngPlusLevel);
+                    if (eventToProcess && (initialTurnState.eventDifficultyBonus || 0) > 0) {
+                        eventToProcess = applyDifficultyBonus(eventToProcess, initialTurnState.eventDifficultyBonus || 0);
+                    }
                     if (currentEventDeck.length === 0 && !gameShouldEnd) {
                         triggerBanner("The Event Deck is empty! The boss will appear next turn!", 'event_alert');
                     }
-                    let scaledNewEvent: CardData | null = getScaledCard(newEventOriginal, initialTurnState.ngPlusLevel);
-                    if (scaledNewEvent && (initialTurnState.eventDifficultyBonus || 0) > 0) {
-                        scaledNewEvent = applyDifficultyBonus(scaledNewEvent, initialTurnState.eventDifficultyBonus || 0);
-                    }
-                    if (scaledNewEvent) {
-                      const { updatedPlayer: playerAfterImmediateEvent, turnEndedByEvent, gameShouldEnd: endAfterImmediate, eventRemoved, winReason: reasonAfterImmediate, damageInfo: immediateDamageInfo, modifiedEventAfterTrap } = applyImmediateEventAndCheckEndTurn(scaledNewEvent, modifiablePlayer, initialTurnState.aiBoss, initialTurnState.ngPlusLevel);
-                      modifiablePlayer = playerAfterImmediateEvent;
-                      if (immediateDamageInfo) modifiableGameStateUpdates.pendingPlayerDamageAnimation = immediateDamageInfo;
-                      turnActuallyEndedByImmediateEvent = turnEndedByEvent;
-                      if (endAfterImmediate) {
-                          gameShouldEnd = true;
-                          winReason = reasonAfterImmediate || winReason;
-                      }
-                      if (eventRemoved) {
-                          const baseNewEvent = getBaseCardByIdentifier(newEventOriginal);
-                          if(baseNewEvent) currentEventDiscard.push(baseNewEvent);
-                          currentActiveEventForNewDay = null;
-                          modifiableGameStateUpdates.activeEventTurnCounter = 0;
-                      } else {
-                          currentActiveEventForNewDay = modifiedEventAfterTrap;
-                          modifiableGameStateUpdates.activeEventTurnCounter = currentActiveEventForNewDay ? 1 : 0;
-                      }
-                      if (newEventOriginal.id.startsWith('threat_lightning_strike')) {
-                          soundManager.playSound('lightning_strike');
-                          modifiableGameStateUpdates.showLightningStrikeFlash = true;
-                      } else if (newEventOriginal.id.startsWith('threat_rockslide') || newEventOriginal.id.startsWith('threat_flash_flood')) {
-                          soundManager.playSound('rockslide');
-                      } else if (newEventOriginal.id.startsWith('threat_mountain_sickness') || newEventOriginal.id.startsWith('threat_heat_stroke')) {
-                          soundManager.playSound('mountain_sickness');
-                      }
-                    }
-                } else if (modifiablePlayer.health > 0) {
-                    gameShouldEnd = true;
-                    winReason = getRandomLogVariation('playerVictory', { playerName: modifiablePlayer.character?.name || 'The adventurer' }, theme, modifiablePlayer, undefined, true);
                 }
+
+                if (eventToProcess) {
+                    const { updatedPlayer: playerAfterImmediateEvent, turnEndedByEvent, gameShouldEnd: endAfterImmediate, eventRemoved, winReason: reasonAfterImmediate, damageInfo: immediateDamageInfo, modifiedEventAfterTrap } = applyImmediateEventAndCheckEndTurn(eventToProcess, modifiablePlayer, initialTurnState.aiBoss, initialTurnState.ngPlusLevel);
+                    modifiablePlayer = playerAfterImmediateEvent;
+                    if (immediateDamageInfo) modifiableGameStateUpdates.pendingPlayerDamageAnimation = immediateDamageInfo;
+                    turnActuallyEndedByImmediateEvent = turnEndedByEvent;
+                    if (endAfterImmediate) {
+                        gameShouldEnd = true;
+                        winReason = reasonAfterImmediate || winReason;
+                    }
+                    if (eventRemoved) {
+                        if (originalEventCardForDiscard && (!initialTurnState.aiBoss || originalEventCardForDiscard.id !== initialTurnState.aiBoss.id)) {
+                            const baseNewEvent = getBaseCardByIdentifier(originalEventCardForDiscard);
+                            if (baseNewEvent) currentEventDiscard.push(baseNewEvent);
+                        }
+                        currentActiveEventForNewDay = null;
+                    } else {
+                        currentActiveEventForNewDay = modifiedEventAfterTrap;
+                    }
+
+                    if (eventToProcess.id.startsWith('threat_lightning_strike')) {
+                        soundManager.playSound('lightning_strike');
+                        modifiableGameStateUpdates.showLightningStrikeFlash = true;
+                    } else if (eventToProcess.id.startsWith('threat_rockslide') || eventToProcess.id.startsWith('threat_flash_flood')) {
+                        soundManager.playSound('rockslide');
+                    } else if (eventToProcess.id.startsWith('threat_mountain_sickness') || eventToProcess.id.startsWith('threat_heat_stroke')) {
+                        soundManager.playSound('mountain_sickness');
+                    }
+                }
+                modifiableGameStateUpdates.activeEventTurnCounter = currentActiveEventForNewDay ? 1 : 0;
                 modifiableGameStateUpdates.eventDeck = currentEventDeck;
                 modifiableGameStateUpdates.eventDiscardPile = currentEventDiscard;
 
@@ -814,12 +893,12 @@ export const useGameState = () => {
                 const threatForMorningAttack = currentActiveEventForNewDay;
                 const isBossActiveInMorning = threatForMorningAttack.id === initialTurnState.aiBoss?.id;
                 let morningAttackOccurs = false;
-                let logMorningAttackReason = "";
-
-                const wasNewlyDrawnAndAttackedImmediately = eventWasNewlyDrawnThisTurn && modifiableGameStateUpdates.pendingPlayerDamageAnimation && modifiableGameStateUpdates.pendingPlayerDamageAnimation.eventId === threatForMorningAttack.id;
+                
+                const wasCarriedOverFromPreviousDay = initialTurnState.activeEvent?.id === threatForMorningAttack.id;
                 const isFirstTurnTransitionOfNewGame = initialTurnState.turn === 1 && initialTurnState.gameJustStarted;
 
-                if (!wasNewlyDrawnAndAttackedImmediately && !isFirstTurnTransitionOfNewGame) {
+                // Morning attacks only happen to threats that survived the night, didn't already attack at night, and it's not the very first turn of the game.
+                if (wasCarriedOverFromPreviousDay && !threatAttackedAtNight && !isFirstTurnTransitionOfNewGame) {
                     const isHostileThreat = (threatForMorningAttack.type === 'Event' && (threatForMorningAttack.subType === 'human' || threatForMorningAttack.subType === 'animal')) || (initialTurnState.aiBoss && threatForMorningAttack.id === initialTurnState.aiBoss.id);
                     if (isHostileThreat) {
                         const isCampfireProtected = threatForMorningAttack.subType === 'animal' && modifiablePlayer.isCampfireActive;
@@ -827,9 +906,6 @@ export const useGameState = () => {
                         if (!isCampfireProtected && !isExcludedFromMorningAttack && !threatForMorningAttack.isPacified) {
                             if ((threatForMorningAttack.effect?.amount || 0) > 0 || (threatForMorningAttack.effect?.damage || 0) > 0) {
                                 morningAttackOccurs = true;
-                                logMorningAttackReason = initialTurnState.activeEvent?.id === threatForMorningAttack.id
-                                    ? getRandomLogVariation('enemyAttackEndOfDay', { enemyName: threatForMorningAttack.name }, theme, modifiablePlayer, threatForMorningAttack, isBossActiveInMorning)
-                                    : getRandomLogVariation('enemyAttackImmediate', { enemyName: threatForMorningAttack.name }, theme, modifiablePlayer, threatForMorningAttack, isBossActiveInMorning);
                             }
                         } else if (isCampfireProtected) {
                             _log(getRandomLogVariation('enemyCampfireDeterred', { enemyName: threatForMorningAttack.name }, theme, modifiablePlayer, threatForMorningAttack), 'info');
@@ -838,7 +914,7 @@ export const useGameState = () => {
                 }
 
                 if (morningAttackOccurs && threatForMorningAttack.effect?.type === 'damage' && (threatForMorningAttack.effect.amount || 0) > 0) {
-                    _log(logMorningAttackReason, 'event');
+                    _log(getRandomLogVariation('enemyAttackEndOfDay', { enemyName: threatForMorningAttack.name }, theme, modifiablePlayer, threatForMorningAttack, isBossActiveInMorning), 'event');
                     const { updatedPlayer, animationDetails } = applyDamageAndGetAnimation(modifiablePlayer, threatForMorningAttack.effect.amount || 0, threatForMorningAttack.name, isBossActiveInMorning, threatForMorningAttack.id, false, threatForMorningAttack);
                     modifiablePlayer = updatedPlayer;
                     if (animationDetails) modifiableGameStateUpdates.pendingPlayerDamageAnimation = animationDetails;
@@ -1298,7 +1374,7 @@ export const useGameState = () => {
         
         if (level >= 1 && level < 10) {
             remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-            cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
+            cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
             const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => !/_fj$|_as$|_sh$|_cp$/.test(c.id));
             const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
             cardsForRemixingPool = originalThemePool.filter(card => !alreadyRemixedOriginalIds.has(card.id) && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
@@ -1334,7 +1410,7 @@ export const useGameState = () => {
         else if (level > 10) {
             const CARDS_TO_REMIX_PER_LEVEL = 10;
             remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-            cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
+            cumulativeRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
             const originalThemePool = Object.values(ALL_CARDS_DATA_MAP).filter(c => themeSuffix ? c.id.endsWith(themeSuffix) : false);
             const alreadyRemixedOriginalIds = new Set(Object.values(cumulativeRemixedCards).map((card: any) => card.originalId).filter(Boolean));
             const remixableCards = originalThemePool.filter(card => !alreadyRemixedOriginalIds.has(card.id) && card.subType !== 'objective' && card.buyCost && card.buyCost > 0);
@@ -1422,29 +1498,47 @@ export const useGameState = () => {
       try {
         setGameState(prev => prev ? { ...prev, isLoadingNGPlus: true } : null);
         
-        let remixedCardsFromGeneration: { [id: string]: CardData } = {};
-        if (nextLevelRemixPromise.current) {
-            _log("Waiting for pregenerated assets to finish...", "system");
-            await nextLevelRemixPromise.current;
-            nextLevelRemixPromise.current = null; // Consume the promise
-        } else if (level > 0 && !hardReset) {
-            _log(`Assets for NG+${level} were not pre-generated. Generating now...`, "system");
-            remixedCardsFromGeneration = await pregenerateNextLevelRemix(level);
+        const remixCacheKey = `wildWestRemixCache_NG${level}_WWS`;
+        let finalRemixedCards = JSON.parse(localStorage.getItem(remixCacheKey) || 'null');
+
+        if (!finalRemixedCards) {
+            if (level > 0 && !hardReset) {
+                _log(`No cached remixed cards for NG+${level}. Generating a new set...`, "system");
+                
+                const basePoolForRemix = getThemedCardPool(level, ALL_CARDS_DATA_MAP);
+                const remixableCards = basePoolForRemix.filter(card => 
+                    card.buyCost && card.buyCost > 0 && card.subType !== 'objective' && !card.id.startsWith('custom_') && !card.isCheat
+                );
+                
+                let numToRemix = 0;
+                if (level >= 40) numToRemix = 25;
+                else if (level >= 30) numToRemix = 20;
+                else if (level >= 20) numToRemix = 15;
+                else if (level >= 10) numToRemix = 10;
+                else if (level > 0) numToRemix = 5;
+
+                const cardsToRemixSelection = shuffleArray(remixableCards).slice(0, numToRemix);
+                const cardsToRemixDict: { [id: string]: CardData } = {};
+                cardsToRemixSelection.forEach(card => { cardsToRemixDict[card.id] = card; });
+
+                if (Object.keys(cardsToRemixDict).length > 0) {
+                    const result = await remixCardsForNGPlusGame(_log, cardsToRemixDict, level);
+                    if (result) {
+                        finalRemixedCards = result;
+                        localStorage.setItem(remixCacheKey, JSON.stringify(result));
+                    } else {
+                        finalRemixedCards = {};
+                    }
+                } else {
+                    finalRemixedCards = {};
+                }
+            } else {
+                finalRemixedCards = {};
+            }
+        } else {
+            _log(`Using cached remixed cards for NG+${level}.`, "system");
         }
 
-        let finalRemixedCards: { [id: string]: CardData } = {};
-        if (level > 0 && level < 10) {
-            const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-            finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
-        } 
-        else if (level >= 10) {
-            const themeName = getThemeName(level);
-            const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-            finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
-        }
-
-        finalRemixedCards = { ...finalRemixedCards, ...remixedCardsFromGeneration };
-        
         const finalCardsData = { ...ALL_CARDS_DATA_MAP, ...finalRemixedCards };
         updateCurrentCardsData(finalCardsData);
         
@@ -1458,7 +1552,7 @@ export const useGameState = () => {
                  const storedPlayerDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
                  if (storedPlayerDetailsString) {
                      try {
-                         const storedPlayerDetails = JSON.parse(storedPlayerDetailsString) as any;
+                         const storedPlayerDetails = JSON.parse(storedPlayerDetailsString);
                          if (storedPlayerDetails.name && storedPlayerDetails.characterId) {
                              updatedPlayer.name = storedPlayerDetails.name;
                              updatedPlayer.character = CHARACTERS_DATA_MAP[storedPlayerDetails.characterId] || null;
@@ -1470,24 +1564,32 @@ export const useGameState = () => {
                  }
                  const runStartStateString = localStorage.getItem('wildWestRunStartState_WWS');
                  if (runStartStateString) {
-                     try { runStartState = JSON.parse(runStartStateString) as any; } catch (e) { localStorage.removeItem('wildWestRunStartState_WWS'); }
+                     try { runStartState = JSON.parse(runStartStateString); } catch (e) { localStorage.removeItem('wildWestRunStartState_WWS'); }
                  }
             }
             if (runStartState && updatedPlayer.character && runStartState.characterId === updatedPlayer.character.id) {
                  // MIGRATION LOGIC FOR OLD RUN START STATE
-                 // @ts-ignore
                  if (runStartState.satchel && !runStartState.satchels) {
                     _log("Old run start state detected. Migrating satchel data...", "system");
                     const satchelIdsObj: { [key: number]: string[] } = {};
                     const equippedItems = runStartState.equipped || [];
                     const satchelIndex = equippedItems.findIndex((item: CardData) => item?.effect?.subtype === 'storage');
                     if (satchelIndex !== -1) {
-                        // @ts-ignore
                         satchelIdsObj[satchelIndex] = runStartState.satchel;
                     }
                     runStartState.satchels = satchelIdsObj;
-                    // @ts-ignore
                     delete runStartState.satchel;
+                 }
+                 if (Array.isArray(runStartState.satchels)) {
+                    _log("Old NG+ satchel format in run start state detected. Migrating...", "system");
+                    const oldSatchelContentsAsIds = runStartState.satchels;
+                    const newSatchelsObj: { [key: number]: string[] } = {};
+                    const equippedItems = runStartState.equipped || [];
+                    const satchelIndex = equippedItems.findIndex((item: CardData) => item?.effect?.subtype === 'storage');
+                    if (satchelIndex !== -1) {
+                        newSatchelsObj[satchelIndex] = oldSatchelContentsAsIds;
+                    }
+                    runStartState.satchels = newSatchelsObj;
                  }
                  // END MIGRATION
                  updatedPlayer.playerDeck = runStartState.deck || [];
@@ -1534,11 +1636,11 @@ export const useGameState = () => {
       }
     };
     initializeLevel(ngPlusLevel);
-  }, [_log, pregenerateNextLevelRemix]);
+  }, [_log]);
 
   const selectCharacter = useCallback((character: Character) => {
     const storedDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
-    const storedDetails = storedDetailsString ? JSON.parse(storedDetailsString) as any : {};
+    const storedDetails = storedDetailsString ? JSON.parse(storedDetailsString) : {};
 
     const isNewCharacter = storedDetails.characterId !== character.id;
     const personalityToSet = isNewCharacter ? character.personality : (storedDetails.personality || character.personality);
@@ -1562,7 +1664,7 @@ export const useGameState = () => {
           const storedGold = localStorage.getItem('ngPlusPlayerGold_WWS');
           if (storedGold !== null) goldForCharacterSelection = parseInt(storedGold, 10);
           const carriedOverEquippedString = localStorage.getItem('wildWestPlayerEquipped_WWS');
-          equippedItemsForCharacterSelection = JSON.parse(carriedOverEquippedString || '[]') as CardData[];
+          equippedItemsForCharacterSelection = JSON.parse(carriedOverEquippedString || '[]');
           
           let hpBonusFromItems = 0;
           equippedItemsForCharacterSelection.forEach(item => {
@@ -1585,8 +1687,8 @@ export const useGameState = () => {
           satchelIdsObj = {};
           
           const carriedOverEquippedString = localStorage.getItem('wildWestPlayerEquipped_WWS');
-          const currentEquippedItems = JSON.parse(carriedOverEquippedString || '[]') as CardData[];
-          const satchelIndex = currentEquippedItems.findIndex(item => item?.effect?.subtype === 'storage');
+          const currentEquippedItems = JSON.parse(carriedOverEquippedString || '[]');
+          const satchelIndex = currentEquippedItems.findIndex((item: CardData) => item?.effect?.subtype === 'storage');
           
           if (satchelIndex !== -1) {
               satchelIdsObj[satchelIndex] = oldSatchelContentsAsIds;
@@ -1757,7 +1859,7 @@ export const useGameState = () => {
     } finally {
         isActionInProgress.current = false;
     }
-  }, [_log, pregenerateNextLevelRemix]);
+  }, [_log]);
 
   const proceedToGamePlay = useCallback(async () => {
     if (remixGenerationPromise.current) {
@@ -1895,13 +1997,24 @@ export const useGameState = () => {
         finalPlayerDeck = [...carriedOverDeckItems, ...uniqueStarterCards];
     }
     
-    const playerValuablesResult = pickPrioritizingRemixed(currentCardPool, valuableFilter, Math.floor(Math.random() * 4));
-    currentCardPool = playerValuablesResult.remainingPool;
-    const neededPlayerItems = Math.max(0, PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length - playerValuablesResult.picked.length);
-    const playerItemsResult = pickPrioritizingRemixed(currentCardPool, genericItemFilter, neededPlayerItems);
-    const playerDeckAugmentationPool = [...playerValuablesResult.picked, ...playerItemsResult.picked];
-    finalPlayerDeck.push(...playerDeckAugmentationPool);
+    // New logic for augmenting player deck based on NG+ level
+    const baseCardsNeeded = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
+    const ngPlusReduction = Math.floor(currentState.ngPlusLevel / 10);
+    const cardsToAugmentCount = Math.max(0, baseCardsNeeded - ngPlusReduction);
 
+    _log(`Deck Augmentation: Base needed: ${baseCardsNeeded}, NG+ Reduction: ${ngPlusReduction}, Final cards to add: ${cardsToAugmentCount}`, "debug");
+
+    if (cardsToAugmentCount > 0) {
+        const playerDeckAugmentationResult = pickPrioritizingRemixed(currentCardPool, genericItemFilter, cardsToAugmentCount);
+        currentCardPool = playerDeckAugmentationResult.remainingPool;
+        const playerDeckAugmentationPool = playerDeckAugmentationResult.picked;
+
+        if (playerDeckAugmentationPool.length > 0) {
+            finalPlayerDeck.push(...playerDeckAugmentationPool);
+            _log(`Augmenting deck with ${playerDeckAugmentationPool.length} cards to match NG+ progression.`, "system");
+        }
+    }
+    
     if (localStorage.getItem('objectiveReward_well_prepared_WWS') === 'true') {
         const steakCard = CURRENT_CARDS_DATA['provision_steak'];
         if (steakCard) {
@@ -1912,11 +2025,19 @@ export const useGameState = () => {
         localStorage.removeItem('objectiveReward_well_prepared_WWS');
     }
     
-    if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
-        const extraCards = storeItemDeck.splice(0, PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length);
-        finalPlayerDeck.push(...extraCards);
+    if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE && cardsToAugmentCount > 0) {
+        const extraCardsNeeded = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
+        if(extraCardsNeeded > 0) {
+            const extraCardsResult = pickPrioritizingRemixed(currentCardPool, genericItemFilter, extraCardsNeeded);
+            finalPlayerDeck.push(...extraCardsResult.picked);
+            _log(`Topping up deck to ${PLAYER_DECK_TARGET_SIZE} cards with an additional ${extraCardsResult.picked.length} items.`, 'debug');
+        }
     }
-    if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE) finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
+    
+    if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE && currentState.ngPlusLevel < 60) {
+        finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
+        _log(`Deck size exceeds target. Trimming to ${PLAYER_DECK_TARGET_SIZE} cards.`, 'debug');
+    }
 
     if (currentState.remixDeckOnStart) {
         _log("AI is remixing the full starting deck...", "system");
@@ -2312,29 +2433,34 @@ export const useGameState = () => {
 
   const loadGame = useCallback((slotIndex: number) => {
     const saves = getSaveGames();
-    const savedState = saves[slotIndex];
+    let savedState = saves[slotIndex];
     if (savedState) {
+      const originalStateString = JSON.stringify(savedState);
+      savedState = migrateGameState(savedState);
+      if (JSON.stringify(savedState) !== originalStateString) {
+        _log(`Applied data migration to save slot ${slotIndex + 1}.`, 'system');
+      }
+
       const themeName = getThemeName(savedState.ngPlusLevel || 0);
       let remixedCards: { [id: string]: CardData } = {};
       if (savedState.ngPlusLevel > 0 && savedState.ngPlusLevel < 10) {
           const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-          // FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
-          remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
+          remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
       } else if (savedState.ngPlusLevel >= 10) {
           const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-          // FIX: Cast result of JSON.parse to 'any' to avoid 'unknown' type errors.
-          remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
+          remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
       }
 
       const finalCardsData = { ...ALL_CARDS_DATA_MAP, ...remixedCards };
-      if (savedState.aiBoss?.id) {
-          finalCardsData[savedState.aiBoss.id] = savedState.aiBoss;
+      const aiBoss = savedState.aiBoss as CardData | undefined;
+      if (aiBoss?.id) {
+        finalCardsData[aiBoss.id] = aiBoss;
       }
       updateCurrentCardsData(finalCardsData);
 
       const rehydratedState: GameState = {
-        ...savedState,
-        runId: savedState.runId || crypto.randomUUID(),
+        ...(savedState as GameState),
+        runId: (savedState as GameState).runId || crypto.randomUUID(),
         modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
         activeGameBanner: initialGameBannerState,
         pendingPlayerDamageAnimation: null,
@@ -2422,7 +2548,7 @@ export const useGameState = () => {
       const savedStateString = localStorage.getItem('wildWestGameState_WWS');
       if (savedStateString) {
         try {
-          const savedState: any = JSON.parse(savedStateString);
+          let savedState: any = JSON.parse(savedStateString);
           
           if (typeof savedState !== 'object' || savedState === null || !savedState.status) {
             throw new Error("Saved state is not a valid game object.");
@@ -2475,26 +2601,11 @@ export const useGameState = () => {
             }
           }
           
-          // MIGRATION LOGIC FOR OLD SAVE
-          const playerState = savedState.playerDetails?.[PLAYER_ID];
-          // The old save format might have a `satchel` property (array) instead of `satchels` (object).
-          // @ts-ignore - a one-time migration for old save structure.
-          if (playerState && playerState.satchel && !playerState.satchels) {
-            _log("Old save format detected. Migrating satchel data...", "system");
-            const newSatchels: { [key: number]: CardData[] } = {};
-            const equippedItems = playerState.equippedItems || [];
-            // Find the index of the first equipped satchel.
-            const satchelIndex = equippedItems.findIndex((item: CardData) => item?.effect?.subtype === 'storage');
-            // If a satchel is found, assign the old satchel content to the new structure.
-            if (satchelIndex !== -1) {
-              // @ts-ignore
-              newSatchels[satchelIndex] = playerState.satchel;
-            }
-            playerState.satchels = newSatchels;
-            // @ts-ignore
-            delete playerState.satchel; // Clean up the old property.
+          const originalStateForLog = JSON.stringify(savedState);
+          savedState = migrateGameState(savedState as GameState);
+          if (JSON.stringify(savedState) !== originalStateForLog) {
+              console.log("Applied data migration to auto-saved game state.");
           }
-          // END MIGRATION
 
           // Rehydrate character object to include new properties like skills
           if (savedState.playerDetails?.[PLAYER_ID]?.character?.id) {
@@ -2509,20 +2620,21 @@ export const useGameState = () => {
               savedState.playerDetails[PLAYER_ID].hatDamageNegationAvailable = savedState.playerDetails[PLAYER_ID].equippedItems.some((item: CardData) => item.effect?.subtype === 'damage_negation');
           }
 
-          // ** FIX: Correct logic to load remixed cards on initial app load. **
           const themeName = getThemeName(savedState.ngPlusLevel || 0);
           let remixedCards: { [id: string]: CardData } = {};
           if (savedState.ngPlusLevel > 0 && savedState.ngPlusLevel < 10) {
               const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-              remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
+              remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
           } else if (savedState.ngPlusLevel >= 10) {
               const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
-              remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}') as any;
+              remixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
           }
-          // ** END FIX **
           
           const finalCardsData = { ...ALL_CARDS_DATA_MAP, ...remixedCards };
-          if (savedState.aiBoss?.id) finalCardsData[savedState.aiBoss.id] = savedState.aiBoss;
+          const aiBoss = savedState.aiBoss as CardData | undefined;
+          if (aiBoss?.id) {
+            finalCardsData[aiBoss.id] = aiBoss;
+          }
           updateCurrentCardsData(finalCardsData);
 
           savedState.modals = { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState };
@@ -2542,7 +2654,7 @@ export const useGameState = () => {
         resetGame();
       }
     }
-  }, []);
+  }, [_log, resetGame]);
 
   return {
     gameState,

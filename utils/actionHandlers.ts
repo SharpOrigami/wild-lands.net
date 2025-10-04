@@ -194,7 +194,7 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
             }
         }
 
-        if (card.effect.type === 'weapon' || card.effect.type === 'conditional_weapon' || card.effect.type === 'fire_arrow' || card.effect.type === 'trick_shot') {
+        if (card.effect.type === 'weapon' || card.effect.type === 'conditional_weapon' || card.effect.type === 'fire_arrow' || card.effect.type === 'trick_shot' || card.effect.type === 'bladed_technique') {
             let weaponUsedType: 'firearm' | 'bow' | 'bladed' | undefined = undefined;
             soundManager.playSound(card.id);
 
@@ -202,12 +202,14 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                 weaponUsedType = 'firearm';
             } else if (isBow(card)) {
                 weaponUsedType = 'bow';
-            } else if (card.id.includes('_knife') || card.effect?.subtype === 'sword') {
+            } else if (card.id.includes('_knife') || card.effect?.subtype === 'sword' || card.id === 'action_trick_shot_fj') {
                 weaponUsedType = 'bladed';
             } else if (card.effect.type === 'fire_arrow') {
                 weaponUsedType = 'bow';
             } else if (card.effect.type === 'trick_shot') {
                 weaponUsedType = 'firearm';
+            } else if (card.effect.type === 'bladed_technique') {
+                weaponUsedType = 'bladed';
             }
             
             modPlayer.lastUsedWeaponType = weaponUsedType;
@@ -248,6 +250,21 @@ export const handleUseItem = ({ player, gameState, payload, isBossActive, helper
                         const firearmAttackPowers = allFirearms.map(firearmInfo => calculateAttackPower(firearmInfo.card, modPlayer, firearmInfo.source, currentActiveEvent));
                         attackPower = Math.max(0, ...firearmAttackPowers) + (card.effect.damage || 2);
                         _log(getRandomLogVariation('playerAttack', { playerName: modPlayer.name, enemyName: currentActiveEvent.name, itemName: 'a Trick Shot', attackPower }, theme, modPlayer, currentActiveEvent, isBossActive));
+                    }
+                } else if (card.effect.type === 'bladed_technique') {
+                    const isBladed = (c: CardData | null): c is CardData => {
+                        if (!c) return false;
+                        return c.id.includes('_knife') || c.effect?.subtype === 'sword';
+                    };
+                    const allOtherBladedWeapons = [
+                        ...modPlayer.hand.filter(c => c && c.id !== card.id && isBladed(c)).map(c => ({card: c, source: CardContext.HAND})),
+                        ...modPlayer.equippedItems.filter(c => c.id !== card.id && isBladed(c)).map(c => ({card: c, source: CardContext.EQUIPPED}))
+                    ];
+                    if (allOtherBladedWeapons.length === 0) { _log("Flowing Water Slash requires another bladed weapon to be ready.", "error"); cardUsedAndDiscarded = false; }
+                    else {
+                        const bladedAttackPowers = allOtherBladedWeapons.map(bladeInfo => calculateAttackPower(bladeInfo.card, modPlayer, bladeInfo.source, currentActiveEvent));
+                        attackPower = Math.max(0, ...bladedAttackPowers) + (card.effect.damage || 6);
+                         _log(getRandomLogVariation('playerAttack', { playerName: modPlayer.name, enemyName: currentActiveEvent.name, itemName: card.name, attackPower }, theme, modPlayer, currentActiveEvent, isBossActive));
                     }
                 } else {
                     attackPower = calculateAttackPower(card, modPlayer, source as CardContext, currentActiveEvent);

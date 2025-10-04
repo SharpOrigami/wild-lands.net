@@ -20,6 +20,7 @@ export type CardEffectType =
   | 'fire_arrow'
   | 'trick_shot'
   | 'scout'
+  | 'bladed_technique'
   | 'conditional_weapon'
   | 'conditional_damage' // Added to resolve TypeScript errors
   | 'random_gold_steal' // Primarily for immediateEffect but can be a general effect type
@@ -47,6 +48,7 @@ export interface CardEffect {
   max_health?: number; // For hat specific health bonus
   maxAmount?: number; // For random_gold_steal immediateEffect
   breakDamage?: number; // For traps dealing damage when breaking
+  trapThreshold?: number; // For traps, the HP value they can successfully trap
   temporary?: boolean; // For effects like Mountain Sickness that auto-expire
   illness_id?: string; // For 'apply_illness_on_linger' to specify which illness card to reference
   damage_on_apply?: number; // For 'apply_illness_on_linger' to deal immediate damage
