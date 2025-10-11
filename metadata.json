@@ -1,0 +1,8 @@
+{
+  "name": "Ready for testing - Wild Lands",
+  "description": "Added dynamic hdr colors and glow effects. Working on buff calculation methods. Working on planer name header. Fixing threat attack patterns and Satchel. Refining systems. Implemented multiple objectives and rebuilt threat attack system. Moving on to bug fixes and TTS fix",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "prompt": ""
+}
