@@ -182,12 +182,22 @@ const TutorialComponent: React.FC<TutorialComponentProps> = ({ step, onNext, onE
 
   useLayoutEffect(() => {
     if (subHighlightTarget) {
-        const el = document.querySelector(subHighlightTarget.targetId);
-        if (el) {
+        const targetElements = document.querySelectorAll(subHighlightTarget.targetId);
+        let visibleElement: HTMLElement | null = null;
+
+        for (let i = 0; i < targetElements.length; i++) {
+            const el = targetElements[i] as HTMLElement;
+            if (el.offsetWidth > 0 && el.offsetHeight > 0) {
+                visibleElement = el;
+                break;
+            }
+        }
+        
+        if (visibleElement) {
             if (subHighlightTarget.sound) {
                 soundManager.playSound(subHighlightTarget.sound as any);
             }
-            const rect = el.getBoundingClientRect();
+            const rect = visibleElement.getBoundingClientRect();
             setSubHighlightStyle({
                 top: `${rect.top}px`,
                 left: `${rect.left}px`,
@@ -394,7 +404,7 @@ const TutorialComponent: React.FC<TutorialComponentProps> = ({ step, onNext, onE
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: `${highlightRect.top}px`, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000, pointerEvents: 'auto' }} />
           <div style={{ position: 'fixed', top: `${highlightRect.bottom}px`, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000, pointerEvents: 'auto' }} />
           <div style={{ position: 'fixed', top: `${highlightRect.top}px`, left: 0, height: `${highlightRect.height}px`, width: `${highlightRect.left}px`, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000, pointerEvents: 'auto' }} />
-          <div style={{ position: 'fixed', top: `${highlightRect.top}px`, left: `${highlightRect.right}px`, right: 0, height: `${highlightRect.height}px`, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000, pointerEvents: 'auto' }} />
+          <div style={{ position: 'fixed', top: `${highlightRect.top}px`, right: 0, height: `${highlightRect.height}px`, width: `calc(100vw - ${highlightRect.right}px)`, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000, pointerEvents: 'auto' }} />
           <div className="tutorial-pulse-glow" style={highlightBorderStyle} />
         </>
       ) : (

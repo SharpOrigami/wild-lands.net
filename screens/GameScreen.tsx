@@ -79,12 +79,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const statusTooltipRef = useRef<HTMLDivElement>(null);
   const [statusTooltipStyle, setStatusTooltipStyle] = useState<CSSProperties>({});
 
-  // --- State for health tooltip ---
-  const [isHealthTooltipVisible, setIsHealthTooltipVisible] = useState(false);
-  const healthTooltipTriggerRef = useRef<HTMLDivElement>(null);
-  const healthTooltipRef = useRef<HTMLDivElement>(null);
-  const [healthTooltipStyle, setHealthTooltipStyle] = useState<CSSProperties>({});
-
   const animatingIndices = useMemo(() => new Set(gameState.newlyDrawnCardIndices || []), [gameState.newlyDrawnCardIndices]);
   
   const characterIllustrationUrl = playerDetails.character ? imageManager.getCachedUrl(CARD_ILLUSTRATIONS[playerDetails.character.id]) : '';
@@ -147,40 +141,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
     
     setStatusTooltipStyle(newStyles);
   }, [isStatusTooltipVisible]);
-
-    useLayoutEffect(() => {
-    if (!isHealthTooltipVisible || !healthTooltipTriggerRef.current || !healthTooltipRef.current) return;
-
-    const container = healthTooltipTriggerRef.current;
-    const tooltip = healthTooltipRef.current;
-    const tooltipRect = tooltip.getBoundingClientRect();
-
-    if (tooltipRect.width === 0) return;
-
-    const panel = container.closest('.player-area');
-    const boundaryRect = panel ? panel.getBoundingClientRect() : { left: 0, right: window.innerWidth };
-    const padding = 10;
-
-    const containerRect = container.getBoundingClientRect();
-
-    const newStyles: CSSProperties = {
-        bottom: '105%',
-        transform: 'none',
-    };
-
-    let idealAbsLeft = containerRect.left + (containerRect.width / 2) - (tooltipRect.width / 2);
-
-    if (idealAbsLeft < boundaryRect.left + padding) {
-        idealAbsLeft = boundaryRect.left + padding;
-    } else if (idealAbsLeft + tooltipRect.width > boundaryRect.right - padding) {
-        idealAbsLeft = boundaryRect.right - tooltipRect.width - padding;
-    }
-    
-    const relativeLeft = idealAbsLeft - containerRect.left;
-    newStyles.left = `${relativeLeft}px`;
-    
-    setHealthTooltipStyle(newStyles);
-  }, [isHealthTooltipVisible]);
 
   const statusTooltipHtml = useMemo(() => {
     if (isIll) {
@@ -756,25 +716,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
                   </div>
                   <div className="flex justify-between items-start">
                       <div className="w-3/5 mb-0">
-                          <div 
-                            className="tooltip-container"
-                            ref={healthTooltipTriggerRef}
-                            onMouseEnter={() => { if (healthBreakdownHtml) setIsHealthTooltipVisible(true); }}
-                            onMouseLeave={() => setIsHealthTooltipVisible(false)}
-                          >
+                          <div className="tooltip-container">
                               <p>Health: <span id="player1Health" className="font-bold text-lg" style={{ color: 'var(--blood-red)' }}><span className={healthAnimClass}>{playerDetails.health}</span> / {playerDetails.maxHealth}</span></p>
                               {healthBreakdownHtml && (
-                                  <div 
-                                    ref={healthTooltipRef}
-                                    className={`tooltip ${isHealthTooltipVisible ? 'visible' : ''}`}
-                                    style={healthTooltipStyle}
-                                    dangerouslySetInnerHTML={{ __html: healthBreakdownHtml }}
-                                  />
+                                  <div className="tooltip" dangerouslySetInnerHTML={{ __html: healthBreakdownHtml }} />
                               )}
                           </div>
                           <p>Gold: <span id="player1Gold" className={`font-bold text-yellow-500 text-lg ${gameState.goldFlashPlayer ? 'gold-gained' : ''}`}>{playerDetails.gold}</span></p>
                           
-                          <div id="playerStatusContainer" className="relative w-fit" ref={statusTooltipTriggerRef}>
+                          <div className="relative w-fit" ref={statusTooltipTriggerRef}>
                             <div className="flex items-center gap-2" aria-hidden="true">
                                 <p className="select-none">Status: <span id="playerStatus" className={`${playerStatusStyle} select-none`} style={{ color: playerStatusColor }}>{playerStatusText}</span></p>
                                 <div className="flex gap-1 items-center">
@@ -987,7 +937,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   );
 
   const frontierPanel = (
-    <div className={`frontier-area flex flex-col text-[var(--ink-main)] p-3 sm:p-4 md:p-5 rounded-sm ${frontierPanelShakeClass}`}>
+    <div className={`frontier-area overflow-x-hidden flex flex-col text-[var(--ink-main)] p-3 sm:p-4 md:p-5 rounded-sm ${frontierPanelShakeClass}`}>
       <div className={`mt-0 transition-all duration-300 ${gameState.blockTradeDueToHostileEvent ? 'store-blocked' : ''}`}>
         <div className="flex flex-col items-start mb-2">
           <h4 className="font-western text-lg text-blue-700">General Store:</h4>
@@ -1060,7 +1010,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         return (
           <div className="flex flex-col items-center gap-2">
             <div className="flex flex-col w-full">
-                <div id="frontierEventsArea" className="flex flex-col items-start mb-2">
+                <div className="flex flex-col items-start mb-2">
                     <h3 className="text-xl font-western text-[var(--ink-main)]">The Frontier</h3>
                     <div className="text-xs text-[var(--ink-main)] mt-0.5">Event Deck: <span className="font-bold" style={{ color: 'var(--blood-red)' }}>{gameState.eventDeck?.length || 0}</span></div>
                 </div>
@@ -1068,7 +1018,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
                 {turn === 1 && objectiveChoices && objectiveChoices.length > 0 && (
                     <h4 className="font-western text-lg text-center mb-1 text-[var(--ink-secondary)]">Choose up to 2 Objectives</h4>
                 )}
-                <div className="flex flex-row flex-wrap justify-center w-full gap-1.5 sm:gap-2 md:gap-2 lg:gap-1.5 xl:gap-2">
+                <div id="frontierEventsArea" className="flex flex-row flex-wrap justify-center w-full gap-1.5 sm:gap-2 md:gap-2 lg:gap-1.5 xl:gap-2">
                     {!(turn === 1 && objectiveChoices && objectiveChoices.length > 0) && (
                         <div id="activeEventCardDisplay" className="event-display-card">
                             {(() => {
