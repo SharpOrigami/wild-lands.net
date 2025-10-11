@@ -1,3 +1,4 @@
+
 import React, { useState, useLayoutEffect, CSSProperties, useRef, useEffect } from 'react';
 import { soundManager } from '../utils/soundManager.ts';
 import { ttsManager } from '../utils/ttsManager.ts';
@@ -400,11 +401,23 @@ const TutorialComponent: React.FC<TutorialComponentProps> = ({ step, onNext, onE
     <div aria-live="polite" aria-atomic="true">
       {currentStep.isInteractive && highlightRect ? (
         <>
-          {/* These 4 divs create the blocking overlay with a "hole" */}
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: `${highlightRect.top}px`, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000, pointerEvents: 'auto' }} />
-          <div style={{ position: 'fixed', top: `${highlightRect.bottom}px`, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000, pointerEvents: 'auto' }} />
-          <div style={{ position: 'fixed', top: `${highlightRect.top}px`, left: 0, height: `${highlightRect.height}px`, width: `${highlightRect.left}px`, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000, pointerEvents: 'auto' }} />
-          <div style={{ position: 'fixed', top: `${highlightRect.top}px`, right: 0, height: `${highlightRect.height}px`, width: `calc(100vw - ${highlightRect.right}px)`, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000, pointerEvents: 'auto' }} />
+          {/* This div creates the blocking overlay with a "hole" using borders */}
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            borderTopWidth: `${highlightRect.top}px`,
+            borderBottomWidth: `calc(100vh - ${highlightRect.bottom}px)`,
+            borderLeftWidth: `${highlightRect.left}px`,
+            borderRightWidth: `calc(100vw - ${highlightRect.right}px)`,
+            borderColor: 'rgba(0,0,0,0.7)',
+            borderStyle: 'solid',
+            boxSizing: 'border-box',
+            zIndex: 10000,
+            pointerEvents: 'auto'
+          }} />
           <div className="tutorial-pulse-glow" style={highlightBorderStyle} />
         </>
       ) : (

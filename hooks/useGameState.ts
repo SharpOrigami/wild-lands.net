@@ -178,6 +178,11 @@ const rehydrateAndMigrateState = (stateWithDefaults: any, log: (message: string,
     const robustRehydrate = (item: any): any => {
         // Handle arrays by recursing and filtering out any invalid entries that become undefined or null.
         if (Array.isArray(item)) {
+            // FIX: If it's an array of simple primitives, we don't need to process it.
+            // This avoids type mismatches (e.g., number[] becoming unknown[]) and is an optimization.
+            if (item.every(val => typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean' || val === null)) {
+                return item;
+            }
             return item.map(robustRehydrate).filter(value => value !== undefined && value !== null);
         }
         
@@ -902,10 +907,21 @@ export const useGameState = () => {
                     eventActiveAtNight = null;
 
                 } else if (eventActiveAtNight.type !== 'Event') {
-                      _localLog(getRandomLogVariation('itemLeftBehind', { itemName: eventActiveAtNight.name }, theme, modPlayer, eventActiveAtNight), 'info');
-                      const baseCard = getBaseCardByIdentifier(eventActiveAtNight);
-                      if(baseCard) gameUpdates.storeItemDeck = [...(prev.storeItemDeck || []), baseCard];
-                      eventActiveAtNight = null;
+                    const baseCard = getBaseCardByIdentifier(eventActiveAtNight);
+                    if (baseCard) {
+                        // Valuables are items that can be sold for a high price but generally shouldn't be purchasable.
+                        const isValuable = baseCard.id.startsWith('item_gold_nugget') || baseCard.id.startsWith('item_jewelry');
+                
+                        if (isValuable) {
+                            _localLog(`The ${baseCard.name} was left behind and is lost to the trail.`, 'info');
+                            // This valuable is removed from the game and not added to any deck.
+                        } else {
+                            // Non-valuables left on the trail are added to the top of the store's draw pile.
+                            _localLog(getRandomLogVariation('itemLeftBehind', { itemName: baseCard.name }, theme, modPlayer, baseCard), 'info');
+                            gameUpdates.storeItemDeck = [baseCard, ...(prev.storeItemDeck || [])];
+                        }
+                    }
+                    eventActiveAtNight = null;
                 }
             }
             
@@ -2308,7 +2324,8 @@ export const useGameState = () => {
     const finalEventDeck = buildEventDeck(currentState.initialCardPool, currentState.ngPlusLevel);
     gameUpdates.eventDeck = finalEventDeck;
 
-    const genericItemFilter = (c: CardData) => (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade');
+    const valuableFilterForStore = (c: CardData) => c.id.startsWith('item_gold_nugget') || c.id.startsWith('item_jewelry');
+    const genericItemFilter = (c: CardData) => (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') && !valuableFilterForStore(c);
     let storeItemsResult = pickRandomDistinctFromPool(currentCardPool, genericItemFilter, STORE_DECK_TARGET_SIZE);
     
     let storeItemDeck = shuffleArray(storeItemsResult.picked);
@@ -2722,12 +2739,11 @@ export const useGameState = () => {
         finalState = rebuildEventDeckIfNeeded(finalState, _log);
         
         if ((!finalState.activeObjectives || finalState.activeObjectives.length === 0) && (finalState.status === 'playing' || finalState.status === 'playing_initial_reveal')) {
-            _log("No active objective found in save file. Generating a new random objective for this run.", 'system');
+            _log("No active objective found in auto-save. Generating new objective choices for this run.", 'system');
             const allObjectiveCards = Object.values(ALL_CARDS_DATA_MAP).filter(c => c.subType === 'objective');
             if (allObjectiveCards.length > 0) {
-                const newObjective = allObjectiveCards[Math.floor(Math.random() * allObjectiveCards.length)];
-                finalState.activeObjectives = [newObjective];
-                _log(`New objective: ${newObjective.name}`, 'system');
+                finalState.objectiveChoices = shuffleArray(allObjectiveCards).slice(0, 3);
+                 _log(`Offering new objective choices: ${finalState.objectiveChoices.map(c => c.name).join(', ')}`, 'system');
             } else {
                 _log("Could not generate a new objective: no objective cards found in card data.", 'error');
             }
@@ -2854,7 +2870,9 @@ export const useGameState = () => {
                     }
                 }
 
-                if (savedState.aiBoss && savedState.aiBoss.id) {
+                // FIX: Add type checks to safely access properties on `savedState.aiBoss`
+                // which is of type `any` after being parsed from JSON.
+                if (savedState.aiBoss && typeof savedState.aiBoss === 'object' && savedState.aiBoss.id) {
                     const player = savedState.playerDetails?.[PLAYER_ID];
                     const characterId = player?.character?.id;
                     
@@ -2864,7 +2882,8 @@ export const useGameState = () => {
                         if (levelCacheString) {
                             try {
                                 const levelCache = JSON.parse(levelCacheString);
-                                if (levelCache.aiBoss && levelCache.aiBoss.id === savedState.aiBoss.id) {
+                                // FIX: Add type check for levelCache.aiBoss
+                                if (levelCache.aiBoss && typeof levelCache.aiBoss === 'object' && levelCache.aiBoss.id === savedState.aiBoss.id) {
                                     _log("Found AI boss definition in level cache. Merging into save state for rehydration.", "system");
                                     savedState.aiBoss = { ...levelCache.aiBoss, ...savedState.aiBoss };
                                 }
