@@ -2,7 +2,7 @@ import { GameState, CardData } from '../types.ts';
 import { ALL_CARDS_DATA_MAP } from '../constants.ts';
 
 const SAVE_GAME_KEY = 'wildWestGameSaves_WWS';
-const NUM_SAVE_SLOTS = 3;
+const NUM_SAVE_SLOTS = 4; // 3 manual + 1 autosave
 
 export function getSaveGames(): (GameState | null)[] {
     try {

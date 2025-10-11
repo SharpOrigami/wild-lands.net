@@ -127,7 +127,7 @@ const SaveGameModalComponent: React.FC<SaveGameModalProps> = ({ isOpen, onClose,
     if (!confirmAction) return null;
     switch (confirmAction.type) {
       case 'delete':
-        return { title: 'Confirm Deletion', text: `Are you sure you want to permanently delete the save in Slot ${confirmAction.slotIndex + 1}?`, confirmText: 'Delete' };
+        return { title: 'Confirm Deletion', text: `Are you sure you want to permanently delete the save in ${confirmAction.slotIndex === 3 ? 'the Autosave Slot' : `Slot ${confirmAction.slotIndex + 1}`}?`, confirmText: 'Delete' };
       case 'new_on_full':
         return { title: 'Confirm Overwrite', text: `This slot contains a saved game. Are you sure you want to delete it and start a new game here?`, confirmText: 'Delete & Start New' };
       case 'overwrite':
@@ -159,18 +159,19 @@ const SaveGameModalComponent: React.FC<SaveGameModalProps> = ({ isOpen, onClose,
           <p>{confirmationContent.text}</p>
         </ModalComponent>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {Array.from({ length: 3 }).map((_, i) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => {
             const slotData = saves[i];
             const isCurrentGame = slotData?.runId && slotData.runId === gameState.runId;
-            const isAutosaveSlot = gameState.autosaveSlotIndex === i;
+            const isAutosaveSlot = i === 3;
 
             return (
               <div key={i} className={`relative flex flex-col p-3 border-2 rounded-lg transition-all
-                ${isCurrentGame ? 'border-4 border-[var(--tarnished-gold)] shadow-lg bg-yellow-50' : 'bg-white border-[var(--border-color)]'}
+                ${isCurrentGame ? 'border-4 border-[var(--tarnished-gold)] shadow-lg bg-yellow-50' : isAutosaveSlot ? 'bg-blue-50 border-blue-200' : 'bg-white border-[var(--border-color)]'}
               `}>
-                {isAutosaveSlot && <div className="absolute top-1 right-1 text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">AUTOSAVE</div>}
-                <h4 className="font-bold font-western text-lg mb-2 text-center">Save Slot {i + 1}</h4>
+                <h4 className="font-bold font-western text-lg mb-2 text-center">
+                    {isAutosaveSlot ? 'Autosave Slot' : `Save Slot ${i + 1}`}
+                </h4>
                 <div className="flex-grow flex items-center justify-center mb-3 min-h-[90px] text-left text-sm p-2 bg-stone-100 rounded border border-dashed border-stone-300">
                   {slotData ? (
                     <div>
@@ -185,18 +186,17 @@ const SaveGameModalComponent: React.FC<SaveGameModalProps> = ({ isOpen, onClose,
                 <div className="flex flex-col gap-2 w-full mt-auto">
                   {slotData ? (
                     <>
-                      {isSaveableState && <button className="button text-sm" onClick={() => handleAction('save', i)}>Overwrite</button>}
+                      {isSaveableState && !isAutosaveSlot && <button className="button text-sm" onClick={() => handleAction('save', i)}>Overwrite</button>}
                       <button className="button text-sm" onClick={() => handleAction('load', i)} disabled={isCurrentGame}>Load</button>
                       <button className="button button-danger text-sm" onClick={() => handleAction('delete', i)}>Delete</button>
                       <button className="button text-sm" onClick={() => handleAction('export', i)}>Export</button>
                     </>
                   ) : (
                     <>
-                      <button className="button text-sm" onClick={() => handleAction('new', i)}>New Game</button>
-                      {isSaveableState && <button className="button text-sm" onClick={() => handleAction('save', i)}>Save Here</button>}
-                      {/* FIX: The ref callback for a DOM element should not return a value. Using a block statement {} ensures a void return. */}
-                      <input type="file" ref={el => { fileInputRefs.current[i] = el; }} onChange={(e) => handleFileSelected(e, i)} style={{ display: 'none' }} accept=".json" />
-                      <button className="button text-sm" onClick={() => handleAction('import', i)}>Import</button>
+                      {!isAutosaveSlot && <button className="button text-sm" onClick={() => handleAction('new', i)}>New Game</button>}
+                      {isSaveableState && !isAutosaveSlot && <button className="button text-sm" onClick={() => handleAction('save', i)}>Save Here</button>}
+                      <input type="file" ref={el => { if(el) fileInputRefs.current[i] = el; }} onChange={(e) => handleFileSelected(e, i)} style={{ display: 'none' }} accept=".json" />
+                      {!isAutosaveSlot && <button className="button text-sm" onClick={() => handleAction('import', i)}>Import</button>}
                     </>
                   )}
                 </div>

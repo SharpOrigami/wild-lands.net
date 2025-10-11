@@ -178,9 +178,9 @@ const rehydrateAndMigrateState = (stateWithDefaults: any, log: (message: string,
     const robustRehydrate = (item: any): any => {
         // Handle arrays by recursing and filtering out any invalid entries that become undefined or null.
         if (Array.isArray(item)) {
-            // FIX: If it's an array of simple primitives, we don't need to process it.
-            // This avoids type mismatches (e.g., number[] becoming unknown[]) and is an optimization.
-            if (item.every(val => typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean' || val === null)) {
+            // Optimization: If it's an array of simple primitives (excluding strings, which might be card IDs),
+            // we don't need to process it. This avoids type mismatches for number[] etc.
+            if (item.every(val => typeof val === 'number' || typeof val === 'boolean' || val === null)) {
                 return item;
             }
             return item.map(robustRehydrate).filter(value => value !== undefined && value !== null);
@@ -248,9 +248,12 @@ const rehydrateAndMigrateState = (stateWithDefaults: any, log: (message: string,
 };
 
 const rebuildEventDeckIfNeeded = (gameState: GameState, log: (message: string, type?: LogEntry['type']) => void): GameState => {
-    // Only rebuild if the game is in a playing state, the deck is empty, and it's not the first turn.
-    if ((!gameState.eventDeck || gameState.eventDeck.length === 0) && gameState.turn > 0 && gameState.status === 'playing') {
-        log("Empty event deck detected on load. Rebuilding deck with balanced composition.", "system");
+    // Fix for incompatible saves: rebuild if the deck is empty OR contains only invalid entries
+    // (like nulls or empty objects after a bad rehydration)
+    const isDeckEffectivelyEmpty = !gameState.eventDeck || gameState.eventDeck.length === 0 || gameState.eventDeck.every(c => !c || !c.id);
+
+    if (isDeckEffectivelyEmpty && gameState.turn > 0 && gameState.status === 'playing') {
+        log("Empty or invalid event deck detected on load. Rebuilding deck with balanced composition.", "system");
         
         const targetDeckSize = Math.max(0, 20 - (gameState.turn > 10 ? gameState.turn - 10 : 0));
         
@@ -473,9 +476,9 @@ export const useGameState = () => {
     if (!currentState || currentState.status !== 'playing') return;
 
     // Clear autosave on victory
-    if (currentState.autosaveSlotIndex !== null && currentState.autosaveSlotIndex !== undefined) {
-        deleteGameInSlot(currentState.autosaveSlotIndex);
-        _log(`Autosave in Slot ${currentState.autosaveSlotIndex + 1} cleared after victory.`, 'system');
+    if (currentState.autosaveSlotIndex === 3) {
+        deleteGameInSlot(3);
+        _log(`Autosave in Autosave Slot cleared after victory.`, 'system');
     }
 
     const player = { ...currentState.playerDetails[PLAYER_ID] };
@@ -1062,9 +1065,9 @@ export const useGameState = () => {
                 gameUpdates.status = 'finished';
                 gameUpdates.winReason = winReason;
                  _localLog(winReason, "system");
-                 if (prev.autosaveSlotIndex !== null && prev.autosaveSlotIndex !== undefined) {
-                    deleteGameInSlot(prev.autosaveSlotIndex);
-                    _log(`Autosave in Slot ${prev.autosaveSlotIndex + 1} cleared after defeat.`, 'system');
+                 if (prev.autosaveSlotIndex === 3) {
+                    deleteGameInSlot(3);
+                    _log(`Autosave in Autosave Slot cleared after defeat.`, 'system');
                     gameUpdates.autosaveSlotIndex = null;
                 }
                 modPlayer.runStats.totalStepsTaken = modPlayer.stepsTaken;
@@ -1072,9 +1075,9 @@ export const useGameState = () => {
                 modPlayer.runStats.mostGoldHeld = Math.max(modPlayer.runStats.mostGoldHeld || 0, modPlayer.gold);
                 updateLifetimeStats(modPlayer.runStats);
             } else {
-                 if (prev.autosaveSlotIndex !== null && prev.autosaveSlotIndex !== undefined) {
-                    saveGameToSlot({ ...prev, ...gameUpdates, playerDetails: { ...prev.playerDetails, [PLAYER_ID]: modPlayer } }, prev.autosaveSlotIndex);
-                    _localLog(`Progress autosaved to Slot ${prev.autosaveSlotIndex + 1}.`, 'system');
+                 if (prev.autosaveSlotIndex === 3) {
+                    saveGameToSlot({ ...prev, ...gameUpdates, playerDetails: { ...prev.playerDetails, [PLAYER_ID]: modPlayer } }, 3);
+                    _localLog(`Progress autosaved to Autosave Slot.`, 'system');
                 }
             }
 
@@ -1396,9 +1399,9 @@ export const useGameState = () => {
                 _log(winReason, "system");
 
                 // Clear autosave on defeat
-                if (initialGameState.autosaveSlotIndex !== null && initialGameState.autosaveSlotIndex !== undefined) {
-                    deleteGameInSlot(initialGameState.autosaveSlotIndex);
-                    _log(`Autosave in Slot ${initialGameState.autosaveSlotIndex + 1} cleared after defeat.`, 'system');
+                if (initialGameState.autosaveSlotIndex === 3) {
+                    deleteGameInSlot(3);
+                    _log(`Autosave in Autosave Slot cleared after defeat.`, 'system');
                     modifiableGameStateUpdates.autosaveSlotIndex = null;
                 }
 
@@ -1564,7 +1567,7 @@ export const useGameState = () => {
     const currentState = gameStateRef.current;
     if (currentState && currentState.autosaveSlotIndex !== null && currentState.autosaveSlotIndex !== undefined) {
         deleteGameInSlot(currentState.autosaveSlotIndex);
-        _log(`Autosave in Slot ${currentState.autosaveSlotIndex + 1} cleared for new run.`, 'system');
+        _log(`Autosave in ${currentState.autosaveSlotIndex === 3 ? 'Autosave Slot' : `Slot ${currentState.autosaveSlotIndex + 1}`} cleared for new run.`, 'system');
     }
     
     if (nextLevelRemixPromise.current) {
@@ -2449,15 +2452,10 @@ export const useGameState = () => {
     };
 
     // --- AUTOSAVE ON START ---
-    const saves = getSaveGames();
-    let autosaveSlotIndex = saves.findIndex(slot => slot === null);
-    if (autosaveSlotIndex === -1) {
-        autosaveSlotIndex = 2; // Overwrite last slot if all are full
-        _log(`All save slots are full. Autosaving will overwrite Slot 3.`, 'system');
-    }
+    const autosaveSlotIndex = 3; // The dedicated autosave slot (0-indexed)
     fullInitialState.autosaveSlotIndex = autosaveSlotIndex;
     saveGameToSlot(fullInitialState, autosaveSlotIndex);
-    _log(`Game autosaved to Slot ${autosaveSlotIndex + 1}.`, 'system');
+    _log(`Game autosaved to Autosave Slot.`, 'system');
     // --- END AUTOSAVE ON START ---
     
     setGameState(fullInitialState);
@@ -2489,9 +2487,9 @@ export const useGameState = () => {
     if (!currentGameState) return;
 
     // Clear autosave on victory
-    if (currentGameState.autosaveSlotIndex !== null && currentGameState.autosaveSlotIndex !== undefined) {
-        deleteGameInSlot(currentGameState.autosaveSlotIndex);
-        _log(`Autosave in Slot ${currentGameState.autosaveSlotIndex + 1} cleared after victory.`, 'system');
+    if (currentGameState.autosaveSlotIndex === 3) {
+        deleteGameInSlot(3);
+        _log(`Autosave in Autosave Slot cleared after victory.`, 'system');
     }
     
     if (currentGameState.playerDetails[PLAYER_ID].health > 0) {
@@ -2529,9 +2527,9 @@ export const useGameState = () => {
   const fullResetGame = useCallback((options?: { saveSlotIndex?: number }) => {
     ttsManager.cancel();
     const currentState = gameStateRef.current;
-    if (currentState && currentState.autosaveSlotIndex !== null && currentState.autosaveSlotIndex !== undefined) {
-        deleteGameInSlot(currentState.autosaveSlotIndex);
-        _log(`Autosave in Slot ${currentState.autosaveSlotIndex + 1} cleared for new game.`, 'system');
+    if (currentState && currentState.autosaveSlotIndex === 3) {
+        deleteGameInSlot(3);
+        _log(`Autosave in Autosave Slot cleared for new game.`, 'system');
     }
     resetGame({ hardReset: true, ...options });
   }, [resetGame, _log]);
@@ -2730,7 +2728,7 @@ export const useGameState = () => {
     const currentState = gameStateRef.current;
     if (currentState && currentState.autosaveSlotIndex !== null && currentState.autosaveSlotIndex !== undefined) {
         deleteGameInSlot(currentState.autosaveSlotIndex);
-        _log(`Autosave in Slot ${currentState.autosaveSlotIndex + 1} cleared before loading new game.`, 'system');
+        _log(`Autosave in ${currentState.autosaveSlotIndex === 3 ? 'Autosave Slot' : `Slot ${currentState.autosaveSlotIndex + 1}`} cleared before loading new game.`, 'system');
     }
 
     const saves = getSaveGames();
@@ -2771,6 +2769,9 @@ export const useGameState = () => {
             if (finalState.status === 'playing' || finalState.turn > 0) {
                 finalState.status = 'playing';
                 finalState.gameJustStarted = false;
+                finalState.autosaveSlotIndex = 3; // Force to new dedicated slot
+                saveGameToSlot(finalState, 3); // Immediately create an autosave in the new slot
+                _log(`Game loaded. Created new autosave in Autosave Slot.`, 'system');
             } else {
                 finalState.status = 'setup';
                 finalState.gameJustStarted = true;
