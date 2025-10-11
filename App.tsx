@@ -397,8 +397,13 @@ const App: React.FC = () => {
         }
       }
     };
+    
+    // Delay preloading to allow landing screen to render smoothly.
+    const preloadTimeout = setTimeout(() => {
+        preloadAssets();
+    }, 2500); // 2.5 second delay
 
-    preloadAssets();
+    return () => clearTimeout(preloadTimeout);
   }, [isAssetsInitialized, lifetimeStats]);
   
   useEffect(() => {

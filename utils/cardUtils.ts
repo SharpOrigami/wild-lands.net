@@ -219,13 +219,17 @@ export function applyDifficultyBonus(card: CardData, bonus: number): CardData {
 }
 
 export function buildEventDeck(cardPool: CardData[], ngPlusLevel: number): CardData[] {
+  // The pool is now pre-filtered, so we just use it as is.
   let currentCardPool = cardPool.filter(c => c.subType !== 'objective');
-  const uniqueCharItemIds = new Set(Object.values(CHARACTERS_DATA_MAP).map(c => c.starterDeck[2]));
 
   const threatFilter = (c: CardData) => c.type === 'Event' && (c.subType === 'animal' || c.subType === 'human');
   const illnessEnvFilter = (c: CardData) => c.type === 'Event' && (c.subType === 'illness' || c.subType === 'environmental');
   const valuableFilter = (c: CardData) => c.type === 'Item' && (c.id.startsWith('item_gold_nugget') || c.id.startsWith('item_jewelry'));
-  const genericItemFilter = (c: CardData) => (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') && !valuableFilter(c) && !uniqueCharItemIds.has(c.id);
+  
+  // Updated genericItemFilter, removing the redundant character-specific item check.
+  const genericItemFilter = (c: CardData) => 
+    (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') && 
+    !valuableFilter(c);
 
   let threatResult = pickRandomDistinctFromPool(currentCardPool, threatFilter, 15);
   currentCardPool = threatResult.remainingPool;

@@ -978,7 +978,7 @@ export const useGameState = () => {
                 _localLog("The campfire kept the wilderness quiet. No new event.", "info");
             }
             
-            if (currentActiveEventForNewDay && prev.activeEvent?.id === currentActiveEventForNewDay.id && !threatAttackedAtNight) {
+            if (currentActiveEventForNewDay && prev.activeEvent?.id === currentActiveEventForNewDay?.id && !threatAttackedAtNight) {
                 if (campfireWasActive && currentActiveEventForNewDay.subType === 'animal') {
                     _localLog(getRandomLogVariation('enemyCampfireDeterred', { enemyName: currentActiveEventForNewDay.name }, theme, modPlayer, currentActiveEventForNewDay), 'info');
                 } else {
@@ -2224,20 +2224,28 @@ export const useGameState = () => {
         ...Object.values(playerDetailsFromSetup.satchels).flat(),
     ].filter(Boolean) as CardData[];
 
-    const uniquePlayerUpgradeIds = new Set<string>(
-        allStartingPlayerCards
-            .filter(card => card.type === 'Player Upgrade')
-            .map(card => card.id)
+    const allPlayerCardIds = new Set<string>(
+        allStartingPlayerCards.map(card => card.id)
     );
 
-    if (uniquePlayerUpgradeIds.size > 0) {
-        _log(`Player starts with unique upgrades: [${Array.from(uniquePlayerUpgradeIds).join(', ')}]. Removing from world pool.`, 'system');
-    }
+    // Determine all unique starter cards from ALL characters to exclude from the world pool.
+    const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
+    const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
+        acc[id] = (acc[id] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+    const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
+    _log(`Identified ${uniqueCharacterStarterCardIds.size} unique character starter cards to exclude from circulation.`, 'system');
     
-    let currentCardPool = currentState.initialCardPool.filter(c => 
-        c.subType !== 'objective' && !uniquePlayerUpgradeIds.has(c.id)
+    // The initial pool of cards available for the world (store, events).
+    // It excludes cards the player starts with AND unique starter items from any character.
+    let worldCardPool = currentState.initialCardPool.filter(c => 
+        c.subType !== 'objective' && 
+        !allPlayerCardIds.has(c.id) && 
+        !uniqueCharacterStarterCardIds.has(c.id)
     );
-
+    _log(`Initial world pool created with ${worldCardPool.length} cards after removing player and character-specific cards.`, 'system');
+    
     if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
         const baseCardsNeeded = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
         const ngPlusReduction = Math.floor(currentState.ngPlusLevel / 10);
@@ -2246,17 +2254,15 @@ export const useGameState = () => {
         _log(`Deck Augmentation: Base needed: ${baseCardsNeeded}, NG+ Reduction: ${ngPlusReduction}, Final cards to add: ${cardsToAugmentCount}`, "debug");
 
         if (cardsToAugmentCount > 0) {
-            const uniqueCharItemIds = new Set(Object.values(CHARACTERS_DATA_MAP).map(c => c.starterDeck[2]));
-            const augmentPool = currentCardPool.filter(c => 
+            const augmentPool = worldCardPool.filter(c => 
                 (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') && 
-                !c.id.startsWith('item_gold_nugget') && !c.id.startsWith('item_jewelry') && 
-                !uniqueCharItemIds.has(c.id)
+                !c.id.startsWith('item_gold_nugget') && !c.id.startsWith('item_jewelry')
             );
             
             const pickedForAugment = pickRandomDistinctFromPool(augmentPool, () => true, cardsToAugmentCount);
             const playerDeckAugmentationPool = pickedForAugment.picked;
             const pickedIds = new Set(playerDeckAugmentationPool.map(c => c.id));
-            currentCardPool = currentCardPool.filter(c => !pickedIds.has(c.id));
+            worldCardPool = worldCardPool.filter(c => !pickedIds.has(c.id));
 
             if (playerDeckAugmentationPool.length > 0) {
                 finalPlayerDeck.push(...playerDeckAugmentationPool);
@@ -2321,18 +2327,25 @@ export const useGameState = () => {
     gameUpdates.objectiveChoices = objectiveChoices;
     gameUpdates.activeObjectives = [];
 
-    const finalEventDeck = buildEventDeck(currentState.initialCardPool, currentState.ngPlusLevel);
-    gameUpdates.eventDeck = finalEventDeck;
+    // --- Build Store Deck ---
+    const storeCardFilter = (c: CardData) => 
+        (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') &&
+        !c.id.startsWith('item_gold_nugget') && !c.id.startsWith('item_jewelry');
 
-    const valuableFilterForStore = (c: CardData) => c.id.startsWith('item_gold_nugget') || c.id.startsWith('item_jewelry');
-    const genericItemFilter = (c: CardData) => (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') && !valuableFilterForStore(c);
-    let storeItemsResult = pickRandomDistinctFromPool(currentCardPool, genericItemFilter, STORE_DECK_TARGET_SIZE);
-    
+    let storeItemsResult = pickRandomDistinctFromPool(worldCardPool, storeCardFilter, STORE_DECK_TARGET_SIZE);
     let storeItemDeck = shuffleArray(storeItemsResult.picked);
+    worldCardPool = storeItemsResult.remainingPool; // Update world pool to what's left
+    _log(`Store deck built with ${storeItemDeck.length} cards. ${worldCardPool.length} cards remain for event deck.`, 'system');
+
     const storeDisplayItems = storeItemDeck.splice(0, STORE_DISPLAY_LIMIT).map(card => getScaledCard(card, currentState.ngPlusLevel));
-    
     gameUpdates.storeItemDeck = storeItemDeck;
     gameUpdates.storeDisplayItems = storeDisplayItems;
+
+    // --- Build Event Deck ---
+    const finalEventDeck = buildEventDeck(worldCardPool, currentState.ngPlusLevel);
+    gameUpdates.eventDeck = finalEventDeck;
+    _log(`Event deck built with ${finalEventDeck.length} cards.`, 'system');
+
     
     finalPlayerDeck = shuffleArray(finalPlayerDeck);
     const initialHand: (CardData | null)[] = new Array(HAND_LIMIT).fill(null);
