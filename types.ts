@@ -298,6 +298,7 @@ export interface GameState {
   objectiveChoices: CardData[];
   selectedObjectiveIndices: number[];
   runStartState?: any;
+  runStartGold?: number;
 }
 
 export interface AIBossData {

@@ -600,6 +600,7 @@ export const useGameState = () => {
         autosaveSlotIndex: null, // Clear autosave index
         isBossFightActive: false,
         triggerStoreRestockAnimation: false,
+        runStartGold: currentState.runStartGold,
     };
 
     setGameState(finishedState);
@@ -1090,6 +1091,7 @@ export const useGameState = () => {
             if (gameShouldEnd) {
                 gameUpdates.status = 'finished';
                 gameUpdates.winReason = winReason;
+                gameUpdates.runStartState = prev.runStartState;
                  _localLog(winReason, "system");
                  if (prev.autosaveSlotIndex === 3) {
                     deleteGameInSlot(3);
@@ -1422,6 +1424,7 @@ export const useGameState = () => {
                 
                 modifiableGameStateUpdates.status = 'finished';
                 modifiableGameStateUpdates.winReason = winReason;
+                modifiableGameStateUpdates.runStartState = initialGameState.runStartState;
                  _log(winReason, "system");
 
                 // Clear autosave on defeat
@@ -1878,7 +1881,7 @@ export const useGameState = () => {
         runStats: { ...JSON.parse(JSON.stringify(INITIAL_RUN_STATS)), highestNGPlusLevel: ngPlusLevel },
         ngPlusLevel,
         cumulativeNGPlusMaxHealthBonus: healthBonusToPreserve,
-        gold: goldToPreserve > 0 ? goldToPreserve : INITIAL_PLAYER_STATE_TEMPLATE.gold,
+        gold: goldToPreserve,
         stepsTaken: stepsToPreserve,
         playerDeck: deckToPreserve,
         playerDiscard: discardToPreserve,
@@ -1888,8 +1891,45 @@ export const useGameState = () => {
 
     const baseInitialState: GameState = {
         runId: crypto.randomUUID(),
-        status: initialStatus, playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjectives: [], storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, bannerQueue: [], blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, equipAnimationIndex: null, eventDifficultyBonus: 0, saveSlotIndex: saveSlotIndex ?? undefined, autosaveSlotIndex: null, triggerThreatShake: false, playerShake: false, playerAttackedEventThisTurn: false, objectiveChoices: [], selectedObjectiveIndices: [],
+        status: initialStatus,
+        playerDetails: { [PLAYER_ID]: initialPlayerState },
+        eventDeck: [],
+        eventDiscardPile: [],
+        activeEvent: null,
+        activeObjectives: [],
+        storeItemDeck: [],
+        storeDisplayItems: [],
+        storeItemDiscardPile: [],
+        turn: 0,
+        storyGenerated: false,
+        log: [],
+        selectedCard: null,
+        ngPlusLevel: ngPlusLevel,
+        modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
+        activeGameBanner: initialGameBannerState,
+        bannerQueue: [],
+        blockTradeDueToHostileEvent: false,
+        playerDeckAugmentationPool: [],
+        initialCardPool: [],
+        activeEventTurnCounter: 0,
+        scrollAnimationPhase: 'none',
+        isLoadingStory: false,
+        pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true',
+        showObjectiveSummaryModal: false,
+        objectiveSummary: undefined,
+        gameJustStarted: true,
+        newlyDrawnCardIndices: undefined,
+        equipAnimationIndex: null,
+        eventDifficultyBonus: 0,
+        saveSlotIndex: saveSlotIndex ?? undefined,
+        autosaveSlotIndex: null,
+        triggerThreatShake: false,
+        playerShake: false,
+        playerAttackedEventThisTurn: false,
+        objectiveChoices: [],
+        selectedObjectiveIndices: [],
         runStartState: runStartStateToPreserveForNextState,
+        runStartGold: goldToPreserve,
     };
     
     setGameState(baseInitialState);
@@ -1899,14 +1939,24 @@ export const useGameState = () => {
   const selectCharacter = useCallback((character: Character) => {
     setGameState(prev => {
         if (!prev || prev.status !== 'setup') return prev;
-        
+
         const prevPlayer = prev.playerDetails[PLAYER_ID];
         const isNewCharacter = prevPlayer.character?.id !== character.id;
-        
+
+        const ngPlusLevel = prev.ngPlusLevel;
+        const runStartGold = prev.runStartGold ?? 0;
+
+        let finalGold = 0;
+        if (ngPlusLevel > 0) {
+            finalGold = Math.max(runStartGold, character.gold);
+        } else {
+            finalGold = character.gold;
+        }
+
         const storedDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
         const storedDetails: { characterId?: string; personality?: any } = storedDetailsString ? JSON.parse(storedDetailsString) : {};
         const personalityToSet = isNewCharacter ? character.personality : (storedDetails.personality || prevPlayer.personality || character.personality);
-        
+
         localStorage.setItem('wildWestPlayerDetailsForNGPlus_WWS', JSON.stringify({
             ...storedDetails,
             characterId: character.id,
@@ -1926,41 +1976,90 @@ export const useGameState = () => {
                 _log(`Pre-loaded ${Object.keys(customCardsMap).length} potential custom card definitions for ${character.name}.`, 'debug');
             }
         }
-        
-        const cumulativeBonus = prevPlayer?.cumulativeNGPlusMaxHealthBonus || 0;
-        const equippedItemsForCharacterSelection = prevPlayer.equippedItems || [];
 
+        const cumulativeBonus = prevPlayer?.cumulativeNGPlusMaxHealthBonus || 0;
+        
         let hpBonusFromItems = 0;
-        equippedItemsForCharacterSelection.forEach(item => {
+        (prevPlayer.equippedItems || []).forEach(item => {
             if (item.effect?.persistent && item.type === 'Player Upgrade') {
-                if (item.effect.subtype === 'max_health' && typeof item.effect.amount === 'number') hpBonusFromItems += item.effect.amount;
-                else if (item.effect.subtype === 'damage_negation' && typeof item.effect.max_health === 'number') hpBonusFromItems += item.effect.max_health;
+                if (item.effect.subtype === 'max_health' && typeof item.effect.amount === 'number') {
+                    hpBonusFromItems += item.effect.amount;
+                } else if (item.effect.subtype === 'damage_negation' && typeof item.effect.max_health === 'number') {
+                    hpBonusFromItems += item.effect.max_health;
+                }
             }
         });
-        
+
         const finalMaxHealth = Math.max(1, character.health + cumulativeBonus + hpBonusFromItems);
-        
         const { talkSkill, petSkill } = calculateSkills(character, personalityToSet);
 
+        // This is the fix: explicitly build the new player state object property by property,
+        // ensuring all carried-over data from `prevPlayer` is preserved, instead of relying
+        // on a potentially problematic spread operator.
         const updatedPlayerDetails: PlayerDetails = {
-            ...prevPlayer,
-            character,
+            // Unchanged properties from previous state
+            activeTrap: prevPlayer.activeTrap,
+            isCampfireActive: prevPlayer.isCampfireActive,
+            handSize: prevPlayer.handSize,
+            equipSlots: prevPlayer.equipSlots,
+            hasEquippedThisTurn: prevPlayer.hasEquippedThisTurn,
+            turnEnded: prevPlayer.turnEnded,
+            hasTakenActionThisTurn: prevPlayer.hasTakenActionThisTurn,
+            hasRestockedThisTurn: prevPlayer.hasRestockedThisTurn,
+            isUnsortedDraw: prevPlayer.isUnsortedDraw,
+            activeEventForAttack: prevPlayer.activeEventForAttack,
+            ngPlusLevel: prevPlayer.ngPlusLevel,
+            hatDamageNegationUsedThisTurn: prevPlayer.hatDamageNegationUsedThisTurn,
+            currentIllnesses: prevPlayer.currentIllnesses,
+            pedometerActive: prevPlayer.pedometerActive,
+            stepsTaken: prevPlayer.stepsTaken,
+            lastPosition: prevPlayer.lastPosition,
+            isGettingLocation: prevPlayer.isGettingLocation,
+            locationAccuracy: prevPlayer.locationAccuracy,
+            unaccountedDistanceFeet: prevPlayer.unaccountedDistanceFeet,
+            cumulativeNGPlusMaxHealthBonus: prevPlayer.cumulativeNGPlusMaxHealthBonus,
+            mountainSicknessActive: prevPlayer.mountainSicknessActive,
+            mountainSicknessTurnsRemaining: prevPlayer.mountainSicknessTurnsRemaining,
+            provisionsPlayed: prevPlayer.provisionsPlayed,
+            runStats: prevPlayer.runStats,
+            provisionsCollectedThisRun: prevPlayer.provisionsCollectedThisRun,
+            eventPacifiedThisTurn: prevPlayer.eventPacifiedThisTurn,
+            goldStolenThisTurn: prevPlayer.goldStolenThisTurn,
+            lastUsedWeaponType: prevPlayer.lastUsedWeaponType,
+            forceBossRevealNextTurn: prevPlayer.forceBossRevealNextTurn,
+            capturedBossAlive: prevPlayer.capturedBossAlive,
+
+            // New/changed properties
+            character: character,
             name: isNewCharacter ? null : (prevPlayer.name || null),
             health: finalMaxHealth,
             maxHealth: finalMaxHealth,
-            gold: Math.max(prevPlayer.gold, character.gold),
+            gold: finalGold,
             characterBaseMaxHealthForRun: character.health + cumulativeBonus,
             personality: personalityToSet,
-            equippedItems: equippedItemsForCharacterSelection,
-            hatDamageNegationAvailable: equippedItemsForCharacterSelection.some(item => item.effect?.subtype === 'damage_negation'),
-            talkSkill,
-            petSkill,
-        };
+            talkSkill: talkSkill,
+            petSkill: petSkill,
         
+            // Explicitly preserved inventory state
+            playerDeck: prevPlayer.playerDeck || [],
+            playerDiscard: prevPlayer.playerDiscard || [],
+            hand: prevPlayer.hand || [],
+            equippedItems: prevPlayer.equippedItems || [],
+            satchels: prevPlayer.satchels || {},
+            
+            // Recalculated property
+            hatDamageNegationAvailable: (prevPlayer.equippedItems || []).some(item => item.effect?.subtype === 'damage_negation'),
+        };
+
         _log(`${character.name} selected for NG+${prev.ngPlusLevel}.`, 'system');
-        return { ...prev, playerDetails: { [PLAYER_ID]: updatedPlayerDetails } };
+        
+        return { 
+            ...prev, 
+            playerDetails: { [PLAYER_ID]: updatedPlayerDetails },
+            runStartState: prev.runStartState, 
+        };
     });
-  }, [_log]);
+}, [_log]);
 
   const confirmName = useCallback((name: string) => {
     const currentGameState = gameStateRef.current;
@@ -1987,22 +2086,12 @@ export const useGameState = () => {
         const currentGameState = gameStateRef.current;
         if (!currentGameState) { _log("Game state unavailable.", "error"); return; }
         
-        const originalName = currentGameState.playerDetails[PLAYER_ID].name;
-        const isNameChanged = originalName !== playerName;
-        
         let characterForGame = { ...character }; 
         
         // First state update: prepare for boss intro and apply all initial changes
         setGameState(prev => {
             if (!prev) return null;
             let modPlayer = { ...prev.playerDetails[PLAYER_ID], name: playerName, character: characterForGame };
-
-            // Apply deck clearing logic if name changed but character didn't
-            if (isNameChanged && prev.playerDetails[PLAYER_ID].character?.id === character.id) {
-                _log("Player name changed. Rebuilding deck for new run.", "system");
-                modPlayer.playerDeck = [];
-                modPlayer.playerDiscard = [];
-            }
 
             // Apply cheat effects
             if (cheatEffects) {
@@ -2155,96 +2244,113 @@ export const useGameState = () => {
     
     // --- DECK CONSTRUCTION ---
     let finalPlayerDeck: CardData[] = [...playerDetailsFromSetup.playerDeck];
-    _log(`Starting deck construction with ${finalPlayerDeck.length} carried-over cards.`, 'system');
     
-    const allInitiallyOwnedCards = [
-        ...finalPlayerDeck,
-        ...playerDetailsFromSetup.equippedItems,
-        ...Object.values(playerDetailsFromSetup.satchels).flat(),
-    ].filter((c): c is CardData => Boolean(c));
+    // A continuing run is one from a retry OR a loaded game (which will have a deck).
+    const isContinuingRun = !!currentState.runStartState;
+
+    if (isContinuingRun) {
+        _log(`Continuing run from retry state. Using existing deck of ${finalPlayerDeck.length} cards.`, 'system');
+    } else {
+        // This logic now correctly handles both a fresh start (empty deck) and a loaded game (pre-filled deck).
+        // It only adds cards if the deck is empty.
+        if (finalPlayerDeck.length === 0) {
+            _log("Fresh run detected (empty deck). Building new starter deck.", "system");
+            
+            const allInitiallyOwnedCards = [
+                ...playerDetailsFromSetup.equippedItems,
+                ...Object.values(playerDetailsFromSetup.satchels).flat(),
+            ].filter((c): c is CardData => Boolean(c));
+            
+            const neededCards = new Map<string, number>();
+            playerChar.starterDeck.forEach(id => {
+                neededCards.set(id, (neededCards.get(id) || 0) + 1);
+            });
     
-    const neededCards = new Map<string, number>();
-    playerChar.starterDeck.forEach(id => {
-        neededCards.set(id, (neededCards.get(id) || 0) + 1);
-    });
-
-    const ownedCards = new Map<string, number>();
-    allInitiallyOwnedCards.forEach(card => {
-        ownedCards.set(card.id, (ownedCards.get(card.id) || 0) + 1);
-    });
-
-    const cardsToAdd: CardData[] = [];
-    for (const [id, neededCount] of neededCards.entries()) {
-        const ownedCount = ownedCards.get(id) || 0;
-        const numberToAdd = Math.max(0, neededCount - ownedCount);
-        if (numberToAdd > 0) {
-            const cardData = CURRENT_CARDS_DATA[id];
-            if (cardData) {
-                for (let i = 0; i < numberToAdd; i++) {
-                    cardsToAdd.push(cardData);
+            const ownedCards = new Map<string, number>();
+            allInitiallyOwnedCards.forEach(card => {
+                ownedCards.set(card.id, (ownedCards.get(card.id) || 0) + 1);
+            });
+    
+            const cardsToAdd: CardData[] = [];
+            for (const [id, neededCount] of neededCards.entries()) {
+                const ownedCount = ownedCards.get(id) || 0;
+                const numberToAdd = Math.max(0, neededCount - ownedCount);
+                if (numberToAdd > 0) {
+                    const cardData = CURRENT_CARDS_DATA[id];
+                    if (cardData) {
+                        for (let i = 0; i < numberToAdd; i++) {
+                            cardsToAdd.push(cardData);
+                        }
+                    } else {
+                        _log(`Could not find starter card with ID: ${id}`, 'error');
+                    }
                 }
-            } else {
-                _log(`Could not find starter card with ID: ${id}`, 'error');
             }
-        }
-    }
-
-    if (cardsToAdd.length > 0) {
-        finalPlayerDeck.push(...cardsToAdd);
-        _log(`Added ${cardsToAdd.length} missing starter cards to meet deck requirements.`, 'system');
-    }
     
-    const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
-    const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
-        acc[id] = (acc[id] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-    const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
-
-    if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
-        const cardsToAugmentCount = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
-
-        const currentDeckIds = new Set(finalPlayerDeck.map(c => c.id));
-        const augmentPool = currentState.initialCardPool.filter(c => 
-            !currentDeckIds.has(c.id) &&
-            !uniqueCharacterStarterCardIds.has(c.id) &&
-            c.subType !== 'objective' &&
-            (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') &&
-            !c.id.startsWith('item_gold_nugget') && !c.id.startsWith('item_jewelry') &&
-            c.buyCost && c.buyCost < 50 // Prioritize cheaper cards as filler
-        );
-        
-        const pickedForAugment = pickRandomDistinctFromPool(augmentPool, () => true, cardsToAugmentCount);
-        
-        if (pickedForAugment.picked.length > 0) {
-            finalPlayerDeck.push(...pickedForAugment.picked);
-            _log(`Added ${pickedForAugment.picked.length} filler cards from the theme pool.`, 'system');
-        }
-    }
-
-    if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
-        const driedMeatCard = CURRENT_CARDS_DATA['provision_dried_meat'];
-        if (driedMeatCard) {
-            const numToAdd = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
-            for (let i = 0; i < numToAdd; i++) {
-                finalPlayerDeck.push(driedMeatCard);
+            if (cardsToAdd.length > 0) {
+                finalPlayerDeck.push(...cardsToAdd);
+                _log(`Added ${cardsToAdd.length} missing starter cards to meet deck requirements.`, 'system');
             }
-            _log(`Topped off deck with ${numToAdd} Dried Meat.`, 'system');
+    
+            const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
+            const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
+                acc[id] = (acc[id] || 0) + 1;
+                return acc;
+            }, {} as Record<string, number>);
+            const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
+    
+            if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
+                const cardsToAugmentCount = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
+    
+                const currentDeckIds = new Set(finalPlayerDeck.map(c => c.id));
+                const augmentPool = currentState.initialCardPool.filter(c => 
+                    !currentDeckIds.has(c.id) &&
+                    !uniqueCharacterStarterCardIds.has(c.id) &&
+                    c.subType !== 'objective' &&
+                    (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') &&
+                    !c.id.startsWith('item_gold_nugget') && !c.id.startsWith('item_jewelry') &&
+                    c.buyCost && c.buyCost < 50 // Prioritize cheaper cards as filler
+                );
+                
+                const pickedForAugment = pickRandomDistinctFromPool(augmentPool, () => true, cardsToAugmentCount);
+                
+                if (pickedForAugment.picked.length > 0) {
+                    finalPlayerDeck.push(...pickedForAugment.picked);
+                    _log(`Added ${pickedForAugment.picked.length} filler cards from the theme pool.`, 'system');
+                }
+            }
+        
+            if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
+                const driedMeatCard = CURRENT_CARDS_DATA['provision_dried_meat'];
+                if (driedMeatCard) {
+                    const numToAdd = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
+                    for (let i = 0; i < numToAdd; i++) {
+                        finalPlayerDeck.push(driedMeatCard);
+                    }
+                    _log(`Topped off deck with ${numToAdd} Dried Meat.`, 'system');
+                }
+            }
+        
+            if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE && currentState.ngPlusLevel < 60) {
+                finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
+                 _log(`Deck size exceeds target. Trimming to ${PLAYER_DECK_TARGET_SIZE} cards.`, 'debug');
+            }
+        } else {
+             _log(`Continuing from loaded save. Using existing deck of ${finalPlayerDeck.length} cards.`, 'system');
         }
     }
 
-    if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE && currentState.ngPlusLevel < 60) {
-        finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
-         _log(`Deck size exceeds target. Trimming to ${PLAYER_DECK_TARGET_SIZE} cards.`, 'debug');
-    }
     
     // --- WORLD DECK CONSTRUCTION (using the remaining pool) ---
     const finalPlayerCardIdsForWorldFilter = new Set(finalPlayerDeck.map(card => card.id));
-    allInitiallyOwnedCards.map(c => c.id).forEach(id => finalPlayerCardIdsForWorldFilter.add(id));
+    [
+        ...playerDetailsFromSetup.equippedItems,
+        ...Object.values(playerDetailsFromSetup.satchels).flat(),
+    ].filter((c): c is CardData => Boolean(c)).map(c => c.id).forEach(id => finalPlayerCardIdsForWorldFilter.add(id));
+
 
     let worldCardPool = currentState.initialCardPool.filter(c => 
         !finalPlayerCardIdsForWorldFilter.has(c.id) && 
-        !uniqueCharacterStarterCardIds.has(c.id) &&
         c.subType !== 'objective'
     );
     _log(`Initial world pool created with ${worldCardPool.length} cards after removing player and character-specific cards.`, 'system');
@@ -2707,7 +2813,47 @@ export const useGameState = () => {
         const ngPlusLevel = savedState.ngPlusLevel || 0;
         const initialPlayerState = { ...INITIAL_PLAYER_STATE_TEMPLATE, runStats: { ...INITIAL_RUN_STATS, highestNGPlusLevel: ngPlusLevel }, ngPlusLevel };
          const baseInitialState: GameState = {
-            runId: crypto.randomUUID(), status: 'setup', playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjectives: [], storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, bannerQueue: [], blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, equipAnimationIndex: null, eventDifficultyBonus: 0, saveSlotIndex: slotIndex, autosaveSlotIndex: null, triggerThreatShake: false, playerShake: false, remixDeckOnStart: false, isBossFightActive: false, triggerStoreRestockAnimation: false, objectiveChoices: [], selectedObjectiveIndices: [],
+            runId: crypto.randomUUID(),
+            status: 'setup',
+            playerDetails: { [PLAYER_ID]: initialPlayerState },
+            eventDeck: [],
+            eventDiscardPile: [],
+            activeEvent: null,
+            activeObjectives: [],
+            storeItemDeck: [],
+            storeDisplayItems: [],
+            storeItemDiscardPile: [],
+            turn: 0,
+            storyGenerated: false,
+            log: [],
+            selectedCard: null,
+            ngPlusLevel: ngPlusLevel,
+            modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
+            activeGameBanner: initialGameBannerState,
+            bannerQueue: [],
+            blockTradeDueToHostileEvent: false,
+            playerDeckAugmentationPool: [],
+            initialCardPool: [],
+            activeEventTurnCounter: 0,
+            scrollAnimationPhase: 'none',
+            isLoadingStory: false,
+            pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true',
+            showObjectiveSummaryModal: false,
+            objectiveSummary: undefined,
+            gameJustStarted: true,
+            newlyDrawnCardIndices: undefined,
+            equipAnimationIndex: null,
+            eventDifficultyBonus: 0,
+            saveSlotIndex: slotIndex,
+            autosaveSlotIndex: null,
+            triggerThreatShake: false,
+            playerShake: false,
+            remixDeckOnStart: false,
+            isBossFightActive: false,
+            triggerStoreRestockAnimation: false,
+            objectiveChoices: [],
+            selectedObjectiveIndices: [],
+            runStartGold: savedState.runStartGold ?? savedState.playerDetails?.[PLAYER_ID]?.gold ?? 0,
         };
         
         const stateWithDefaults = deepMerge({ ...baseInitialState }, savedState);
@@ -2920,7 +3066,47 @@ export const useGameState = () => {
                 const ngPlusLevel = savedState.ngPlusLevel || 0;
                 const initialPlayerState = { ...INITIAL_PLAYER_STATE_TEMPLATE, runStats: { ...INITIAL_RUN_STATS, highestNGPlusLevel: ngPlusLevel }, ngPlusLevel, };
                  const baseInitialState: GameState = {
-                    runId: crypto.randomUUID(), status: 'setup', playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjectives: [], storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, bannerQueue: [], blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, equipAnimationIndex: null, eventDifficultyBonus: 0, saveSlotIndex: undefined, autosaveSlotIndex: null, triggerThreatShake: false, playerShake: false, remixDeckOnStart: false, isBossFightActive: false, triggerStoreRestockAnimation: false, objectiveChoices: [], selectedObjectiveIndices: [],
+                    runId: crypto.randomUUID(),
+                    status: 'setup',
+                    playerDetails: { [PLAYER_ID]: initialPlayerState },
+                    eventDeck: [],
+                    eventDiscardPile: [],
+                    activeEvent: null,
+                    activeObjectives: [],
+                    storeItemDeck: [],
+                    storeDisplayItems: [],
+                    storeItemDiscardPile: [],
+                    turn: 0,
+                    storyGenerated: false,
+                    log: [],
+                    selectedCard: null,
+                    ngPlusLevel: ngPlusLevel,
+                    modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
+                    activeGameBanner: initialGameBannerState,
+                    bannerQueue: [],
+                    blockTradeDueToHostileEvent: false,
+                    playerDeckAugmentationPool: [],
+                    initialCardPool: [],
+                    activeEventTurnCounter: 0,
+                    scrollAnimationPhase: 'none',
+                    isLoadingStory: false,
+                    pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true',
+                    showObjectiveSummaryModal: false,
+                    objectiveSummary: undefined,
+                    gameJustStarted: true,
+                    newlyDrawnCardIndices: undefined,
+                    equipAnimationIndex: null,
+                    eventDifficultyBonus: 0,
+                    saveSlotIndex: undefined,
+                    autosaveSlotIndex: null,
+                    triggerThreatShake: false,
+                    playerShake: false,
+                    remixDeckOnStart: false,
+                    isBossFightActive: false,
+                    triggerStoreRestockAnimation: false,
+                    objectiveChoices: [],
+                    selectedObjectiveIndices: [],
+                    runStartGold: savedState.runStartGold ?? savedState.playerDetails?.[PLAYER_ID]?.gold ?? 0,
                 };
                 
                 const stateWithDefaults = deepMerge({ ...baseInitialState }, savedState);
