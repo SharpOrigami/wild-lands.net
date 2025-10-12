@@ -473,7 +473,8 @@ export const useGameState = () => {
    
   const proceedToFinishedState = useCallback(() => {
     const currentState = gameStateRef.current;
-    if (!currentState || currentState.status !== 'playing') return;
+    if (!currentState || (currentState.status !== 'playing' && currentState.status !== 'showing_boss_intro' && currentState.status !== 'playing_initial_reveal' && !currentState.showObjectiveSummaryModal)) return;
+
 
     // Clear autosave on victory
     if (currentState.autosaveSlotIndex === 3) {
@@ -481,39 +482,51 @@ export const useGameState = () => {
         _log(`Autosave in Autosave Slot cleared after victory.`, 'system');
     }
 
-    const player = { ...currentState.playerDetails[PLAYER_ID] };
+    let playerForFinish = { ...currentState.playerDetails[PLAYER_ID] };
     const theme = getThemeName(currentState.ngPlusLevel);
 
-    player.runStats.totalVictories = 1;
-    if (player.character) {
-        player.runStats.victoriesByCharacter[player.character.id] = (player.runStats.victoriesByCharacter[player.character.id] || 0) + 1;
+    playerForFinish.runStats.totalVictories = 1;
+    if (playerForFinish.character) {
+        playerForFinish.runStats.victoriesByCharacter[playerForFinish.character.id] = (playerForFinish.runStats.victoriesByCharacter[playerForFinish.character.id] || 0) + 1;
     }
-    if (player.health <= 5) player.runStats.closeCalls = 1;
-    player.runStats.totalStepsTaken = player.stepsTaken;
-    player.runStats.totalDaysSurvived = currentState.turn;
-    player.runStats.mostGoldHeld = Math.max(player.runStats.mostGoldHeld || 0, player.gold);
+    if (playerForFinish.health <= 5) playerForFinish.runStats.closeCalls = 1;
+    playerForFinish.runStats.totalStepsTaken = playerForFinish.stepsTaken;
+    playerForFinish.runStats.totalDaysSurvived = currentState.turn;
+    playerForFinish.runStats.mostGoldHeld = Math.max(playerForFinish.runStats.mostGoldHeld || 0, playerForFinish.gold);
     
-    updateLifetimeStats(player.runStats);
+    updateLifetimeStats(playerForFinish.runStats);
     _log("Lifetime stats updated.", "system");
-
-    _log("Victory confirmed. Proceeding to summary.", "system");
     
     const winReason = getRandomLogVariation('threatDefeated', {
-        playerName: player.character?.name || 'The adventurer',
+        playerName: playerForFinish.character?.name || 'The adventurer',
         enemyName: currentState.aiBoss?.name || 'the ultimate evil'
-    }, theme, player, currentState.aiBoss, true);
+    }, theme, playerForFinish, currentState.aiBoss, true);
+
+    const equippedItemsToSave = playerForFinish.equippedItems;
+    const satchelsToSave = playerForFinish.satchels;
+    
+    localStorage.setItem('wildWestEquippedForNGPlus_WWS', JSON.stringify(equippedItemsToSave.map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id)));
+    localStorage.setItem('wildWestSatchelsForNGPlus_WWS', JSON.stringify(satchelsToSave));
+    localStorage.removeItem('wildWestActiveTrapForNGPlus_WWS'); // Trap now goes to deck review
+    
+    _log("Prepared equipped items for NG+ carry-over.", "system");
 
     const allCardsForReview = [
-        ...player.hand.filter(Boolean),
-        ...player.playerDeck,
-        ...player.playerDiscard
-    ] as CardData[];
+        ...playerForFinish.hand.filter(Boolean),
+        ...playerForFinish.playerDeck,
+        ...playerForFinish.playerDiscard,
+    ].filter((c): c is CardData => Boolean(c));
 
-    if (player.activeTrap) {
-        _log(`Returning set trap (${player.activeTrap.name}) to player's collection.`, 'system');
-        allCardsForReview.push(player.activeTrap);
-        player.activeTrap = null; 
+    if (playerForFinish.activeTrap) {
+        allCardsForReview.push(playerForFinish.activeTrap);
     }
+    
+    playerForFinish.hand = [];
+    playerForFinish.playerDeck = [];
+    playerForFinish.playerDiscard = [];
+    playerForFinish.activeTrap = null; 
+    playerForFinish.satchels = {};
+    playerForFinish.equippedItems = [];
 
     const finishedState: GameState = {
         runId: currentState.runId,
@@ -521,7 +534,7 @@ export const useGameState = () => {
         ngPlusLevel: currentState.ngPlusLevel,
         log: currentState.log,
         aiBoss: currentState.aiBoss,
-        playerDetails: { [PLAYER_ID]: player },
+        playerDetails: { [PLAYER_ID]: playerForFinish },
         winReason: winReason,
         deckForReview: allCardsForReview,
         pedometerFeatureEnabledByUser: currentState.pedometerFeatureEnabledByUser,
@@ -566,33 +579,25 @@ export const useGameState = () => {
         objectiveChoices: [],
         selectedObjectiveIndices: [],
         runStartState: currentState.runStartState,
+        saveSlotIndex: currentState.saveSlotIndex,
         autosaveSlotIndex: null, // Clear autosave index
+        isBossFightActive: false,
+        triggerStoreRestockAnimation: false,
     };
 
     setGameState(finishedState);
     
     localStorage.setItem('ngPlusLevel_WWS', (currentState.ngPlusLevel + 1).toString());
-    localStorage.setItem('ngPlusPlayerGold_WWS', player.gold.toString());
-    localStorage.setItem('ngPlusCumulativeMaxHealthBonus_WWS', player.cumulativeNGPlusMaxHealthBonus.toString());
+    localStorage.setItem('ngPlusPlayerGold_WWS', playerForFinish.gold.toString());
+    localStorage.setItem('ngPlusCumulativeMaxHealthBonus_WWS', playerForFinish.cumulativeNGPlusMaxHealthBonus.toString());
     localStorage.setItem('ngPlusRewardChosen_WWS', 'false');
-    localStorage.setItem('wildWestStepsTaken_WWS', player.stepsTaken.toString());
-    localStorage.setItem('wildWestPlayerEquipped_WWS', JSON.stringify(player.equippedItems));
-    
-    const satchelsToSave: { [key: number]: CardData[] } = {};
-    let hasSatchelContents = false;
-    for (const key in player.satchels) {
-      const contents = player.satchels[key] || [];
-      if (contents.length > 0) {
-        hasSatchelContents = true;
-        satchelsToSave[key] = contents;
-      }
-    }
-    if (hasSatchelContents) {
-      localStorage.setItem('wildWestSatchelContents_WWS', JSON.stringify(satchelsToSave));
-    } else {
-      localStorage.removeItem('wildWestSatchelContents_WWS');
-    }
-  }, [_log]);
+    localStorage.setItem('wildWestStepsTaken_WWS', playerForFinish.stepsTaken.toString());
+    localStorage.setItem('wildWestPlayerDetailsForNGPlus_WWS', JSON.stringify({
+        name: playerForFinish.name,
+        characterId: playerForFinish.character?.id,
+        personality: playerForFinish.personality
+    }));
+  }, [_log, handleObjectiveCompletionChecks]);
    
   const applyDamageAndGetAnimation = useCallback((
     playerDetailsInput: PlayerDetails,
@@ -1712,18 +1717,7 @@ export const useGameState = () => {
             };
             
             try {
-                // Now we get carry-over from the deck passed into resetGame, not localStorage.
-                // But we still need to register custom cards if any exist.
                 if (deckToPreserve.length > 0) findCardObjects(deckToPreserve);
-
-                const equippedString = localStorage.getItem('wildWestPlayerEquipped_WWS');
-                if (equippedString) findCardObjects(JSON.parse(equippedString));
-
-                const satchelsString = localStorage.getItem('wildWestSatchelContents_WWS');
-                if (satchelsString) {
-                    const satchels = JSON.parse(satchelsString);
-                    Object.values(satchels).forEach(contents => findCardObjects(contents as any[]));
-                }
             } catch (e) {
                 _log("Error parsing carried over items for custom definitions.", "error");
             }
@@ -1854,19 +1848,25 @@ export const useGameState = () => {
                  updatedPlayer.health = currentRunStartState.health || updatedPlayer.maxHealth;
                  updatedPlayer.stepsTaken = currentRunStartState.stepsTaken || updatedPlayer.stepsTaken;
                  _log(`Restored state for ${updatedPlayer.name} to retry NG+${level}.`, "system");
-            } else if (prev.ngPlusLevel > 0 && !hardReset) {
-                _log(`Carrying over items for ${updatedPlayer.name} to start NG+${level}.`, "system");
-                const carriedOverEquippedString = localStorage.getItem('wildWestPlayerEquipped_WWS');
-                if (carriedOverEquippedString) {
-                    try { equippedItemsForNGPlus = rehydrateCardArray(JSON.parse(carriedOverEquippedString)); }
-                    catch (e) { _log(`Error parsing carried over equipped items: ${e}`, "error"); }
-                }
-                const carriedOverSatchelsString = localStorage.getItem('wildWestSatchelContents_WWS');
-                if (carriedOverSatchelsString) {
+            } else if (!hardReset) {
+                const equippedFromStorageString = localStorage.getItem('wildWestEquippedForNGPlus_WWS');
+                const satchelsFromStorageString = localStorage.getItem('wildWestSatchelsForNGPlus_WWS');
+                
+                if (equippedFromStorageString) {
                     try {
-                        const parsedSatchels = JSON.parse(carriedOverSatchelsString);
-                        for (const key in parsedSatchels) { satchelsForNGPlus[key] = rehydrateCardArray(parsedSatchels[key]); }
-                    } catch (e) { _log(`Error parsing carried over satchel contents: ${e}`, "error"); }
+                        const equippedIdsOrObjects = JSON.parse(equippedFromStorageString);
+                        equippedItemsForNGPlus = rehydrateCardArray(equippedIdsOrObjects);
+                        registerCustomCardDefinitions(equippedItemsForNGPlus, 'equipped items');
+                    } catch(e) { _log("Failed to parse saved equipped items.", "error"); localStorage.removeItem('wildWestEquippedForNGPlus_WWS'); }
+                }
+                if (satchelsFromStorageString) {
+                    try {
+                        const satchelsFromStorage = JSON.parse(satchelsFromStorageString);
+                        for (const key in satchelsFromStorage) {
+                            satchelsForNGPlus[key] = rehydrateCardArray(satchelsFromStorage[key]);
+                            registerCustomCardDefinitions(satchelsForNGPlus[key], `satchel ${key}`);
+                        }
+                    } catch(e) { _log("Failed to parse saved satchels.", "error"); localStorage.removeItem('wildWestSatchelsForNGPlus_WWS'); }
                 }
             }
             
@@ -2209,76 +2209,91 @@ export const useGameState = () => {
     const playerChar = playerDetailsFromSetup.character as Character;
     let gameUpdates: Partial<GameState> = {};
     
-    let finalPlayerDeck: CardData[];
-
-    if (playerDetailsFromSetup.playerDeck.length > 0) {
-        _log("Using carried-over/loaded deck from setup.", "system");
-        const allPlayerCards = [
-            ...playerDetailsFromSetup.playerDeck,
-            ...playerDetailsFromSetup.playerDiscard,
-            ...playerDetailsFromSetup.hand.filter(Boolean)
-        ];
-        finalPlayerDeck = allPlayerCards as CardData[];
-        playerDetailsFromSetup.playerDiscard = [];
-        playerDetailsFromSetup.hand = new Array(playerDetailsFromSetup.handSize).fill(null);
-    } else {
-        _log("Building a fresh deck for a new journey.", "system");
-        const starterDeckCards = playerChar.starterDeck.map(id => CURRENT_CARDS_DATA[id]).filter(Boolean) as CardData[];
-        finalPlayerDeck = [...starterDeckCards];
-    }
+    // --- DECK CONSTRUCTION ---
+    // 1. Start with the cards the player chose to carry over.
+    let finalPlayerDeck: CardData[] = [...playerDetailsFromSetup.playerDeck];
+    _log(`Starting deck construction with ${finalPlayerDeck.length} carried-over cards.`, 'system');
     
-    const allStartingPlayerCards = [
+    // Identify all cards the player owns at the start (deck, equipped, satchels) to avoid adding duplicates.
+    const allInitiallyOwnedCards = [
         ...finalPlayerDeck,
         ...playerDetailsFromSetup.equippedItems,
         ...Object.values(playerDetailsFromSetup.satchels).flat(),
-    ].filter(Boolean) as CardData[];
-
-    const allPlayerCardIds = new Set<string>(
-        allStartingPlayerCards.map(card => card.id)
-    );
-
-    // Determine all unique starter cards from ALL characters to exclude from the world pool.
+    ].filter((c): c is CardData => Boolean(c));
+    const allInitiallyOwnedCardIds = new Set(allInitiallyOwnedCards.map(card => card.id));
+    
+    // 2. Add any character starter cards that are missing.
+    const starterDeckIds = playerChar.starterDeck;
+    const missingStarterCards = starterDeckIds
+        .map(id => CURRENT_CARDS_DATA[id])
+        .filter((card): card is CardData => {
+            // A card is missing if it's not in the player's total collection of items.
+            return card !== undefined && !allInitiallyOwnedCardIds.has(card.id);
+        });
+    
+    if (missingStarterCards.length > 0) {
+        finalPlayerDeck.push(...missingStarterCards);
+        _log(`Added ${missingStarterCards.length} missing starter cards: ${missingStarterCards.map(c => c.name).join(', ')}.`, 'system');
+    }
+    
+    // Identify all unique starter cards from ANY character to exclude them from the general filler pool.
     const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
     const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
         acc[id] = (acc[id] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
     const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
-    _log(`Identified ${uniqueCharacterStarterCardIds.size} unique character starter cards to exclude from circulation.`, 'system');
-    
-    // The initial pool of cards available for the world (store, events).
-    // It excludes cards the player starts with AND unique starter items from any character.
-    let worldCardPool = currentState.initialCardPool.filter(c => 
-        c.subType !== 'objective' && 
-        !allPlayerCardIds.has(c.id) && 
-        !uniqueCharacterStarterCardIds.has(c.id)
-    );
-    _log(`Initial world pool created with ${worldCardPool.length} cards after removing player and character-specific cards.`, 'system');
-    
+
+    // 3. Add filler cards from the theme pool if the deck is still not full.
     if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
-        const baseCardsNeeded = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
-        const ngPlusReduction = Math.floor(currentState.ngPlusLevel / 10);
-        const cardsToAugmentCount = Math.max(0, baseCardsNeeded - ngPlusReduction);
+        const cardsToAugmentCount = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
+
+        const currentDeckIds = new Set(finalPlayerDeck.map(c => c.id));
+        const augmentPool = currentState.initialCardPool.filter(c => 
+            !currentDeckIds.has(c.id) &&
+            !uniqueCharacterStarterCardIds.has(c.id) &&
+            c.subType !== 'objective' &&
+            (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') &&
+            !c.id.startsWith('item_gold_nugget') && !c.id.startsWith('item_jewelry') &&
+            c.buyCost && c.buyCost < 50 // Prioritize cheaper cards as filler
+        );
         
-        _log(`Deck Augmentation: Base needed: ${baseCardsNeeded}, NG+ Reduction: ${ngPlusReduction}, Final cards to add: ${cardsToAugmentCount}`, "debug");
-
-        if (cardsToAugmentCount > 0) {
-            const augmentPool = worldCardPool.filter(c => 
-                (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') && 
-                !c.id.startsWith('item_gold_nugget') && !c.id.startsWith('item_jewelry')
-            );
-            
-            const pickedForAugment = pickRandomDistinctFromPool(augmentPool, () => true, cardsToAugmentCount);
-            const playerDeckAugmentationPool = pickedForAugment.picked;
-            const pickedIds = new Set(playerDeckAugmentationPool.map(c => c.id));
-            worldCardPool = worldCardPool.filter(c => !pickedIds.has(c.id));
-
-            if (playerDeckAugmentationPool.length > 0) {
-                finalPlayerDeck.push(...playerDeckAugmentationPool);
-                _log(`Augmenting deck with ${playerDeckAugmentationPool.length} cards to match NG+ progression.`, 'system');
-            }
+        const pickedForAugment = pickRandomDistinctFromPool(augmentPool, () => true, cardsToAugmentCount);
+        
+        if (pickedForAugment.picked.length > 0) {
+            finalPlayerDeck.push(...pickedForAugment.picked);
+            _log(`Added ${pickedForAugment.picked.length} filler cards from the theme pool.`, 'system');
         }
     }
+
+    // 4. Top off with lesser starter cards (like Dried Meat) if still needed.
+    if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
+        const driedMeatCard = CURRENT_CARDS_DATA['provision_dried_meat'];
+        if (driedMeatCard) {
+            const numToAdd = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
+            for (let i = 0; i < numToAdd; i++) {
+                finalPlayerDeck.push(driedMeatCard);
+            }
+            _log(`Topped off deck with ${numToAdd} Dried Meat.`, 'system');
+        }
+    }
+
+    // Trim deck if it's over the target size (e.g., if player carries over more than target)
+    if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE && currentState.ngPlusLevel < 60) {
+        finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
+         _log(`Deck size exceeds target. Trimming to ${PLAYER_DECK_TARGET_SIZE} cards.`, 'debug');
+    }
+    
+    // --- WORLD DECK CONSTRUCTION (using the remaining pool) ---
+    const finalPlayerCardIdsForWorldFilter = new Set(finalPlayerDeck.map(card => card.id));
+    allInitiallyOwnedCardIds.forEach(id => finalPlayerCardIdsForWorldFilter.add(id));
+
+    let worldCardPool = currentState.initialCardPool.filter(c => 
+        !finalPlayerCardIdsForWorldFilter.has(c.id) && 
+        !uniqueCharacterStarterCardIds.has(c.id) &&
+        c.subType !== 'objective'
+    );
+    _log(`Initial world pool created with ${worldCardPool.length} cards after removing player and character-specific cards.`, 'system');
     
     if (localStorage.getItem('objectiveReward_well_prepared_WWS') === 'true') {
         const steakCard = CURRENT_CARDS_DATA['provision_steak'];
@@ -2288,11 +2303,6 @@ export const useGameState = () => {
             _log(`'Well-Prepared' reward: Replaced Dried Meat with 5 Steak.`, 'system');
         }
         localStorage.removeItem('objectiveReward_well_prepared_WWS');
-    }
-    
-    if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE && currentState.ngPlusLevel < 60) {
-        finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
-        _log(`Deck size exceeds target. Trimming to ${PLAYER_DECK_TARGET_SIZE} cards.`, 'debug');
     }
     
     if (currentState.remixDeckOnStart) {
