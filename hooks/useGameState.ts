@@ -1642,6 +1642,7 @@ export const useGameState = () => {
         if (!prev) return null;
 
         let modPlayer = { ...prev.playerDetails[PLAYER_ID] };
+        let characterAndSkillsInitialized = false;
         
         if (runStartState) {
             _log("Applying run start state for retry.", "system");
@@ -1679,24 +1680,33 @@ export const useGameState = () => {
             const character = runStartState.characterId ? CHARACTERS_DATA_MAP[runStartState.characterId] : null;
             if (character) {
                 modPlayer.character = character;
+                 if (runStartState.personality) {
+                    modPlayer.personality = runStartState.personality;
+                    const { talkSkill, petSkill } = calculateSkills(character, runStartState.personality);
+                    modPlayer.talkSkill = talkSkill;
+                    modPlayer.petSkill = petSkill;
+                    characterAndSkillsInitialized = true;
+                }
                 modPlayer.maxHealth = character.health + (runStartState.cumulativeNGPlusMaxHealthBonus || 0) + hpBonusFromItems;
                 modPlayer.health = modPlayer.maxHealth;
                 modPlayer.characterBaseMaxHealthForRun = character.health + (runStartState.cumulativeNGPlusMaxHealthBonus || 0);
             }
         }
         
-        const storedPlayerDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
-        if (storedPlayerDetailsString) {
-            const storedDetails = JSON.parse(storedPlayerDetailsString);
-            modPlayer.name = storedDetails.name || null;
-            if (storedDetails.characterId && CHARACTERS_DATA_MAP[storedDetails.characterId]) {
-                 const character = CHARACTERS_DATA_MAP[storedDetails.characterId];
-                 modPlayer.character = character;
-                 modPlayer.personality = storedDetails.personality || character.personality;
-                 
-                 const { talkSkill, petSkill } = calculateSkills(character, modPlayer.personality);
-                 modPlayer.talkSkill = talkSkill;
-                 modPlayer.petSkill = petSkill;
+        if (!characterAndSkillsInitialized) {
+            const storedPlayerDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
+            if (storedPlayerDetailsString) {
+                const storedDetails = JSON.parse(storedPlayerDetailsString);
+                modPlayer.name = storedDetails.name || null;
+                if (storedDetails.characterId && CHARACTERS_DATA_MAP[storedDetails.characterId]) {
+                     const character = CHARACTERS_DATA_MAP[storedDetails.characterId];
+                     modPlayer.character = character;
+                     modPlayer.personality = storedDetails.personality || character.personality;
+                     
+                     const { talkSkill, petSkill } = calculateSkills(character, modPlayer.personality);
+                     modPlayer.talkSkill = talkSkill;
+                     modPlayer.petSkill = petSkill;
+                }
             }
         }
         
@@ -2383,6 +2393,7 @@ export const useGameState = () => {
         maxHealth: playerDetailsFromSetup.maxHealth,
         health: playerDetailsFromSetup.health,
         characterId: playerChar.id,
+        personality: playerDetailsFromSetup.personality,
         stepsTaken: playerDetailsFromSetup.stepsTaken,
         cumulativeNGPlusMaxHealthBonus: playerDetailsFromSetup.cumulativeNGPlusMaxHealthBonus,
     };
