@@ -1008,9 +1008,9 @@ export const handleInteractWithThreat = ({ player, gameState, isBossActive, help
     modPlayer.hasTakenActionThisTurn = true;
 
     if (activeEvent.subType === 'animal') {
-        const petFailureChance = modPlayer.petSkill;
+        const petSuccessChance = 1 - modPlayer.petSkill;
         const petRoll = Math.random();
-        if (petRoll <= petFailureChance) { // Chance to fail
+        if (petRoll > petSuccessChance) { // Chance to fail
             _log(`You try to pet the ${activeEvent.name}. It doesn't like that.`, 'action');
             gameUpdates.triggerThreatShake = true;
 
@@ -1066,9 +1066,9 @@ export const handleInteractWithThreat = ({ player, gameState, isBossActive, help
             _log(`The ${activeEvent.name} is no longer considered hostile. Trading is now possible.`, 'info');
         }
     } else if (activeEvent.subType === 'human') {
-        const talkFailureChance = modPlayer.talkSkill;
+        const talkSuccessChance = 1 - modPlayer.talkSkill;
         const talkRoll = Math.random();
-        if (talkRoll <= talkFailureChance) { // Chance to fail
+        if (talkRoll > talkSuccessChance) { // Chance to fail
             _log(`You try to talk to the ${activeEvent.name}. They respond with violence.`, 'action');
             gameUpdates.triggerThreatShake = true;
             

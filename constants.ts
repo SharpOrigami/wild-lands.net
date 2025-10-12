@@ -41,7 +41,7 @@ export const PERSONALITY_MODIFIERS: { [trait: string]: { talk: number; pet: numb
   'Reckless':       { talk: 5, pet: -4 },
   'Cautious':       { talk: 2, pet: -2 },
   'Greedy':         { talk: 5, pet: -3 },
-  'Compassionate':  { talk: 3, pet: -5 },
+  'Compassionate':  { talk: -3, pet: -5 },
   'Superstitious':  { talk: -2, pet: 5 },
 
   // Motivations (Max Penalty Contribution: +2)
@@ -156,7 +156,7 @@ export const CHARACTERS_DATA_MAP: { [id: string]: Character } = {
         id: 'trapper', name: 'Trapper', health: 31, gold: 45,
         starterDeck: ['item_sharp_knife_t1', 'item_large_trap_t1', 'upgrade_worn_whetstone', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'upgrade_bearskin_coat', 'provision_water_t1'],
         description: "Life on the frontier is about patience and preparation. This solitary figure knows how to set a snare for any creature, four-legged or two.",
-        talkSkill: 89, petSkill: 75, // V. bad talker, bad petter
+        talkSkill: 89, petSkill: 92, // V. bad talker, even worse with animals
         personality: { archetype: 'The Pragmatist', temperament: 'Cautious', motivation: 'Seeking Fortune' }
     },
     gunslinger: { 
@@ -170,7 +170,7 @@ export const CHARACTERS_DATA_MAP: { [id: string]: Character } = {
         id: 'doctor', name: 'Doctor', health: 31, gold: 105,
         starterDeck: ['item_sharp_knife_t1', 'provision_miracle_cure_t1', 'upgrade_medical_journal', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'upgrade_deer_skin_coat_t1', 'provision_laudanum_t1'],
         description: "An educated man in an uneducated land. His bag contains remedies for ills both common and strange, a skill worth more than gold in these parts.",
-        talkSkill: 80, petSkill: 85, // Good talker, better petter
+        talkSkill: 80, petSkill: 85, // Good talker, less so with animals
         personality: { archetype: 'The Idealist', temperament: 'Compassionate', motivation: 'Seeking Redemption' }
     },
     herbalist: { 
