@@ -475,14 +475,15 @@ export const useGameState = () => {
     const currentState = gameStateRef.current;
     if (!currentState || (currentState.status !== 'playing' && currentState.status !== 'showing_boss_intro' && currentState.status !== 'playing_initial_reveal' && !currentState.showObjectiveSummaryModal)) return;
 
+    const playerForFinish = { ...currentState.playerDetails[PLAYER_ID] };
+    const isVictory = playerForFinish.health > 0;
 
     // Clear autosave on victory
-    if (currentState.autosaveSlotIndex === 3) {
+    if (isVictory && currentState.autosaveSlotIndex === 3) {
         deleteGameInSlot(3);
         _log(`Autosave in Autosave Slot cleared after victory.`, 'system');
     }
 
-    let playerForFinish = { ...currentState.playerDetails[PLAYER_ID] };
     const theme = getThemeName(currentState.ngPlusLevel);
 
     playerForFinish.runStats.totalVictories = 1;
@@ -578,7 +579,7 @@ export const useGameState = () => {
         remixProgress: undefined,
         objectiveChoices: [],
         selectedObjectiveIndices: [],
-        runStartState: currentState.runStartState,
+        runStartState: isVictory ? undefined : currentState.runStartState,
         saveSlotIndex: currentState.saveSlotIndex,
         autosaveSlotIndex: null, // Clear autosave index
         isBossFightActive: false,
@@ -1405,7 +1406,7 @@ export const useGameState = () => {
                 
                 modifiableGameStateUpdates.status = 'finished';
                 modifiableGameStateUpdates.winReason = winReason;
-                _log(winReason, "system");
+                 _log(winReason, "system");
 
                 // Clear autosave on defeat
                 if (initialGameState.autosaveSlotIndex === 3) {
@@ -1628,29 +1629,42 @@ export const useGameState = () => {
             ? ngPlusOverride 
             : (currentState?.ngPlusLevel ?? parseInt(localStorage.getItem('ngPlusLevel_WWS') || '0', 10)));
     
+    let runStartStateToPreserve = currentState?.runStartState;
+    if (ngPlusOverride !== undefined && currentState && ngPlusOverride !== currentState.ngPlusLevel) {
+        // This is an NG+ advancement, not a retry. Invalidate the old start state.
+        runStartStateToPreserve = undefined;
+    }
+
+    const isRetryWithSnapshot = !hardReset && currentState && runStartStateToPreserve && (ngPlusOverride === undefined || ngPlusOverride === currentState.ngPlusLevel);
     const shouldPreserveFromState = !hardReset && currentState;
 
-    const healthBonusToPreserve = shouldPreserveFromState
-        ? currentState.playerDetails[PLAYER_ID].cumulativeNGPlusMaxHealthBonus
-        : (hardReset ? 0 : parseInt(localStorage.getItem('ngPlusCumulativeMaxHealthBonus_WWS') || '0', 10));
+    const healthBonusToPreserve = isRetryWithSnapshot
+        ? (runStartStateToPreserve.cumulativeNGPlusMaxHealthBonus || 0)
+        : (shouldPreserveFromState
+            ? currentState.playerDetails[PLAYER_ID].cumulativeNGPlusMaxHealthBonus
+            : (hardReset ? 0 : parseInt(localStorage.getItem('ngPlusCumulativeMaxHealthBonus_WWS') || '0', 10)));
 
-    const goldToPreserve = shouldPreserveFromState
-        ? currentState.playerDetails[PLAYER_ID].gold
-        : (hardReset ? 0 : parseInt(localStorage.getItem('ngPlusPlayerGold_WWS') || '0', 10));
+    const goldToPreserve = isRetryWithSnapshot
+        ? (runStartStateToPreserve.gold || 0)
+        : (shouldPreserveFromState
+            ? currentState.playerDetails[PLAYER_ID].gold
+            : (hardReset ? 0 : parseInt(localStorage.getItem('ngPlusPlayerGold_WWS') || '0', 10)));
         
-    const stepsTaken = shouldPreserveFromState 
-        ? currentState.playerDetails[PLAYER_ID].stepsTaken
-        : (hardReset ? 0 : parseInt(localStorage.getItem('wildWestStepsTaken_WWS') || '0', 10));
+    const stepsToPreserve = isRetryWithSnapshot 
+        ? (runStartStateToPreserve.stepsTaken || 0)
+        : (shouldPreserveFromState 
+            ? currentState.playerDetails[PLAYER_ID].stepsTaken
+            : (hardReset ? 0 : parseInt(localStorage.getItem('wildWestStepsTaken_WWS') || '0', 10)));
     
     const deckToPreserve: CardData[] = carryOverDeck || [];
     const discardToPreserve: CardData[] = [];
     const equippedToPreserve: CardData[] = [];
     const satchelsToPreserve: { [key: number]: CardData[] } = {};
 
-    let runStartStateToPreserve = currentState?.runStartState;
+    let runStartStateToPreserveForNextState = currentState?.runStartState;
     if (ngPlusOverride !== undefined && currentState && ngPlusOverride !== currentState.ngPlusLevel) {
         // This is an NG+ advancement, not a retry. Invalidate the old start state.
-        runStartStateToPreserve = undefined;
+        runStartStateToPreserveForNextState = undefined;
     }
 
     const initialPlayerState = {
@@ -1659,7 +1673,7 @@ export const useGameState = () => {
         ngPlusLevel,
         cumulativeNGPlusMaxHealthBonus: healthBonusToPreserve,
         gold: goldToPreserve > 0 ? goldToPreserve : INITIAL_PLAYER_STATE_TEMPLATE.gold,
-        stepsTaken,
+        stepsTaken: stepsToPreserve,
         playerDeck: deckToPreserve,
         playerDiscard: discardToPreserve,
         equippedItems: equippedToPreserve,
@@ -1669,7 +1683,7 @@ export const useGameState = () => {
     const baseInitialState: GameState = {
         runId: crypto.randomUUID(),
         status: initialStatus, playerDetails: { [PLAYER_ID]: initialPlayerState }, eventDeck: [], eventDiscardPile: [], activeEvent: null, activeObjectives: [], storeItemDeck: [], storeDisplayItems: [], storeItemDiscardPile: [], turn: 0, storyGenerated: false, log: [], selectedCard: null, ngPlusLevel: ngPlusLevel, modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState }, activeGameBanner: initialGameBannerState, bannerQueue: [], blockTradeDueToHostileEvent: false, playerDeckAugmentationPool: [], initialCardPool: [], activeEventTurnCounter: 0, scrollAnimationPhase: 'none', isLoadingStory: false, pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true', showObjectiveSummaryModal: false, objectiveSummary: undefined, gameJustStarted: true, newlyDrawnCardIndices: undefined, equipAnimationIndex: null, eventDifficultyBonus: 0, saveSlotIndex: saveSlotIndex ?? undefined, autosaveSlotIndex: null, triggerThreatShake: false, playerShake: false, playerAttackedEventThisTurn: false, objectiveChoices: [], selectedObjectiveIndices: [],
-        runStartState: runStartStateToPreserve,
+        runStartState: runStartStateToPreserveForNextState,
     };
     
     const initializeLevel = async (level: number, runStartStateForInitialization?: any) => {
@@ -1843,11 +1857,7 @@ export const useGameState = () => {
                  for (const key in satchelsFromStorage) {
                     satchelsForNGPlus[key] = rehydrateCardArray(satchelsFromStorage[key]);
                  }
-                 updatedPlayer.gold = currentRunStartState.gold || 0;
-                 updatedPlayer.maxHealth = currentRunStartState.maxHealth || updatedPlayer.character?.health || 30;
-                 updatedPlayer.health = currentRunStartState.health || updatedPlayer.maxHealth;
-                 updatedPlayer.stepsTaken = currentRunStartState.stepsTaken || updatedPlayer.stepsTaken;
-                 _log(`Restored state for ${updatedPlayer.name} to retry NG+${level}.`, "system");
+                 _log(`Restored deck state for ${updatedPlayer.name} to retry NG+${level}.`, "system");
             } else if (!hardReset) {
                 const equippedFromStorageString = localStorage.getItem('wildWestEquippedForNGPlus_WWS');
                 const satchelsFromStorageString = localStorage.getItem('wildWestSatchelsForNGPlus_WWS');
@@ -1890,6 +1900,10 @@ export const useGameState = () => {
                 updatedPlayer.maxHealth = finalMaxHealth;
                 updatedPlayer.health = finalMaxHealth;
                 updatedPlayer.characterBaseMaxHealthForRun = updatedPlayer.character.health + cumulativeBonus;
+            } else if (updatedPlayer.character && currentRunStartState) {
+                // For retries, max health is determined by the snapshot, not recalculated
+                updatedPlayer.maxHealth = currentRunStartState.maxHealth || updatedPlayer.character.health;
+                updatedPlayer.health = currentRunStartState.health || updatedPlayer.maxHealth;
             }
 
             let showRewardModal = false;
@@ -2004,7 +2018,7 @@ export const useGameState = () => {
             name: isNewCharacter ? null : (prevPlayer.name || null),
             health: finalMaxHealth,
             maxHealth: finalMaxHealth,
-            gold: prev.ngPlusLevel === 0 ? character.gold : prevPlayer.gold,
+            gold: Math.max(prevPlayer.gold, character.gold),
             characterBaseMaxHealthForRun: character.health + cumulativeBonus,
             personality: personalityToSet,
             equippedItems: equippedItemsForCharacterSelection,
@@ -2210,33 +2224,46 @@ export const useGameState = () => {
     let gameUpdates: Partial<GameState> = {};
     
     // --- DECK CONSTRUCTION ---
-    // 1. Start with the cards the player chose to carry over.
     let finalPlayerDeck: CardData[] = [...playerDetailsFromSetup.playerDeck];
     _log(`Starting deck construction with ${finalPlayerDeck.length} carried-over cards.`, 'system');
     
-    // Identify all cards the player owns at the start (deck, equipped, satchels) to avoid adding duplicates.
     const allInitiallyOwnedCards = [
         ...finalPlayerDeck,
         ...playerDetailsFromSetup.equippedItems,
         ...Object.values(playerDetailsFromSetup.satchels).flat(),
     ].filter((c): c is CardData => Boolean(c));
-    const allInitiallyOwnedCardIds = new Set(allInitiallyOwnedCards.map(card => card.id));
     
-    // 2. Add any character starter cards that are missing.
-    const starterDeckIds = playerChar.starterDeck;
-    const missingStarterCards = starterDeckIds
-        .map(id => CURRENT_CARDS_DATA[id])
-        .filter((card): card is CardData => {
-            // A card is missing if it's not in the player's total collection of items.
-            return card !== undefined && !allInitiallyOwnedCardIds.has(card.id);
-        });
-    
-    if (missingStarterCards.length > 0) {
-        finalPlayerDeck.push(...missingStarterCards);
-        _log(`Added ${missingStarterCards.length} missing starter cards: ${missingStarterCards.map(c => c.name).join(', ')}.`, 'system');
+    const neededCards = new Map<string, number>();
+    playerChar.starterDeck.forEach(id => {
+        neededCards.set(id, (neededCards.get(id) || 0) + 1);
+    });
+
+    const ownedCards = new Map<string, number>();
+    allInitiallyOwnedCards.forEach(card => {
+        ownedCards.set(card.id, (ownedCards.get(card.id) || 0) + 1);
+    });
+
+    const cardsToAdd: CardData[] = [];
+    for (const [id, neededCount] of neededCards.entries()) {
+        const ownedCount = ownedCards.get(id) || 0;
+        const numberToAdd = Math.max(0, neededCount - ownedCount);
+        if (numberToAdd > 0) {
+            const cardData = CURRENT_CARDS_DATA[id];
+            if (cardData) {
+                for (let i = 0; i < numberToAdd; i++) {
+                    cardsToAdd.push(cardData);
+                }
+            } else {
+                _log(`Could not find starter card with ID: ${id}`, 'error');
+            }
+        }
+    }
+
+    if (cardsToAdd.length > 0) {
+        finalPlayerDeck.push(...cardsToAdd);
+        _log(`Added ${cardsToAdd.length} missing starter cards to meet deck requirements.`, 'system');
     }
     
-    // Identify all unique starter cards from ANY character to exclude them from the general filler pool.
     const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
     const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
         acc[id] = (acc[id] || 0) + 1;
@@ -2244,7 +2271,6 @@ export const useGameState = () => {
     }, {} as Record<string, number>);
     const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
 
-    // 3. Add filler cards from the theme pool if the deck is still not full.
     if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
         const cardsToAugmentCount = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
 
@@ -2266,7 +2292,6 @@ export const useGameState = () => {
         }
     }
 
-    // 4. Top off with lesser starter cards (like Dried Meat) if still needed.
     if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
         const driedMeatCard = CURRENT_CARDS_DATA['provision_dried_meat'];
         if (driedMeatCard) {
@@ -2278,7 +2303,6 @@ export const useGameState = () => {
         }
     }
 
-    // Trim deck if it's over the target size (e.g., if player carries over more than target)
     if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE && currentState.ngPlusLevel < 60) {
         finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
          _log(`Deck size exceeds target. Trimming to ${PLAYER_DECK_TARGET_SIZE} cards.`, 'debug');
@@ -2286,7 +2310,7 @@ export const useGameState = () => {
     
     // --- WORLD DECK CONSTRUCTION (using the remaining pool) ---
     const finalPlayerCardIdsForWorldFilter = new Set(finalPlayerDeck.map(card => card.id));
-    allInitiallyOwnedCardIds.forEach(id => finalPlayerCardIdsForWorldFilter.add(id));
+    allInitiallyOwnedCards.map(c => c.id).forEach(id => finalPlayerCardIdsForWorldFilter.add(id));
 
     let worldCardPool = currentState.initialCardPool.filter(c => 
         !finalPlayerCardIdsForWorldFilter.has(c.id) && 
@@ -2440,6 +2464,7 @@ export const useGameState = () => {
         health: playerDetailsFromSetup.health,
         characterId: playerChar.id,
         stepsTaken: playerDetailsFromSetup.stepsTaken,
+        cumulativeNGPlusMaxHealthBonus: playerDetailsFromSetup.cumulativeNGPlusMaxHealthBonus,
     };
     gameUpdates.runStartState = runStartState;
     _log("Saved run start state.", "debug");
@@ -2575,19 +2600,23 @@ export const useGameState = () => {
       // --- Recalculate skill failure chances ---
       let newTalkSkill = currentPlayerDetails.talkSkill;
       let newPetSkill = currentPlayerDetails.petSkill;
-      if (currentPlayerDetails.character) {
-          const talkFailurePoints = (currentPlayerDetails.character.talkSkill || 0) +
-              (PERSONALITY_MODIFIERS[newPersonality.archetype]?.talk || 0) +
-              (PERSONALITY_MODIFIERS[newPersonality.temperament]?.talk || 0) +
-              (PERSONALITY_MODIFIERS[newPersonality.motivation]?.talk || 0);
+      if (currentPlayerDetails.character && currentPlayerDetails.character.id) {
+          // REFRESH character data from constants to prevent using stale data from old saves.
+          const freshCharacterData = CHARACTERS_DATA_MAP[currentPlayerDetails.character.id];
+          if (freshCharacterData) {
+              const talkFailurePoints = (freshCharacterData.talkSkill || 0) +
+                  (PERSONALITY_MODIFIERS[newPersonality.archetype]?.talk || 0) +
+                  (PERSONALITY_MODIFIERS[newPersonality.temperament]?.talk || 0) +
+                  (PERSONALITY_MODIFIERS[newPersonality.motivation]?.talk || 0);
 
-          const petFailurePoints = (currentPlayerDetails.character.petSkill || 0) +
-              (PERSONALITY_MODIFIERS[newPersonality.archetype]?.pet || 0) +
-              (PERSONALITY_MODIFIERS[newPersonality.temperament]?.pet || 0) +
-              (PERSONALITY_MODIFIERS[newPersonality.motivation]?.pet || 0);
+              const petFailurePoints = (freshCharacterData.petSkill || 0) +
+                  (PERSONALITY_MODIFIERS[newPersonality.archetype]?.pet || 0) +
+                  (PERSONALITY_MODIFIERS[newPersonality.temperament]?.pet || 0) +
+                  (PERSONALITY_MODIFIERS[newPersonality.motivation]?.pet || 0);
 
-          newTalkSkill = talkFailurePoints / 100;
-          newPetSkill = petFailurePoints / 100;
+              newTalkSkill = talkFailurePoints / 100;
+              newPetSkill = petFailurePoints / 100;
+          }
       }
       
       const newPlayerDetails = { 
@@ -2605,7 +2634,7 @@ export const useGameState = () => {
         }
       };
     });
-  }, []);
+  }, [_log]);
 
   const { togglePedometer, cleanup: cleanupPedometer } = useMemo(() => createPedometerManager({
     setGameState,
@@ -2763,25 +2792,36 @@ export const useGameState = () => {
         const stateWithDefaults = deepMerge({ ...baseInitialState }, savedState);
         let finalState = rehydrateAndMigrateState(stateWithDefaults, _log);
 
-        // Overwrite loaded talk/pet skills with correctly calculated values
         const playerOnLoad = finalState.playerDetails[PLAYER_ID];
-        if (playerOnLoad && playerOnLoad.character && playerOnLoad.personality) {
-            const talkFailurePoints = (playerOnLoad.character.talkSkill || 0) +
-                (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.talk || 0) +
-                (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.talk || 0) +
-                (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.talk || 0);
+        if (playerOnLoad && playerOnLoad.character && playerOnLoad.character.id) {
+            const freshCharacterData = CHARACTERS_DATA_MAP[playerOnLoad.character.id];
+            if (freshCharacterData) {
+                const updatedCharacter = {
+                    ...freshCharacterData,
+                    gold: playerOnLoad.character.gold,
+                    health: playerOnLoad.character.health,
+                };
+                playerOnLoad.character = updatedCharacter;
+            }
+        
+            if (playerOnLoad.personality) {
+                const talkFailurePoints = (playerOnLoad.character.talkSkill || 0) +
+                    (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.talk || 0) +
+                    (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.talk || 0) +
+                    (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.talk || 0);
 
-            const petFailurePoints = (playerOnLoad.character.petSkill || 0) +
-                (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.pet || 0) +
-                (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.pet || 0) +
-                (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.pet || 0);
-            
-            const newTalkSkill = talkFailurePoints / 100;
-            const newPetSkill = petFailurePoints / 100;
+                const petFailurePoints = (playerOnLoad.character.petSkill || 0) +
+                    (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.pet || 0) +
+                    (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.pet || 0) +
+                    (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.pet || 0);
+                
+                const newTalkSkill = talkFailurePoints / 100;
+                const newPetSkill = petFailurePoints / 100;
 
-            playerOnLoad.talkSkill = newTalkSkill;
-            playerOnLoad.petSkill = newPetSkill;
-            _log(`Recalculated skills for loaded game to apply latest balancing. New Talk Failure Chance: ${talkFailurePoints}%, Pet: ${petFailurePoints}%.`, 'system');
+                playerOnLoad.talkSkill = newTalkSkill;
+                playerOnLoad.petSkill = newPetSkill;
+                _log(`Character data synced and skills recalculated for loaded game.`, 'system');
+            }
         }
 
         finalState = rebuildEventDeckIfNeeded(finalState, _log);
@@ -2978,24 +3018,36 @@ export const useGameState = () => {
                 let finalState = rehydrateAndMigrateState(stateWithDefaults, _log);
                 finalState = rebuildEventDeckIfNeeded(finalState, _log);
                 
-                // Overwrite loaded talk/pet skills with correctly calculated values
                 const playerOnLoad = finalState.playerDetails[PLAYER_ID];
-                if (playerOnLoad && playerOnLoad.character && playerOnLoad.personality) {
-                    const talkFailurePoints = (playerOnLoad.character.talkSkill || 0) +
-                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.talk || 0) +
-                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.talk || 0) +
-                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.talk || 0);
+                if (playerOnLoad && playerOnLoad.character && playerOnLoad.character.id) {
+                    const freshCharacterData = CHARACTERS_DATA_MAP[playerOnLoad.character.id];
+                    if (freshCharacterData) {
+                        const updatedCharacter = {
+                            ...freshCharacterData,
+                            gold: playerOnLoad.character.gold,
+                            health: playerOnLoad.character.health,
+                        };
+                        playerOnLoad.character = updatedCharacter;
+                    }
+                
+                    if (playerOnLoad.personality) {
+                        const talkFailurePoints = (playerOnLoad.character.talkSkill || 0) +
+                            (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.talk || 0) +
+                            (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.talk || 0) +
+                            (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.talk || 0);
         
-                    const petFailurePoints = (playerOnLoad.character.petSkill || 0) +
-                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.pet || 0) +
-                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.pet || 0) +
-                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.pet || 0);
-                    
-                    const newTalkSkill = talkFailurePoints / 100;
-                    const newPetSkill = petFailurePoints / 100;
+                        const petFailurePoints = (playerOnLoad.character.petSkill || 0) +
+                            (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.pet || 0) +
+                            (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.pet || 0) +
+                            (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.pet || 0);
+                        
+                        const newTalkSkill = talkFailurePoints / 100;
+                        const newPetSkill = petFailurePoints / 100;
         
-                    playerOnLoad.talkSkill = newTalkSkill;
-                    playerOnLoad.petSkill = newPetSkill;
+                        playerOnLoad.talkSkill = newTalkSkill;
+                        playerOnLoad.petSkill = newPetSkill;
+                        _log(`Character data synced and skills recalculated for loaded game.`, 'system');
+                    }
                 }
                 
                 if ((!finalState.activeObjectives || finalState.activeObjectives.length === 0) && (finalState.status === 'playing' || finalState.status === 'playing_initial_reveal')) {
