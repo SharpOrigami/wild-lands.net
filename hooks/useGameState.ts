@@ -868,6 +868,11 @@ export const useGameState = () => {
                 if (cardsFromHand.length > 0) modPlayer.playerDiscard.push(...cardsFromHand);
                 modPlayer.hand = new Array(modPlayer.handSize).fill(null);
                 
+                if (campfireWasActive) {
+                    modPlayer.isCampfireActive = false;
+                    _localLog(getRandomLogVariation('campfireDoused', {}, theme, modPlayer), 'system');
+                }
+
                 if (modPlayer.currentIllnesses.length > 0) {
                     illnessWorsenedName = modPlayer.currentIllnesses.map(i => i.name).join(', ');
                     const damageFromIllness = modPlayer.currentIllnesses.length;
@@ -912,12 +917,11 @@ export const useGameState = () => {
                 } else if (eventActiveAtNight.type !== 'Event') {
                     const baseCard = getBaseCardByIdentifier(eventActiveAtNight);
                     if (baseCard) {
-                        // Valuables are items that can be sold for a high price but generally shouldn't be purchasable.
                         const isValuable = baseCard.id.startsWith('item_gold_nugget') || baseCard.id.startsWith('item_jewelry');
                 
                         if (isValuable) {
-                            _localLog(`The ${baseCard.name} was left behind and is lost to the trail.`, 'info');
-                            // This valuable is removed from the game and not added to any deck.
+                            _localLog(`The valuable ${baseCard.name} was left behind and returns to the wilds, to be found again.`, 'info');
+                            gameUpdates.eventDiscardPile = [...(gameUpdates.eventDiscardPile || prev.eventDiscardPile || []), baseCard];
                         } else {
                             // Non-valuables left on the trail are added to the top of the store's draw pile.
                             _localLog(getRandomLogVariation('itemLeftBehind', { itemName: baseCard.name }, theme, modPlayer, baseCard), 'info');
@@ -1585,10 +1589,12 @@ export const useGameState = () => {
         Object.keys(localStorage).forEach(key => { 
             if (key.endsWith('_WWS') && ![
                 'wildWestLifetimeStats_WWS', 
-                'preloaded_themes_WWS', 
-                'preloaded_app_version_WWS',
                 'pedometerFeatureEnabled_WWS',
-                'wildWestGameSaves_WWS'
+                'wildWestGameSaves_WWS',
+                'preloaded_sound_version_WWS',
+                'preloaded_images_timestamp_WWS',
+                'preloaded_image_themes_WWS',
+                'preloaded_sound_themes_WWS'
             ].includes(key)) {
                 localStorage.removeItem(key);
             }

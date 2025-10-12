@@ -819,8 +819,8 @@ export const handleSellItem = ({ player, gameState, payload, helpers }: ActionHa
     const cardToSell = getBaseCardByIdentifier(card);
     if (cardToSell) {
         const isTrophyOrValuable = cardToSell.type === 'Trophy' || cardToSell.type === 'Objective Proof' || cardToSell.id.startsWith('item_gold_nugget') || cardToSell.id.startsWith('item_jewelry');
-        // Non-valuable items are returned to the bottom of the store deck.
-        if (!isTrophyOrValuable) gameUpdates.storeItemDeck = [...(gameState.storeItemDeck || []), cardToSell];
+        // Non-valuable items are returned to the store's discard pile.
+        if (!isTrophyOrValuable) gameUpdates.storeItemDiscardPile = [...(gameState.storeItemDiscardPile || []), cardToSell];
     }
     
     if (source === CardContext.HAND && index !== undefined) {
@@ -895,8 +895,8 @@ export const handleSellFromSatchel = ({ player, gameState, payload, helpers }: A
     if (soldCardBase) {
         const isTrophyOrValuable = soldCardBase.type === 'Trophy' || soldCardBase.type === 'Objective Proof' || soldCardBase.id.startsWith('item_gold_nugget') || soldCardBase.id.startsWith('item_jewelry');
         if (!isTrophyOrValuable) {
-            // Sold items from satchel are returned to the bottom of the store deck.
-            gameUpdates.storeItemDeck = [...(gameState.storeItemDeck || []), soldCardBase];
+            // Sold items from satchel are returned to the store's discard pile.
+            gameUpdates.storeItemDiscardPile = [...(gameState.storeItemDiscardPile || []), soldCardBase];
         }
     }
     

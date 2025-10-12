@@ -9,7 +9,19 @@ export function getSaveGames(): (GameState | null)[] {
         const savedData = localStorage.getItem(SAVE_GAME_KEY);
         if (savedData) {
             const saves = JSON.parse(savedData);
-            if (Array.isArray(saves) && saves.length === NUM_SAVE_SLOTS) {
+            if (Array.isArray(saves)) {
+                // If the saved array is shorter than the current number of slots,
+                // pad it with nulls. This handles migration from 3 to 4 slots.
+                if (saves.length < NUM_SAVE_SLOTS) {
+                    const newSaves = Array(NUM_SAVE_SLOTS).fill(null);
+                    saves.forEach((save, i) => newSaves[i] = save);
+                    return newSaves;
+                }
+                // If it's longer (unlikely), truncate it.
+                if (saves.length > NUM_SAVE_SLOTS) {
+                    return saves.slice(0, NUM_SAVE_SLOTS);
+                }
+                // If it's the correct length, return it as is.
                 return saves;
             }
         }
