@@ -2348,12 +2348,22 @@ export const useGameState = () => {
         ...Object.values(playerDetailsFromSetup.satchels).flat(),
     ].filter((c): c is CardData => Boolean(c)).map(c => c.id).forEach(id => finalPlayerCardIdsForWorldFilter.add(id));
 
+    // Calculate which starter cards are unique to a single character.
+    const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
+    const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
+        acc[id] = (acc[id] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+    const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
 
+    // Filter the general card pool to remove player's cards AND unique character-specific cards.
     let worldCardPool = currentState.initialCardPool.filter(c => 
         !finalPlayerCardIdsForWorldFilter.has(c.id) && 
+        !uniqueCharacterStarterCardIds.has(c.id) &&
         c.subType !== 'objective'
     );
-    _log(`Initial world pool created with ${worldCardPool.length} cards after removing player and character-specific cards.`, 'system');
+    _log(`Initial world pool created with ${worldCardPool.length} cards after removing player and unique character-specific cards.`, 'system');
+
     
     if (localStorage.getItem('objectiveReward_well_prepared_WWS') === 'true') {
         const steakCard = CURRENT_CARDS_DATA['provision_steak'];
