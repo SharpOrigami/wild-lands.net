@@ -1552,7 +1552,6 @@ export const useGameState = () => {
             const batchSlice = cardsToRemixSelection.slice(i, i + BATCH_SIZE);
             const batchDict: { [id: string]: CardData } = {};
             batchSlice.forEach(card => { batchDict[card.id] = card; });
-            // FIX: Corrected typo from `batch` to `batchDict`.
             batches.push(batchDict);
         }
 
@@ -1606,7 +1605,6 @@ export const useGameState = () => {
     }
   }, [_log]);
 
-  // FIX: Define initializeLevel function to resolve "Cannot find name" error.
   const initializeLevel = useCallback((level: number, runStartState?: any) => {
     resetCurrentCardsData();
     _log(`Initializing level ${level}...`, 'system');
@@ -1780,10 +1778,19 @@ export const useGameState = () => {
 
   const resetGame = useCallback(async (options: { hardReset?: boolean; ngPlusOverride?: number; saveSlotIndex?: number; carryOverDeck?: CardData[] } = {}) => {
     ttsManager.cancel();
+    const currentState = gameStateRef.current; // Capture state at the very beginning
+
+    // If it's a simple restart (no options from the game menu), it means "restart the current level".
+    // We explicitly set ngPlusOverride to the current level to ensure this happens correctly,
+    // preventing any ambiguity or incorrect fallback to NG+0.
+    const isSimpleRestart = Object.keys(options).length === 0;
+    if (isSimpleRestart && currentState) {
+        options.ngPlusOverride = currentState.ngPlusLevel;
+    }
+    
     const { hardReset = false, ngPlusOverride, saveSlotIndex, carryOverDeck } = options;
     
     // Clear any existing autosave before starting a new run
-    const currentState = gameStateRef.current;
     if (currentState && currentState.autosaveSlotIndex !== null && currentState.autosaveSlotIndex !== undefined) {
         deleteGameInSlot(currentState.autosaveSlotIndex);
         _log(`Autosave in ${currentState.autosaveSlotIndex === 3 ? 'Autosave Slot' : `Slot ${currentState.autosaveSlotIndex + 1}`} cleared for new run.`, 'system');
@@ -1844,8 +1851,8 @@ export const useGameState = () => {
         runStartStateToPreserve = undefined;
     }
 
-    const isRetryWithSnapshot = !hardReset && currentState && runStartStateToPreserve && (ngPlusOverride === undefined || ngPlusOverride === currentState.ngPlusLevel);
     const shouldPreserveFromState = !hardReset && currentState;
+    const isRetryWithSnapshot = !hardReset && currentState && runStartStateToPreserve && (ngPlusOverride === undefined || ngPlusOverride === currentState.ngPlusLevel);
 
     const healthBonusToPreserve = isRetryWithSnapshot
         ? (runStartStateToPreserve.cumulativeNGPlusMaxHealthBonus || 0)
@@ -2059,7 +2066,7 @@ export const useGameState = () => {
             runStartState: prev.runStartState, 
         };
     });
-}, [_log]);
+  }, [_log]);
 
   const confirmName = useCallback((name: string) => {
     const currentGameState = gameStateRef.current;
@@ -2093,7 +2100,7 @@ export const useGameState = () => {
             if (!prev) return null;
             let modPlayer = { ...prev.playerDetails[PLAYER_ID], name: playerName, character: characterForGame };
 
-            // Apply cheat effects
+            // Apply non-card cheat effects
             if (cheatEffects) {
                 if (cheatEffects.addGold) {
                     modPlayer.gold += cheatEffects.addGold;
@@ -2245,101 +2252,90 @@ export const useGameState = () => {
     // --- DECK CONSTRUCTION ---
     let finalPlayerDeck: CardData[] = [...playerDetailsFromSetup.playerDeck];
     
-    // A continuing run is one from a retry OR a loaded game (which will have a deck).
     const isContinuingRun = !!currentState.runStartState;
 
     if (isContinuingRun) {
         _log(`Continuing run from retry state. Using existing deck of ${finalPlayerDeck.length} cards.`, 'system');
     } else {
-        // This logic now correctly handles both a fresh start (empty deck) and a loaded game (pre-filled deck).
-        // It only adds cards if the deck is empty.
-        if (finalPlayerDeck.length === 0) {
-            _log("Fresh run detected (empty deck). Building new starter deck.", "system");
-            
-            const allInitiallyOwnedCards = [
-                ...playerDetailsFromSetup.equippedItems,
-                ...Object.values(playerDetailsFromSetup.satchels).flat(),
-            ].filter((c): c is CardData => Boolean(c));
-            
-            const neededCards = new Map<string, number>();
-            playerChar.starterDeck.forEach(id => {
-                neededCards.set(id, (neededCards.get(id) || 0) + 1);
-            });
+        _log(`Starting deck construction with ${finalPlayerDeck.length} carry-over and cheat cards.`, 'system');
     
-            const ownedCards = new Map<string, number>();
-            allInitiallyOwnedCards.forEach(card => {
-                ownedCards.set(card.id, (ownedCards.get(card.id) || 0) + 1);
-            });
+        const currentDeckIds = new Set(finalPlayerDeck.map(c => c.id));
     
-            const cardsToAdd: CardData[] = [];
-            for (const [id, neededCount] of neededCards.entries()) {
-                const ownedCount = ownedCards.get(id) || 0;
-                const numberToAdd = Math.max(0, neededCount - ownedCount);
-                if (numberToAdd > 0) {
-                    const cardData = CURRENT_CARDS_DATA[id];
-                    if (cardData) {
-                        for (let i = 0; i < numberToAdd; i++) {
-                            cardsToAdd.push(cardData);
-                        }
-                    } else {
-                        _log(`Could not find starter card with ID: ${id}`, 'error');
-                    }
+        // 1. Identify unique character starter cards
+        const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
+        const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
+            acc[id] = (acc[id] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
+        const characterUniqueStarters = playerChar.starterDeck.filter(id => uniqueCharacterStarterCardIds.has(id));
+    
+        // 2. Add character-specific unique starters if not already present
+        characterUniqueStarters.forEach(id => {
+            if (!currentDeckIds.has(id) && finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
+                const cardData = CURRENT_CARDS_DATA[id];
+                if (cardData) {
+                    finalPlayerDeck.push(cardData);
+                    currentDeckIds.add(id);
+                    _log(`Added unique character card: ${cardData.name}`, 'system');
                 }
             }
+        });
     
-            if (cardsToAdd.length > 0) {
+        // 3. Add other missing standard starter cards (except Dried Meat)
+        const otherStandardStarters = playerChar.starterDeck.filter(id => !uniqueCharacterStarterCardIds.has(id) && id !== 'provision_dried_meat');
+        otherStandardStarters.forEach(id => {
+            if (!currentDeckIds.has(id) && finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
+                const cardData = CURRENT_CARDS_DATA[id];
+                if (cardData) {
+                    finalPlayerDeck.push(cardData);
+                    currentDeckIds.add(id);
+                    _log(`Added missing starter card: ${cardData.name}`, 'system');
+                }
+            }
+        });
+    
+        // 4. Add 3 level pool cards if deck is not full
+        if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
+            const cardsToAugmentCount = 3;
+            const augmentPool = currentState.initialCardPool.filter(c => 
+                !currentDeckIds.has(c.id) &&
+                !uniqueCharacterStarterCardIds.has(c.id) &&
+                c.subType !== 'objective' &&
+                (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') &&
+                !c.id.startsWith('item_gold_nugget') && !c.id.startsWith('item_jewelry') &&
+                c.buyCost && c.buyCost < 50
+            );
+    
+            const pickedForAugment = pickRandomDistinctFromPool(augmentPool, () => true, cardsToAugmentCount);
+            
+            if (pickedForAugment.picked.length > 0) {
+                const spaceAvailable = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
+                const cardsToAdd = pickedForAugment.picked.slice(0, spaceAvailable);
                 finalPlayerDeck.push(...cardsToAdd);
-                _log(`Added ${cardsToAdd.length} missing starter cards to meet deck requirements.`, 'system');
+                cardsToAdd.forEach(c => currentDeckIds.add(c.id)); // Update currentDeckIds
+                _log(`Added ${cardsToAdd.length} random cards from the theme pool.`, 'system');
             }
+        }
     
-            const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
-            const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
-                acc[id] = (acc[id] || 0) + 1;
-                return acc;
-            }, {} as Record<string, number>);
-            const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
-    
-            if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
-                const cardsToAugmentCount = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
-    
-                const currentDeckIds = new Set(finalPlayerDeck.map(c => c.id));
-                const augmentPool = currentState.initialCardPool.filter(c => 
-                    !currentDeckIds.has(c.id) &&
-                    !uniqueCharacterStarterCardIds.has(c.id) &&
-                    c.subType !== 'objective' &&
-                    (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') &&
-                    !c.id.startsWith('item_gold_nugget') && !c.id.startsWith('item_jewelry') &&
-                    c.buyCost && c.buyCost < 50 // Prioritize cheaper cards as filler
-                );
-                
-                const pickedForAugment = pickRandomDistinctFromPool(augmentPool, () => true, cardsToAugmentCount);
-                
-                if (pickedForAugment.picked.length > 0) {
-                    finalPlayerDeck.push(...pickedForAugment.picked);
-                    _log(`Added ${pickedForAugment.picked.length} filler cards from the theme pool.`, 'system');
+        // 5. Top off with Dried Meat to 13
+        if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
+            const driedMeatCard = CURRENT_CARDS_DATA['provision_dried_meat'];
+            if (driedMeatCard) {
+                const numToAdd = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
+                for (let i = 0; i < numToAdd; i++) {
+                    finalPlayerDeck.push(driedMeatCard);
                 }
+                _log(`Topped off deck with ${numToAdd} Dried Meat to reach ${PLAYER_DECK_TARGET_SIZE} cards.`, 'system');
             }
-        
-            if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
-                const driedMeatCard = CURRENT_CARDS_DATA['provision_dried_meat'];
-                if (driedMeatCard) {
-                    const numToAdd = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
-                    for (let i = 0; i < numToAdd; i++) {
-                        finalPlayerDeck.push(driedMeatCard);
-                    }
-                    _log(`Topped off deck with ${numToAdd} Dried Meat.`, 'system');
-                }
-            }
-        
-            if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE && currentState.ngPlusLevel < 60) {
-                finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
-                 _log(`Deck size exceeds target. Trimming to ${PLAYER_DECK_TARGET_SIZE} cards.`, 'debug');
-            }
-        } else {
-             _log(`Continuing from loaded save. Using existing deck of ${finalPlayerDeck.length} cards.`, 'system');
+        }
+    
+        // 6. Trim if over 13
+        if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE) {
+            _log(`Deck size (${finalPlayerDeck.length}) exceeds target of ${PLAYER_DECK_TARGET_SIZE}. Trimming excess cards.`, 'debug');
+            finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
         }
     }
-
     
     // --- WORLD DECK CONSTRUCTION (using the remaining pool) ---
     const finalPlayerCardIdsForWorldFilter = new Set(finalPlayerDeck.map(card => card.id));
@@ -2489,11 +2485,25 @@ export const useGameState = () => {
     }
 
     if (rewardCards.length > 0) {
-        rewardCards.forEach(itemCard => {
-            _log(`Reward delivered: ${itemCard.name}. Added to discard.`, 'system');
-            updateCurrentCardsData({ ...CURRENT_CARDS_DATA, [itemCard.id]: itemCard });
-        });
-        finalPlayerDiscard.push(...rewardCards);
+        const allPlayerCardsBeforeRewards = [
+            ...playerDetailsFromSetup.equippedItems,
+            ...Object.values(playerDetailsFromSetup.satchels).flat(),
+            ...finalPlayerDeck,
+            ...actualInitialHandCards,
+            ...(playerDetailsFromSetup.playerDiscard || []),
+            ...finalPlayerDiscard
+        ];
+        const allPlayerCardIdsBeforeRewards = new Set(allPlayerCardsBeforeRewards.map(c => c.id));
+
+        const newRewardCardsToAdd = rewardCards.filter(rewardCard => !allPlayerCardIdsBeforeRewards.has(rewardCard.id));
+
+        if (newRewardCardsToAdd.length > 0) {
+            newRewardCardsToAdd.forEach(itemCard => {
+                _log(`Reward delivered: ${itemCard.name}. Added to discard.`, 'system');
+                updateCurrentCardsData({ ...CURRENT_CARDS_DATA, [itemCard.id]: itemCard });
+            });
+            finalPlayerDiscard.push(...newRewardCardsToAdd);
+        }
     }
     
     const satchelsWithIds: { [key: number]: (string | CardData)[] } = {};
@@ -3026,8 +3036,6 @@ export const useGameState = () => {
                     }
                 }
 
-                // FIX: Add type checks to safely access properties on `savedState.aiBoss`
-                // which is of type `any` after being parsed from JSON.
                 if (savedState.aiBoss && typeof savedState.aiBoss === 'object' && savedState.aiBoss.id) {
                     const player = savedState.playerDetails?.[PLAYER_ID];
                     const characterId = player?.character?.id;
@@ -3038,7 +3046,6 @@ export const useGameState = () => {
                         if (levelCacheString) {
                             try {
                                 const levelCache = JSON.parse(levelCacheString);
-                                // FIX: Add type check for levelCache.aiBoss
                                 if (levelCache.aiBoss && typeof levelCache.aiBoss === 'object' && levelCache.aiBoss.id === savedState.aiBoss.id) {
                                     _log("Found AI boss definition in level cache. Merging into save state for rehydration.", "system");
                                     savedState.aiBoss = { ...levelCache.aiBoss, ...savedState.aiBoss };
