@@ -2763,6 +2763,27 @@ export const useGameState = () => {
         const stateWithDefaults = deepMerge({ ...baseInitialState }, savedState);
         let finalState = rehydrateAndMigrateState(stateWithDefaults, _log);
 
+        // Overwrite loaded talk/pet skills with correctly calculated values
+        const playerOnLoad = finalState.playerDetails[PLAYER_ID];
+        if (playerOnLoad && playerOnLoad.character && playerOnLoad.personality) {
+            const talkFailurePoints = (playerOnLoad.character.talkSkill || 0) +
+                (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.talk || 0) +
+                (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.talk || 0) +
+                (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.talk || 0);
+
+            const petFailurePoints = (playerOnLoad.character.petSkill || 0) +
+                (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.pet || 0) +
+                (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.pet || 0) +
+                (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.pet || 0);
+            
+            const newTalkSkill = talkFailurePoints / 100;
+            const newPetSkill = petFailurePoints / 100;
+
+            playerOnLoad.talkSkill = newTalkSkill;
+            playerOnLoad.petSkill = newPetSkill;
+            _log(`Recalculated skills for loaded game to apply latest balancing. New Talk Failure Chance: ${talkFailurePoints}%, Pet: ${petFailurePoints}%.`, 'system');
+        }
+
         finalState = rebuildEventDeckIfNeeded(finalState, _log);
         
         if ((!finalState.activeObjectives || finalState.activeObjectives.length === 0) && (finalState.status === 'playing' || finalState.status === 'playing_initial_reveal')) {
@@ -2956,6 +2977,26 @@ export const useGameState = () => {
                 const stateWithDefaults = deepMerge({ ...baseInitialState }, savedState);
                 let finalState = rehydrateAndMigrateState(stateWithDefaults, _log);
                 finalState = rebuildEventDeckIfNeeded(finalState, _log);
+                
+                // Overwrite loaded talk/pet skills with correctly calculated values
+                const playerOnLoad = finalState.playerDetails[PLAYER_ID];
+                if (playerOnLoad && playerOnLoad.character && playerOnLoad.personality) {
+                    const talkFailurePoints = (playerOnLoad.character.talkSkill || 0) +
+                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.talk || 0) +
+                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.talk || 0) +
+                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.talk || 0);
+        
+                    const petFailurePoints = (playerOnLoad.character.petSkill || 0) +
+                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.archetype]?.pet || 0) +
+                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.temperament]?.pet || 0) +
+                        (PERSONALITY_MODIFIERS[playerOnLoad.personality.motivation]?.pet || 0);
+                    
+                    const newTalkSkill = talkFailurePoints / 100;
+                    const newPetSkill = petFailurePoints / 100;
+        
+                    playerOnLoad.talkSkill = newTalkSkill;
+                    playerOnLoad.petSkill = newPetSkill;
+                }
                 
                 if ((!finalState.activeObjectives || finalState.activeObjectives.length === 0) && (finalState.status === 'playing' || finalState.status === 'playing_initial_reveal')) {
                     _log("No active objective found in auto-save. Generating new objective choices for this run.", 'system');
