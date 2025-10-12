@@ -2,7 +2,7 @@ import React from 'react';
 import { GameState, PlayerDetails, LogEntry, CardData, CardContext, ActiveGameBannerState, RunStats } from '../types.ts';
 import { getRandomLogVariation } from './logUtils.ts';
 import { calculateHealAmount, calculateAttackPower, isFirearm, getScaledCard, createTrophyOrBountyCard, getCardCategory, shuffleArray, isBow } from './cardUtils.ts';
-import { PLAYER_ID, APEX_PREDATOR_IDS, PEST_IDS, CURRENT_CARDS_DATA } from '../constants.ts';
+import { PLAYER_ID, APEX_PREDATOR_IDS, PEST_IDS, CURRENT_CARDS_DATA, PERSONALITY_MODIFIERS } from '../constants.ts';
 import { getThemeName } from './themeUtils.ts';
 
 export interface ActionHandlerArgs {
@@ -984,7 +984,7 @@ export const handleDiscardEquippedItem = ({ player, payload, helpers }: ActionHa
 };
 
 export const handleInteractWithThreat = ({ player, gameState, isBossActive, helpers }: ActionHandlerArgs): ActionHandlerResult => {
-    const { _log, triggerAnimation, applyDamageAndGetAnimation, triggerGoldFlash, getBaseCardByIdentifier, soundManager, triggerBanner } = helpers;
+    const { _log, triggerAnimation, applyDamageAndGetAnimation, triggerGoldFlash, getBaseCardByIdentifier, soundManager, triggerBanner, lastAttackPowerRef } = helpers;
     let modPlayer = { ...player };
     let gameUpdates: Partial<GameState> = {};
     const { activeEvent } = gameState;
@@ -1007,9 +1007,37 @@ export const handleInteractWithThreat = ({ player, gameState, isBossActive, help
 
     modPlayer.hasTakenActionThisTurn = true;
 
+    const getThreatAttackValue = (threat: CardData): number => {
+        if (!threat.effect) return 0;
+        const { type, amount, damage, damage_on_apply } = threat.effect;
+        if (type === 'damage' && typeof amount === 'number') return amount;
+        if ((type === 'poison' || type === 'conditional_damage') && typeof damage === 'number') return damage;
+        if (type === 'apply_illness_on_linger' && typeof damage_on_apply === 'number') return damage_on_apply;
+        return 0;
+    };
+    
+    const threatAttackValue = getThreatAttackValue(activeEvent);
+    const failureRateBonus = threatAttackValue * 0.01;
+
     if (activeEvent.subType === 'animal') {
-        const petSuccessChance = 1 - modPlayer.petSkill;
+        if (modPlayer.petSkill <= 0.4) {
+            _log(`Pet skill (${modPlayer.petSkill}) is unexpectedly low. Recalculating...`, 'debug');
+            const { character, personality } = modPlayer;
+            if (character && personality) {
+                const petFailurePoints = (character.petSkill || 0) +
+                    (PERSONALITY_MODIFIERS[personality.archetype]?.pet || 0) +
+                    (PERSONALITY_MODIFIERS[personality.temperament]?.pet || 0) +
+                    (PERSONALITY_MODIFIERS[personality.motivation]?.pet || 0);
+                const newPetSkill = petFailurePoints / 100;
+                _log(`Recalculated pet skill failure rate is now ${newPetSkill}.`, 'debug');
+                modPlayer.petSkill = newPetSkill;
+            }
+        }
+
+        const finalFailureRate = modPlayer.petSkill + failureRateBonus;
+        const petSuccessChance = 1 - finalFailureRate;
         const petRoll = Math.random();
+
         if (petRoll > petSuccessChance) { // Chance to fail
             _log(`You try to pet the ${activeEvent.name}. It doesn't like that.`, 'action');
             gameUpdates.triggerThreatShake = true;
@@ -1066,7 +1094,22 @@ export const handleInteractWithThreat = ({ player, gameState, isBossActive, help
             _log(`The ${activeEvent.name} is no longer considered hostile. Trading is now possible.`, 'info');
         }
     } else if (activeEvent.subType === 'human') {
-        const talkSuccessChance = 1 - modPlayer.talkSkill;
+        if (modPlayer.talkSkill <= 0.4) {
+            _log(`Talk skill (${modPlayer.talkSkill}) is unexpectedly low. Recalculating...`, 'debug');
+            const { character, personality } = modPlayer;
+            if (character && personality) {
+                const talkFailurePoints = (character.talkSkill || 0) +
+                    (PERSONALITY_MODIFIERS[personality.archetype]?.talk || 0) +
+                    (PERSONALITY_MODIFIERS[personality.temperament]?.talk || 0) +
+                    (PERSONALITY_MODIFIERS[personality.motivation]?.talk || 0);
+                const newTalkSkill = talkFailurePoints / 100;
+                 _log(`Recalculated talk skill failure rate is now ${newTalkSkill}.`, 'debug');
+                modPlayer.talkSkill = newTalkSkill;
+            }
+        }
+        
+        const finalFailureRate = modPlayer.talkSkill + failureRateBonus;
+        const talkSuccessChance = 1 - finalFailureRate;
         const talkRoll = Math.random();
         if (talkRoll > talkSuccessChance) { // Chance to fail
             _log(`You try to talk to the ${activeEvent.name}. They respond with violence.`, 'action');
