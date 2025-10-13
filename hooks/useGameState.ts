@@ -881,7 +881,7 @@ export const useGameState = () => {
                           gameUpdates.bannerQueue = [...(prev.bannerQueue || []), { message: `${eventActiveAtNight.name} Deterred`, bannerType: 'generic_info', bannerId: bannerIdCounter.current }];
                     }
                     const baseCard = getBaseCardByIdentifier(eventActiveAtNight);
-                    if (baseCard) gameUpdates.eventDiscardPile = [...(prev.eventDiscardPile || []), baseCard];
+                    if (baseCard) gameUpdates.eventDiscardPile = [...(gameUpdates.eventDiscardPile || prev.eventDiscardPile || []), baseCard];
                     eventActiveAtNight = null;
                 }
             }
@@ -2259,43 +2259,27 @@ export const useGameState = () => {
     } else {
         _log(`Starting deck construction with ${finalPlayerDeck.length} carry-over and cheat cards.`, 'system');
     
+        // 1. Add all cards from the character's starter deck.
+        // This correctly handles duplicates like the Gunslinger's two Six Shooters.
+        playerChar.starterDeck.forEach(id => {
+            const cardData = CURRENT_CARDS_DATA[id];
+            if (cardData) {
+                finalPlayerDeck.push(cardData);
+            }
+        });
+        _log(`Added ${playerChar.starterDeck.length} cards from ${playerChar.name}'s kit.`, 'system');
+    
         const currentDeckIds = new Set(finalPlayerDeck.map(c => c.id));
     
-        // 1. Identify unique character starter cards
+        // For the augment logic below, we still need to know which cards are unique starters across all characters
         const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
         const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
             acc[id] = (acc[id] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
         const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
-        const characterUniqueStarters = playerChar.starterDeck.filter(id => uniqueCharacterStarterCardIds.has(id));
-    
-        // 2. Add character-specific unique starters if not already present
-        characterUniqueStarters.forEach(id => {
-            if (!currentDeckIds.has(id) && finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
-                const cardData = CURRENT_CARDS_DATA[id];
-                if (cardData) {
-                    finalPlayerDeck.push(cardData);
-                    currentDeckIds.add(id);
-                    _log(`Added unique character card: ${cardData.name}`, 'system');
-                }
-            }
-        });
-    
-        // 3. Add other missing standard starter cards (except Dried Meat)
-        const otherStandardStarters = playerChar.starterDeck.filter(id => !uniqueCharacterStarterCardIds.has(id) && id !== 'provision_dried_meat');
-        otherStandardStarters.forEach(id => {
-            if (!currentDeckIds.has(id) && finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
-                const cardData = CURRENT_CARDS_DATA[id];
-                if (cardData) {
-                    finalPlayerDeck.push(cardData);
-                    currentDeckIds.add(id);
-                    _log(`Added missing starter card: ${cardData.name}`, 'system');
-                }
-            }
-        });
-    
-        // 4. Add 3 level pool cards if deck is not full
+
+        // 2. Add 3 level pool cards if deck is not full
         if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
             const cardsToAugmentCount = 3;
             const augmentPool = currentState.initialCardPool.filter(c => 
@@ -2313,12 +2297,11 @@ export const useGameState = () => {
                 const spaceAvailable = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
                 const cardsToAdd = pickedForAugment.picked.slice(0, spaceAvailable);
                 finalPlayerDeck.push(...cardsToAdd);
-                cardsToAdd.forEach(c => currentDeckIds.add(c.id)); // Update currentDeckIds
                 _log(`Added ${cardsToAdd.length} random cards from the theme pool.`, 'system');
             }
         }
     
-        // 5. Top off with Dried Meat to 13
+        // 3. Top off with Dried Meat to 13
         if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
             const driedMeatCard = CURRENT_CARDS_DATA['provision_dried_meat'];
             if (driedMeatCard) {
@@ -2330,7 +2313,7 @@ export const useGameState = () => {
             }
         }
     
-        // 6. Trim if over 13
+        // 4. Trim if over 13
         if (finalPlayerDeck.length > PLAYER_DECK_TARGET_SIZE) {
             _log(`Deck size (${finalPlayerDeck.length}) exceeds target of ${PLAYER_DECK_TARGET_SIZE}. Trimming excess cards.`, 'debug');
             finalPlayerDeck = finalPlayerDeck.slice(0, PLAYER_DECK_TARGET_SIZE);
@@ -3197,7 +3180,7 @@ export const useGameState = () => {
                 resetGame({ hardReset: true });
             }
         } else {
-            resetGame();
+            resetGame({ hardReset: true });
         }
     }
   }, [_log, resetGame]);
