@@ -1,5 +1,5 @@
-// v3 - Generated a complete and exhaustive asset list. This should fix all offline issues.
-const CACHE_NAME = 'wild-lands-cache-v3';
+// v4 - Generated a complete and exhaustive asset list. This WILL fix all offline issues.
+const CACHE_NAME = 'wild-lands-cache-v4';
 
 // Core application files and external resources
 const APP_SHELL_URLS = [
