@@ -736,6 +736,16 @@ export const useGameState = () => {
     isEndingTurn.current = true;
 
     try {
+        const isMobileLayout = window.innerWidth < 1024;
+        if (isMobileLayout) {
+            setGameState(prev => {
+                if (!prev) return null;
+                return { ...prev, scrollAnimationPhase: 'fadingOutAndScrollingDown' };
+            });
+            // Give React a moment to process the state update and trigger the scroll.
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
         // --- ANIMATION START ---
         const animationType = isLongAnimation ? 'long' : 'short';
         const duration = isLongAnimation ? 6500 : 1500;
@@ -878,7 +888,7 @@ export const useGameState = () => {
                     } else {
                           _localLog(getRandomLogVariation('enemyCampfireDeterred', { enemyName: eventActiveAtNight.name }, theme, modPlayer, eventActiveAtNight), 'info');
                           bannerIdCounter.current++;
-                          gameUpdates.bannerQueue = [...(gameUpdates.bannerQueue || []), { message: `${eventActiveAtNight.name} Deterred`, bannerType: 'generic_info', bannerId: bannerIdCounter.current }];
+                          gameUpdates.bannerQueue = [...(gameUpdates.bannerQueue || prev.bannerQueue || []), { message: `${eventActiveAtNight.name} Deterred`, bannerType: 'generic_info', bannerId: bannerIdCounter.current }];
                     }
                     const baseCard = getBaseCardByIdentifier(eventActiveAtNight);
                     if (baseCard) gameUpdates.eventDiscardPile = [...(gameUpdates.eventDiscardPile || prev.eventDiscardPile || []), baseCard];
@@ -1110,7 +1120,9 @@ export const useGameState = () => {
             }
 
             const isMobileLayout = window.innerWidth < 1024;
-            gameUpdates.scrollAnimationPhase = isMobileLayout ? 'fadingInAndScrollingUp' : 'none';
+            if (isMobileLayout) {
+                gameUpdates.scrollAnimationPhase = 'fadingInAndScrollingUp';
+            }
 
             if (prev.turn === 1 && prev.objectiveChoices.length > 0) {
                 const chosenObjectives = (prev.selectedObjectiveIndices || []).map(i => prev.objectiveChoices[i]).filter(Boolean);
@@ -1138,7 +1150,6 @@ export const useGameState = () => {
                     if (nextState.showLightningStrikeFlash) nextState.showLightningStrikeFlash = false;
                     if (nextState.playerShake) nextState.playerShake = false;
                     if (nextState.pendingPlayerDamageAnimation) nextState.pendingPlayerDamageAnimation = null;
-                    if (nextState.scrollAnimationPhase === 'fadingInAndScrollingUp') nextState.scrollAnimationPhase = 'none';
                     return nextState;
                 });
             }, 500);
@@ -1179,8 +1190,20 @@ export const useGameState = () => {
   }, [endTurnLogic]);
 
   useEffect(() => {
-    if (gameState?.scrollAnimationPhase === 'fadingOutAndScrollingDown') window.scrollTo({ top: document.body.scrollHeight, behavior: 'auto' });
-    else if (gameState?.scrollAnimationPhase === 'fadingInAndScrollingUp') smoothScrollTo(0, 4000);
+    if (gameState?.scrollAnimationPhase === 'fadingOutAndScrollingDown') {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'auto' });
+    } else if (gameState?.scrollAnimationPhase === 'fadingInAndScrollingUp') {
+      smoothScrollTo(0, 4000);
+      const timer = setTimeout(() => {
+        setGameState(prev => {
+          if (prev && prev.scrollAnimationPhase === 'fadingInAndScrollingUp') {
+            return { ...prev, scrollAnimationPhase: 'none' };
+          }
+          return prev;
+        });
+      }, 4100);
+      return () => clearTimeout(timer);
+    }
   }, [gameState?.scrollAnimationPhase]);
 
   useEffect(() => {
@@ -1647,6 +1670,7 @@ export const useGameState = () => {
         
         if (runStartState) {
             _log("Applying run start state for retry.", "system");
+            modPlayer.name = runStartState.name || null;
             const rehydratedDeck = (runStartState.deck || []).map((c: string | CardData) => typeof c === 'string' ? CURRENT_CARDS_DATA[c] : c).filter(Boolean);
             const rehydratedDiscard = (runStartState.discard || []).map((c: string | CardData) => typeof c === 'string' ? CURRENT_CARDS_DATA[c] : c).filter(Boolean);
             const rehydratedEquipped = (runStartState.equipped || []).map((c: string | CardData) => typeof c === 'string' ? CURRENT_CARDS_DATA[c] : c).filter(Boolean);
@@ -1702,6 +1726,11 @@ export const useGameState = () => {
                 if (storedDetails.characterId && CHARACTERS_DATA_MAP[storedDetails.characterId]) {
                      const character = CHARACTERS_DATA_MAP[storedDetails.characterId];
                      modPlayer.character = character;
+                     
+                     if (level === 0) {
+                        modPlayer.gold = character.gold;
+                     }
+
                      modPlayer.personality = storedDetails.personality || character.personality;
                      
                      const { talkSkill, petSkill } = calculateSkills(character, modPlayer.personality);
@@ -1714,7 +1743,7 @@ export const useGameState = () => {
         const equippedFromStorageString = localStorage.getItem('wildWestEquippedForNGPlus_WWS');
         const satchelsFromStorageString = localStorage.getItem('wildWestSatchelsForNGPlus_WWS');
         
-        if (!runStartState && equippedFromStorageString) {
+        if (!runStartState && equippedFromStorageString && level > 0) {
              const equippedItems = JSON.parse(equippedFromStorageString).map((c: string | CardData) => typeof c === 'string' ? CURRENT_CARDS_DATA[c] : c).filter(Boolean);
              const satchels = satchelsFromStorageString ? JSON.parse(satchelsFromStorageString) : {};
 
@@ -1728,6 +1757,10 @@ export const useGameState = () => {
 
              localStorage.removeItem('wildWestEquippedForNGPlus_WWS');
              localStorage.removeItem('wildWestSatchelsForNGPlus_WWS');
+        } else if (level === 0) {
+            // Explicitly clear carry-over items for any NG+0 run.
+            localStorage.removeItem('wildWestEquippedForNGPlus_WWS');
+            localStorage.removeItem('wildWestSatchelsForNGPlus_WWS');
         }
 
         if (modPlayer.character) {
@@ -1845,41 +1878,41 @@ export const useGameState = () => {
             ? ngPlusOverride 
             : (currentState?.ngPlusLevel ?? parseInt(localStorage.getItem('ngPlusLevel_WWS') || '0', 10)));
     
-    let runStartStateToPreserve = currentState?.runStartState;
+    const isNGZeroRun = ngPlusLevel === 0;
+
+    let runStartStateToPreserve = isNGZeroRun ? undefined : currentState?.runStartState;
     if (ngPlusOverride !== undefined && currentState && ngPlusOverride !== currentState.ngPlusLevel) {
-        // This is an NG+ advancement, not a retry. Invalidate the old start state.
         runStartStateToPreserve = undefined;
     }
 
-    const shouldPreserveFromState = !hardReset && currentState;
-    const isRetryWithSnapshot = !hardReset && currentState && runStartStateToPreserve && (ngPlusOverride === undefined || ngPlusOverride === currentState.ngPlusLevel);
-
-    const healthBonusToPreserve = isRetryWithSnapshot
-        ? (runStartStateToPreserve.cumulativeNGPlusMaxHealthBonus || 0)
-        : (shouldPreserveFromState
-            ? currentState.playerDetails[PLAYER_ID].cumulativeNGPlusMaxHealthBonus
-            : (hardReset ? 0 : parseInt(localStorage.getItem('ngPlusCumulativeMaxHealthBonus_WWS') || '0', 10)));
+    const shouldPreserveFromState = !hardReset && !isNGZeroRun && currentState;
+    const isRetryWithSnapshot = !hardReset && !isNGZeroRun && currentState && runStartStateToPreserve && (ngPlusOverride === undefined || ngPlusOverride === currentState.ngPlusLevel);
 
     const goldToPreserve = isRetryWithSnapshot
         ? (runStartStateToPreserve.gold || 0)
         : (shouldPreserveFromState
             ? currentState.playerDetails[PLAYER_ID].gold
-            : (hardReset ? 0 : parseInt(localStorage.getItem('ngPlusPlayerGold_WWS') || '0', 10)));
+            : (hardReset || isNGZeroRun ? 0 : parseInt(localStorage.getItem('ngPlusPlayerGold_WWS') || '0', 10)));
         
+    const healthBonusToPreserve = isRetryWithSnapshot
+        ? (runStartStateToPreserve.cumulativeNGPlusMaxHealthBonus || 0)
+        : (shouldPreserveFromState
+            ? currentState.playerDetails[PLAYER_ID].cumulativeNGPlusMaxHealthBonus
+            : (hardReset || isNGZeroRun ? 0 : parseInt(localStorage.getItem('ngPlusCumulativeMaxHealthBonus_WWS') || '0', 10)));
+
     const stepsToPreserve = isRetryWithSnapshot 
         ? (runStartStateToPreserve.stepsTaken || 0)
         : (shouldPreserveFromState 
             ? currentState.playerDetails[PLAYER_ID].stepsTaken
-            : (hardReset ? 0 : parseInt(localStorage.getItem('wildWestStepsTaken_WWS') || '0', 10)));
+            : (hardReset || isNGZeroRun ? 0 : parseInt(localStorage.getItem('wildWestStepsTaken_WWS') || '0', 10)));
     
-    const deckToPreserve: CardData[] = carryOverDeck || [];
+    const deckToPreserve: CardData[] = isNGZeroRun ? [] : (carryOverDeck || []);
     const discardToPreserve: CardData[] = [];
     const equippedToPreserve: CardData[] = [];
     const satchelsToPreserve: { [key: number]: CardData[] } = {};
 
     let runStartStateToPreserveForNextState = currentState?.runStartState;
-    if (ngPlusOverride !== undefined && currentState && ngPlusOverride !== currentState.ngPlusLevel) {
-        // This is an NG+ advancement, not a retry. Invalidate the old start state.
+    if (isNGZeroRun || (ngPlusOverride !== undefined && currentState && ngPlusOverride !== currentState.ngPlusLevel)) {
         runStartStateToPreserveForNextState = undefined;
     }
 
@@ -1951,14 +1984,13 @@ export const useGameState = () => {
         const isNewCharacter = prevPlayer.character?.id !== character.id;
 
         const ngPlusLevel = prev.ngPlusLevel;
-        const runStartGold = prev.runStartGold ?? 0;
+        const runStartGold = isNewCharacter 
+          ? (ngPlusLevel > 0 ? prev.runStartGold : character.gold)
+          : prevPlayer.gold;
 
-        let finalGold = 0;
-        if (ngPlusLevel > 0) {
-            finalGold = Math.max(runStartGold, character.gold);
-        } else {
-            finalGold = character.gold;
-        }
+        const finalGold = (ngPlusLevel > 0 && runStartGold !== undefined)
+            ? Math.max(runStartGold, character.gold)
+            : character.gold;
 
         const storedDetailsString = localStorage.getItem('wildWestPlayerDetailsForNGPlus_WWS');
         const storedDetails: { characterId?: string; personality?: any } = storedDetailsString ? JSON.parse(storedDetailsString) : {};
@@ -2038,7 +2070,7 @@ export const useGameState = () => {
 
             // New/changed properties
             character: character,
-            name: isNewCharacter ? null : (prevPlayer.name || null),
+            name: isNewCharacter ? (prev.runStartState ? prev.runStartState.name : null) : (prevPlayer.name || null),
             health: finalMaxHealth,
             maxHealth: finalMaxHealth,
             gold: finalGold,
@@ -2063,7 +2095,7 @@ export const useGameState = () => {
         return { 
             ...prev, 
             playerDetails: { [PLAYER_ID]: updatedPlayerDetails },
-            runStartState: prev.runStartState, 
+            runStartGold: finalGold, 
         };
     });
   }, [_log]);
@@ -2308,20 +2340,24 @@ export const useGameState = () => {
     
         const currentDeckIds = new Set(finalPlayerDeck.map(c => c.id));
     
-        // For the augment logic below, we still need to know which cards are unique starters across all characters
-        const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
-        const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
-            acc[id] = (acc[id] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-        const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
+        // Define the specific list of Western-themed character-specific cards to filter out.
+        const WESTERN_CHARACTER_SPECIFIC_CARD_IDS = new Set([
+          'upgrade_lucky_arrowhead',
+          'upgrade_worn_whetstone',
+          'upgrade_lucky_bullet',
+          'upgrade_medical_journal',
+          'upgrade_herb_pouch',
+          'upgrade_treasure_map',
+          'upgrade_tattered_bible',
+          'item_gold_pan',
+        ]);
 
         // 2. Add 3 level pool cards if deck is not full
         if (finalPlayerDeck.length < PLAYER_DECK_TARGET_SIZE) {
             const cardsToAugmentCount = 3;
             const augmentPool = currentState.initialCardPool.filter(c => 
                 !currentDeckIds.has(c.id) &&
-                !uniqueCharacterStarterCardIds.has(c.id) &&
+                !WESTERN_CHARACTER_SPECIFIC_CARD_IDS.has(c.id) &&
                 c.subType !== 'objective' &&
                 (c.type === 'Item' || c.type === 'Provision' || c.type === 'Action' || c.type === 'Player Upgrade') &&
                 !c.id.startsWith('item_gold_nugget') && !c.id.startsWith('item_jewelry') &&
@@ -2364,18 +2400,22 @@ export const useGameState = () => {
         ...Object.values(playerDetailsFromSetup.satchels).flat(),
     ].filter((c): c is CardData => Boolean(c)).map(c => c.id).forEach(id => finalPlayerCardIdsForWorldFilter.add(id));
 
-    // Calculate which starter cards are unique to a single character.
-    const allStarterCardIdsAcrossCharacters = Object.values(CHARACTERS_DATA_MAP).flatMap(c => c.starterDeck);
-    const cardCounts = allStarterCardIdsAcrossCharacters.reduce((acc, id) => {
-        acc[id] = (acc[id] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-    const uniqueCharacterStarterCardIds = new Set(Object.keys(cardCounts).filter(id => cardCounts[id] === 1));
+    // Define the specific list of Western-themed character-specific cards to filter out.
+    const WESTERN_CHARACTER_SPECIFIC_CARD_IDS = new Set([
+      'upgrade_lucky_arrowhead',
+      'upgrade_worn_whetstone',
+      'upgrade_lucky_bullet',
+      'upgrade_medical_journal',
+      'upgrade_herb_pouch',
+      'upgrade_treasure_map',
+      'upgrade_tattered_bible',
+      'item_gold_pan',
+    ]);
 
-    // Filter the general card pool to remove player's cards AND unique character-specific cards.
+    // Filter the general card pool to remove player's cards AND the specified unique character-specific cards.
     let worldCardPool = currentState.initialCardPool.filter(c => 
         !finalPlayerCardIdsForWorldFilter.has(c.id) && 
-        !uniqueCharacterStarterCardIds.has(c.id) &&
+        !WESTERN_CHARACTER_SPECIFIC_CARD_IDS.has(c.id) &&
         c.subType !== 'objective'
     );
     _log(`Initial world pool created with ${worldCardPool.length} cards after removing player and unique character-specific cards.`, 'system');
@@ -2536,6 +2576,7 @@ export const useGameState = () => {
         equipped: playerDetailsFromSetup.equippedItems.map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id),
         satchels: satchelsWithIds,
         gold: playerDetailsFromSetup.gold,
+        name: playerDetailsFromSetup.name,
         maxHealth: playerDetailsFromSetup.maxHealth,
         health: playerDetailsFromSetup.health,
         characterId: playerChar.id,
