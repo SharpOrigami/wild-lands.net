@@ -455,6 +455,57 @@ export const handleObjectiveCompletionChecks = (
                 failureLog = `Optional Objective Failed.\nYou only trapped ${modPlayer.runStats.animals_killed_by_trap} animals.`;
             }
             break;
+        case 'objective_fur_trader':
+            if ((modPlayer.runStats.trophies_sold || 0) >= 5) {
+                success = true;
+                localStorage.setItem('objectiveReward_fur_trader_WWS', 'true');
+                rewardLog = `Congratulations!\nYou sold ${modPlayer.runStats.trophies_sold} trophies!\n\nReward: You'll start your next journey with an AI-remixed legendary themed fur coat.`;
+            } else {
+                failureLog = `Optional Objective Failed.\nYou only sold ${modPlayer.runStats.trophies_sold || 0} trophies.`;
+            }
+            break;
+        case 'objective_the_lawman':
+            if ((modPlayer.runStats.objectives_sold || 0) >= 3) {
+                success = true;
+                modPlayer.gold += 100;
+                modPlayer.runStats.gold_earned += 100;
+                modPlayer.runStats.mostGoldHeld = Math.max(modPlayer.runStats.mostGoldHeld || 0, modPlayer.gold);
+                rewardLog = `Congratulations!\nYou sold ${modPlayer.runStats.objectives_sold} bounties!\n\nReward: +100 Gold.`;
+                triggerGoldFlash(PLAYER_ID);
+            } else {
+                failureLog = `Optional Objective Failed.\nYou only sold ${modPlayer.runStats.objectives_sold || 0} bounties.`;
+            }
+            break;
+        case 'objective_human_peacemaker':
+            if ((modPlayer.runStats.deEscalations || 0) >= 1) {
+                success = true;
+                localStorage.setItem('objectiveReward_human_peacemaker_WWS', 'true');
+                rewardLog = `Congratulations!\nYou de-escalated ${modPlayer.runStats.deEscalations} human encounter(s)!\n\nReward: You'll start your next journey with an AI-remixed legendary themed weapon.`;
+            } else {
+                failureLog = `Optional Objective Failed.\nYou did not de-escalate any human encounters.`;
+            }
+            break;
+        case 'objective_animal_peacemaker':
+            if ((modPlayer.runStats.animalsPet || 0) >= 1) {
+                success = true;
+                localStorage.setItem('objectiveReward_animal_peacemaker_WWS', 'true');
+                rewardLog = `Congratulations!\nYou pacified ${modPlayer.runStats.animalsPet} animal(s)!\n\nReward: You'll start your next journey with an AI-remixed legendary themed provision.`;
+            } else {
+                failureLog = `Optional Objective Failed.\nYou did not pacify any animal encounters.`;
+            }
+            break;
+        case 'objective_big_spender':
+            const restockCost = 10 + (modPlayer.ngPlusLevel * 5);
+            const goldSpentOnItems = (modPlayer.runStats.gold_spent || 0) - ((modPlayer.runStats.times_restocked || 0) * restockCost);
+            if (goldSpentOnItems >= 500) {
+                success = true;
+                const currentGold = parseInt(localStorage.getItem('ngPlusPlayerGold_WWS') || '0');
+                localStorage.setItem('ngPlusPlayerGold_WWS', (currentGold + 100).toString());
+                rewardLog = `Congratulations!\nYou spent ${goldSpentOnItems} Gold at the store!\n\nReward: You'll begin your next journey with an additional +100 Gold.`;
+            } else {
+                failureLog = `Optional Objective Failed.\nYou only spent ${goldSpentOnItems || 0} Gold on items.`;
+            }
+            break;
     }
     
     if (success) modPlayer.runStats.objectivesCompleted = 1;

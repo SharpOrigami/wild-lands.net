@@ -2189,6 +2189,9 @@ export const useGameState = () => {
                 { storageKey: 'objectiveReward_the_stalker_WWS', itemType: 'themed bow' },
                 { storageKey: 'objectiveReward_cut_throat_WWS', itemType: 'themed bladed weapon' },
                 { storageKey: 'objectiveReward_master_trapper_WWS', itemType: 'themed trap' },
+                { storageKey: 'objectiveReward_fur_trader_WWS', itemType: 'themed fur coat' },
+                { storageKey: 'objectiveReward_human_peacemaker_WWS', itemType: 'themed weapon' },
+                { storageKey: 'objectiveReward_animal_peacemaker_WWS', itemType: 'themed provision' },
             ];
             const rewardPromises = objectiveRewardsConfig.filter(({ storageKey }) => localStorage.getItem(storageKey) === 'true').map(({ storageKey, itemType }) => {
                 localStorage.removeItem(storageKey);

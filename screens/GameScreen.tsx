@@ -625,6 +625,54 @@ const GameScreen: React.FC<GameScreenProps> = ({
           isComplete: current >= target,
         };
       }
+      case 'objective_fur_trader': {
+        const current = playerDetails.runStats.trophies_sold || 0;
+        const target = 5;
+        return {
+          text: `${current}/${target}`,
+          title: `Trophies Sold: ${current} / ${target}`,
+          isComplete: current >= target,
+        };
+      }
+      case 'objective_the_lawman': {
+        const current = playerDetails.runStats.objectives_sold || 0;
+        const target = 3;
+        return {
+          text: `${current}/${target}`,
+          title: `Bounties Sold: ${current} / ${target}`,
+          isComplete: current >= target,
+        };
+      }
+      case 'objective_human_peacemaker': {
+        const current = playerDetails.runStats.deEscalations || 0;
+        const target = 1;
+        return {
+          text: `${current}/${target}`,
+          title: `Humans De-escalated: ${current} / ${target}`,
+          isComplete: current >= target,
+        };
+      }
+      case 'objective_animal_peacemaker': {
+        const current = playerDetails.runStats.animalsPet || 0;
+        const target = 1;
+        return {
+          text: `${current}/${target}`,
+          title: `Animals Pet: ${current} / ${target}`,
+          isComplete: current >= target,
+        };
+      }
+      case 'objective_big_spender': {
+        const restockCost = 10 + (playerDetails.ngPlusLevel * 5);
+        const goldSpentOnItems = (playerDetails.runStats.gold_spent || 0) - ((playerDetails.runStats.times_restocked || 0) * restockCost);
+        const current = goldSpentOnItems;
+        const target = 500;
+        const percentage = Math.min(100, Math.floor((current / target) * 100));
+        return {
+          text: `${percentage}%`,
+          title: `Gold Spent on Items: ${current} / ${target}`,
+          isComplete: current >= target,
+        };
+      }
       default:
         return null;
     }
@@ -1157,8 +1205,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
   return (
     <div id="gameArea">
       <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
-        {playerPanel}
-        <div id="frontierArea">{frontierPanel}</div>
+        <div ref={playerPanelRef}>{playerPanel}</div>
+        <div id="frontierArea" ref={frontierPanelRef}>{frontierPanel}</div>
       </div>
 
       <div
