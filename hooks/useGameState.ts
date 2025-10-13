@@ -183,7 +183,8 @@ const rehydrateAndMigrateState = (stateWithDefaults: any, log: (message: string,
             if (item.every(val => typeof val === 'number' || typeof val === 'boolean' || val === null)) {
                 return item;
             }
-            return item.map(robustRehydrate).filter(value => value !== undefined && value !== null);
+            // FIX: Filter out empty objects `{}` from arrays, as they are invalid card data.
+            return item.map(robustRehydrate).filter(value => value !== undefined && value !== null && !(isObject(value) && Object.keys(value).length === 0));
         }
         
         // Determine if the item is attempting to be a card (either a string ID or an object with an ID).
@@ -2568,7 +2569,8 @@ export const useGameState = () => {
     
     const satchelsWithIds: { [key: number]: (string | CardData)[] } = {};
     for (const key in playerDetailsFromSetup.satchels) {
-      satchelsWithIds[key] = (playerDetailsFromSetup.satchels[key] || []).map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id);
+// FIX: The `key` from a for...in loop is a string, but the `satchelsWithIds` object expects a number index. Convert the key to a number to fix the type error.
+      satchelsWithIds[Number(key)] = (playerDetailsFromSetup.satchels[key] || []).map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id);
     }
     const runStartState = {
         deck: [...finalPlayerDeck, ...actualInitialHandCards].map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id),

@@ -8,18 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Alex+Brush&family=Rye&family=Special+Elite&family=Great+Vibes&family=Cedarville+Cursive&family=Dancing+Script&family=Parisienne&display=swap" rel="stylesheet">
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
-                    console.log('Old service worker unregistered successfully.');
-                }
-            }).catch(function(err) {
-                console.log('Service worker unregistration failed: ', err);
-            });
-        }
-    </script>
+    
     <style>
         :root {
             --paper-bg: #f4f1ea;
