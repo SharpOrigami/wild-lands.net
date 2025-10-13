@@ -878,7 +878,7 @@ export const useGameState = () => {
                     } else {
                           _localLog(getRandomLogVariation('enemyCampfireDeterred', { enemyName: eventActiveAtNight.name }, theme, modPlayer, eventActiveAtNight), 'info');
                           bannerIdCounter.current++;
-                          gameUpdates.bannerQueue = [...(prev.bannerQueue || []), { message: `${eventActiveAtNight.name} Deterred`, bannerType: 'generic_info', bannerId: bannerIdCounter.current }];
+                          gameUpdates.bannerQueue = [...(gameUpdates.bannerQueue || []), { message: `${eventActiveAtNight.name} Deterred`, bannerType: 'generic_info', bannerId: bannerIdCounter.current }];
                     }
                     const baseCard = getBaseCardByIdentifier(eventActiveAtNight);
                     if (baseCard) gameUpdates.eventDiscardPile = [...(gameUpdates.eventDiscardPile || prev.eventDiscardPile || []), baseCard];
@@ -2259,15 +2259,49 @@ export const useGameState = () => {
     } else {
         _log(`Starting deck construction with ${finalPlayerDeck.length} carry-over and cheat cards.`, 'system');
     
-        // 1. Add all cards from the character's starter deck.
-        // This correctly handles duplicates like the Gunslinger's two Six Shooters.
-        playerChar.starterDeck.forEach(id => {
-            const cardData = CURRENT_CARDS_DATA[id];
-            if (cardData) {
-                finalPlayerDeck.push(cardData);
+        // 1. Add character starter cards, avoiding duplicates for unique items carried over from NG+.
+        const allPlayerCards = [
+            ...playerDetailsFromSetup.playerDeck, 
+            ...playerDetailsFromSetup.equippedItems,
+            // Hand and discard should be empty, but check just in case
+            ...(playerDetailsFromSetup.hand || []).filter((c): c is CardData => Boolean(c)), 
+            ...(playerDetailsFromSetup.playerDiscard || []),
+        ];
+
+        const existingCardCounts: { [id: string]: number } = allPlayerCards.reduce((acc, card) => {
+            if (card && card.id) {
+                acc[card.id] = (acc[card.id] || 0) + 1;
             }
-        });
-        _log(`Added ${playerChar.starterDeck.length} cards from ${playerChar.name}'s kit.`, 'system');
+            return acc;
+        }, {} as { [id: string]: number });
+
+        const starterDeckCounts: { [id: string]: number } = playerChar.starterDeck.reduce((acc, cardId) => {
+            acc[cardId] = (acc[cardId] || 0) + 1;
+            return acc;
+        }, {} as { [id: string]: number });
+
+        const cardsToAdd: CardData[] = [];
+        for (const cardId in starterDeckCounts) {
+            const neededCount = starterDeckCounts[cardId];
+            const existingCount = existingCardCounts[cardId] || 0;
+            const countToAdd = Math.max(0, neededCount - existingCount);
+
+            if (countToAdd > 0) {
+                const cardData = CURRENT_CARDS_DATA[cardId];
+                if (cardData) {
+                    for (let i = 0; i < countToAdd; i++) {
+                        cardsToAdd.push(cardData);
+                    }
+                }
+            }
+        }
+        
+        finalPlayerDeck.push(...cardsToAdd);
+        if (cardsToAdd.length > 0) {
+            _log(`Added ${cardsToAdd.length} cards from ${playerChar.name}'s kit to complete the starting set.`, 'system');
+        } else {
+            _log(`${playerChar.name}'s starting kit was already complete from carried-over items.`, 'system');
+        }
     
         const currentDeckIds = new Set(finalPlayerDeck.map(c => c.id));
     
@@ -2295,9 +2329,9 @@ export const useGameState = () => {
             
             if (pickedForAugment.picked.length > 0) {
                 const spaceAvailable = PLAYER_DECK_TARGET_SIZE - finalPlayerDeck.length;
-                const cardsToAdd = pickedForAugment.picked.slice(0, spaceAvailable);
-                finalPlayerDeck.push(...cardsToAdd);
-                _log(`Added ${cardsToAdd.length} random cards from the theme pool.`, 'system');
+                const cardsToAddFromAugment = pickedForAugment.picked.slice(0, spaceAvailable);
+                finalPlayerDeck.push(...cardsToAddFromAugment);
+                _log(`Added ${cardsToAddFromAugment.length} random cards from the theme pool.`, 'system');
             }
         }
     
