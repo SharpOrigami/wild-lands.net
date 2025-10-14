@@ -1629,34 +1629,36 @@ export const useGameState = () => {
     }
   }, [_log]);
 
-  const initializeLevel = useCallback((level: number, runStartState?: any) => {
+  const initializeLevel = useCallback(async (level: number, runStartState?: any) => {
     resetCurrentCardsData();
     _log(`Initializing level ${level}...`, 'system');
 
-    const themeName = getThemeName(level);
     let remixedCards: { [id: string]: CardData } = {};
+    const remixCacheKey = `wildWestRemixCache_NG${level}_WWS`;
 
     if (level > 0) {
-      let remixCacheKey = '';
-      if (level < 10) {
-        remixCacheKey = 'remixedCardPool_theme_western_WWS';
-      } else if (level < 50) {
-        const themeForCache = getThemeName(level);
-        remixCacheKey = `remixedCardPool_theme_${themeForCache}_WWS`;
-      }
+        let cached = localStorage.getItem(remixCacheKey);
 
-      if (remixCacheKey) {
-        try {
-          const cached = localStorage.getItem(remixCacheKey);
-          if (cached) {
-            remixedCards = JSON.parse(cached);
-          }
-        } catch (e) {
-          _log("Could not parse remixed card cache.", "error");
+        if (!cached) {
+            _log(`No remix cache found for NG+${level}. Generating now...`, 'system');
+            setGameState(prev => prev ? { ...prev, isLoadingNGPlus: true, remixProgress: 0 } : null);
+            
+            await pregenerateNextLevelRemix(level);
+            cached = localStorage.getItem(remixCacheKey);
+            
+            setGameState(prev => prev ? { ...prev, isLoadingNGPlus: false } : null);
         }
-      }
-    }
 
+        try {
+            if (cached) {
+                remixedCards = JSON.parse(cached);
+                _log(`Loaded ${Object.keys(remixedCards).length} remixed cards from cache for NG+${level}.`, 'system');
+            }
+        } catch (e) {
+            _log("Could not parse remixed card cache for new level.", "error");
+        }
+    }
+    
     const finalCardsData = { ...ALL_CARDS_DATA_MAP, ...remixedCards };
     updateCurrentCardsData(finalCardsData);
 
@@ -1808,9 +1810,9 @@ export const useGameState = () => {
             playerDetails: { ...prev.playerDetails, [PLAYER_ID]: modPlayer },
         };
     });
-  }, [_log, registerCustomCardDefinitions]);
+  }, [_log, pregenerateNextLevelRemix, registerCustomCardDefinitions]);
 
-  const resetGame = useCallback(async (options: { hardReset?: boolean; ngPlusOverride?: number; saveSlotIndex?: number; carryOverDeck?: CardData[] } = {}) => {
+  const resetGame = useCallback(async (options: { hardReset?: boolean; ngPlusOverride?: number; saveSlotIndex?: number; } = {}) => {
     ttsManager.cancel();
     const currentState = gameStateRef.current; // Capture state at the very beginning
 
@@ -1822,7 +1824,7 @@ export const useGameState = () => {
         options.ngPlusOverride = currentState.ngPlusLevel;
     }
     
-    const { hardReset = false, ngPlusOverride, saveSlotIndex, carryOverDeck } = options;
+    const { hardReset = false, ngPlusOverride, saveSlotIndex } = options;
     
     // Clear any existing autosave before starting a new run
     if (currentState && currentState.autosaveSlotIndex !== null && currentState.autosaveSlotIndex !== undefined) {
@@ -1907,7 +1909,7 @@ export const useGameState = () => {
             ? currentState.playerDetails[PLAYER_ID].stepsTaken
             : (hardReset || isNGZeroRun ? 0 : parseInt(localStorage.getItem('wildWestStepsTaken_WWS') || '0', 10)));
     
-    const deckToPreserve: CardData[] = isNGZeroRun ? [] : (carryOverDeck || []);
+    const deckToPreserve: CardData[] = isNGZeroRun ? [] : (currentState?.deckForNextRun || []);
     const discardToPreserve: CardData[] = [];
     const equippedToPreserve: CardData[] = [];
     const satchelsToPreserve: { [key: number]: CardData[] } = {};
@@ -1966,15 +1968,18 @@ export const useGameState = () => {
         autosaveSlotIndex: null,
         triggerThreatShake: false,
         playerShake: false,
-        playerAttackedEventThisTurn: false,
+        remixDeckOnStart: false,
+        isBossFightActive: false,
+        triggerStoreRestockAnimation: false,
         objectiveChoices: [],
         selectedObjectiveIndices: [],
         runStartState: runStartStateToPreserveForNextState,
         runStartGold: goldToPreserve,
+        deckForNextRun: currentState?.deckForNextRun, // Preserve carry-over deck through setup
     };
     
     setGameState(baseInitialState);
-    initializeLevel(ngPlusLevel, runStartStateToPreserve);
+    await initializeLevel(ngPlusLevel, runStartStateToPreserve);
   }, [_log, initializeLevel]);
 
   const selectCharacter = useCallback((character: Character) => {
@@ -2033,43 +2038,8 @@ export const useGameState = () => {
         const finalMaxHealth = Math.max(1, character.health + cumulativeBonus + hpBonusFromItems);
         const { talkSkill, petSkill } = calculateSkills(character, personalityToSet);
 
-        // This is the fix: explicitly build the new player state object property by property,
-        // ensuring all carried-over data from `prevPlayer` is preserved, instead of relying
-        // on a potentially problematic spread operator.
         const updatedPlayerDetails: PlayerDetails = {
-            // Unchanged properties from previous state
-            activeTrap: prevPlayer.activeTrap,
-            isCampfireActive: prevPlayer.isCampfireActive,
-            handSize: prevPlayer.handSize,
-            equipSlots: prevPlayer.equipSlots,
-            hasEquippedThisTurn: prevPlayer.hasEquippedThisTurn,
-            turnEnded: prevPlayer.turnEnded,
-            hasTakenActionThisTurn: prevPlayer.hasTakenActionThisTurn,
-            hasRestockedThisTurn: prevPlayer.hasRestockedThisTurn,
-            isUnsortedDraw: prevPlayer.isUnsortedDraw,
-            activeEventForAttack: prevPlayer.activeEventForAttack,
-            ngPlusLevel: prevPlayer.ngPlusLevel,
-            hatDamageNegationUsedThisTurn: prevPlayer.hatDamageNegationUsedThisTurn,
-            currentIllnesses: prevPlayer.currentIllnesses,
-            pedometerActive: prevPlayer.pedometerActive,
-            stepsTaken: prevPlayer.stepsTaken,
-            lastPosition: prevPlayer.lastPosition,
-            isGettingLocation: prevPlayer.isGettingLocation,
-            locationAccuracy: prevPlayer.locationAccuracy,
-            unaccountedDistanceFeet: prevPlayer.unaccountedDistanceFeet,
-            cumulativeNGPlusMaxHealthBonus: prevPlayer.cumulativeNGPlusMaxHealthBonus,
-            mountainSicknessActive: prevPlayer.mountainSicknessActive,
-            mountainSicknessTurnsRemaining: prevPlayer.mountainSicknessTurnsRemaining,
-            provisionsPlayed: prevPlayer.provisionsPlayed,
-            runStats: prevPlayer.runStats,
-            provisionsCollectedThisRun: prevPlayer.provisionsCollectedThisRun,
-            eventPacifiedThisTurn: prevPlayer.eventPacifiedThisTurn,
-            goldStolenThisTurn: prevPlayer.goldStolenThisTurn,
-            lastUsedWeaponType: prevPlayer.lastUsedWeaponType,
-            forceBossRevealNextTurn: prevPlayer.forceBossRevealNextTurn,
-            capturedBossAlive: prevPlayer.capturedBossAlive,
-
-            // New/changed properties
+            ...prevPlayer,
             character: character,
             name: isNewCharacter ? (prev.runStartState ? prev.runStartState.name : null) : (prevPlayer.name || null),
             health: finalMaxHealth,
@@ -2079,15 +2049,6 @@ export const useGameState = () => {
             personality: personalityToSet,
             talkSkill: talkSkill,
             petSkill: petSkill,
-        
-            // Explicitly preserved inventory state
-            playerDeck: prevPlayer.playerDeck || [],
-            playerDiscard: prevPlayer.playerDiscard || [],
-            hand: prevPlayer.hand || [],
-            equippedItems: prevPlayer.equippedItems || [],
-            satchels: prevPlayer.satchels || {},
-            
-            // Recalculated property
             hatDamageNegationAvailable: (prevPlayer.equippedItems || []).some(item => item.effect?.subtype === 'damage_negation'),
         };
 
@@ -2155,7 +2116,8 @@ export const useGameState = () => {
                 ...prev,
                 status: 'generating_boss_intro',
                 isLoadingBossIntro: true,
-                playerDetails: { ...prev.playerDetails, [PLAYER_ID]: modPlayer }
+                playerDetails: { ...prev.playerDetails, [PLAYER_ID]: modPlayer },
+                deckForNextRun: undefined, // Clear the carry-over deck now that the game is officially starting
             };
 
             if (cheatEffects?.increaseDifficulty) {
@@ -2207,7 +2169,7 @@ export const useGameState = () => {
         remixGenerationPromise.current = (async () => {
             const ngPlusLevel = gameStateRef.current!.ngPlusLevel;
             if (ngPlusLevel > 0 && ngPlusLevel < 10) {
-                const remixedKey = `remixedCardPool_theme_western_WWS`;
+                const remixedKey = `wildWestRemixCache_NG${ngPlusLevel}_WWS`;
                 let remixedCards = JSON.parse(localStorage.getItem(remixedKey) || '{}');
                 if (Object.keys(remixedCards).length > 0) {
                     updateCurrentCardsData({ ...CURRENT_CARDS_DATA, ...remixedCards });
@@ -2258,14 +2220,10 @@ export const useGameState = () => {
       _log("Older save detected. Regenerating card pool for current theme...", "system");
       
       const level = currentState.ngPlusLevel;
-      const themeName = getThemeName(level);
+      
       let finalRemixedCards: { [id: string]: CardData } = {};
-
-      if (level > 0 && level < 10) {
-          const remixedPoolKey = 'remixedCardPool_theme_western_WWS';
-          finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
-      } else if (level >= 10) {
-          const remixedPoolKey = `remixedCardPool_theme_${themeName}_WWS`;
+      if (level > 0) {
+          const remixedPoolKey = `wildWestRemixCache_NG${level}_WWS`;
           finalRemixedCards = JSON.parse(localStorage.getItem(remixedPoolKey) || '{}');
       }
       
@@ -2518,7 +2476,7 @@ export const useGameState = () => {
             ...Object.values(playerDetailsFromSetup.satchels).flat(),
             ...finalPlayerDeck,
             ...actualInitialHandCards,
-            ...(playerDetailsFromSetup.playerDiscard || [])
+            ...(playerDetailsFromSetup.playerDiscard || []),
         ];
         const allPlayerCardIds = new Set(allPlayerCards.map(c => c.id));
     
@@ -2569,7 +2527,6 @@ export const useGameState = () => {
     
     const satchelsWithIds: { [key: number]: (string | CardData)[] } = {};
     for (const key in playerDetailsFromSetup.satchels) {
-// FIX: The `key` from a for...in loop is a string, but the `satchelsWithIds` object expects a number index. Convert the key to a number to fix the type error.
       satchelsWithIds[Number(key)] = (playerDetailsFromSetup.satchels[key] || []).map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id);
     }
     const runStartState = {
@@ -2665,15 +2622,6 @@ export const useGameState = () => {
     const currentGameState = gameStateRef.current;
     if (!currentGameState || !currentGameState.deckForReview) return;
 
-    setGameState(prev => prev ? { ...prev, isLoadingNGPlus: true, status: 'setup' } : null);
-
-    if (nextLevelRemixPromise.current) {
-        _log("Waiting for background AI card remixing to complete...", "system");
-        await nextLevelRemixPromise.current;
-        nextLevelRemixPromise.current = null; 
-    }
-    _log("AI remixing complete. Preparing next level.", "system");
-
     const selectedIndices = new Set(selectedIndicesArray);
     const selectedCards = currentGameState.deckForReview.filter((_, index) => selectedIndices.has(index));
     const unselectedCards = currentGameState.deckForReview.filter((_, index) => !selectedIndices.has(index));
@@ -2682,7 +2630,26 @@ export const useGameState = () => {
     localStorage.setItem('ngPlusPlayerGold_WWS', (currentGold + goldFromSales).toString());
     _log(`Carrying over ${selectedCards.length} cards. Sold ${unselectedCards.length} for ${goldFromSales}G.`, 'system');
     
-    await resetGame({ ngPlusOverride: currentGameState.ngPlusLevel + 1, carryOverDeck: selectedCards });
+    // Set the carry-over deck in the state BEFORE resetting
+    setGameState(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        deckForNextRun: selectedCards,
+        isLoadingNGPlus: true,
+        status: 'setup',
+      };
+    });
+
+    if (nextLevelRemixPromise.current) {
+        _log("Waiting for background AI card remixing to complete...", "system");
+        await nextLevelRemixPromise.current;
+        nextLevelRemixPromise.current = null; 
+    }
+    _log("AI remixing complete. Preparing next level.", "system");
+    
+    // Now reset the game. The `resetGame` function will pick up `deckForNextRun` from the state.
+    await resetGame({ ngPlusOverride: currentGameState.ngPlusLevel + 1 });
   }, [resetGame, _log]);
   
   const fullResetGame = useCallback((options?: { saveSlotIndex?: number }) => {

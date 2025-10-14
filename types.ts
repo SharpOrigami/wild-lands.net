@@ -277,6 +277,7 @@ export interface GameState {
   showNGPlusRewardModal?: boolean; // To trigger NG+ reward choice modal
   pedometerFeatureEnabledByUser: boolean; // New: User has explicitly enabled the pedometer feature
   deckForReview?: CardData[]; // For the new end-of-run deck selection
+  deckForNextRun?: CardData[]; // New: Stores the carry-over deck between deck review and the next run start.
   objectiveSummary?: {
     title: string;
     message: string;
