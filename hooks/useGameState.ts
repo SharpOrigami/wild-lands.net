@@ -2810,150 +2810,162 @@ export const useGameState = () => {
   }, [_log]);
 
   const loadGame = useCallback((slotIndex: number) => {
-    const currentState = gameStateRef.current;
-    if (currentState && currentState.autosaveSlotIndex !== null && currentState.autosaveSlotIndex !== undefined) {
-        deleteGameInSlot(currentState.autosaveSlotIndex);
-        _log(`Autosave in ${currentState.autosaveSlotIndex === 3 ? 'Autosave Slot' : `Slot ${currentState.autosaveSlotIndex + 1}`} cleared before loading new game.`, 'system');
+    try {
+      const currentState = gameStateRef.current;
+      if (currentState && currentState.autosaveSlotIndex !== null && currentState.autosaveSlotIndex !== undefined) {
+          deleteGameInSlot(currentState.autosaveSlotIndex);
+          _log(`Autosave in ${currentState.autosaveSlotIndex === 3 ? 'Autosave Slot' : `Slot ${currentState.autosaveSlotIndex + 1}`} cleared before loading new game.`, 'system');
+      }
+
+      const saves = getSaveGames();
+      let savedState = saves[slotIndex];
+      if (savedState) {
+          _log(`Loading game from slot ${slotIndex + 1}...`, "system");
+
+          const isFullSave = savedState.hasOwnProperty('turn');
+
+          const ngPlusLevel = savedState.ngPlusLevel || 0;
+          const initialPlayerState = { ...INITIAL_PLAYER_STATE_TEMPLATE, runStats: { ...INITIAL_RUN_STATS, highestNGPlusLevel: ngPlusLevel }, ngPlusLevel };
+           const baseInitialState: GameState = {
+              runId: crypto.randomUUID(),
+              status: 'setup',
+              playerDetails: { [PLAYER_ID]: initialPlayerState },
+              eventDeck: [],
+              eventDiscardPile: [],
+              activeEvent: null,
+              activeObjectives: [],
+              storeItemDeck: [],
+              storeDisplayItems: [],
+              storeItemDiscardPile: [],
+              turn: 0,
+              storyGenerated: false,
+              log: [],
+              selectedCard: null,
+              ngPlusLevel: ngPlusLevel,
+              modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
+              activeGameBanner: initialGameBannerState,
+              bannerQueue: [],
+              blockTradeDueToHostileEvent: false,
+              playerDeckAugmentationPool: [],
+              initialCardPool: [],
+              activeEventTurnCounter: 0,
+              scrollAnimationPhase: 'none',
+              isLoadingStory: false,
+              pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true',
+              showObjectiveSummaryModal: false,
+              objectiveSummary: undefined,
+              gameJustStarted: true,
+              newlyDrawnCardIndices: undefined,
+              equipAnimationIndex: null,
+              eventDifficultyBonus: 0,
+              saveSlotIndex: slotIndex,
+              autosaveSlotIndex: null,
+              triggerThreatShake: false,
+              playerShake: false,
+              remixDeckOnStart: false,
+              isBossFightActive: false,
+              triggerStoreRestockAnimation: false,
+              objectiveChoices: [],
+              selectedObjectiveIndices: [],
+              runStartGold: savedState.runStartGold ?? savedState.playerDetails?.[PLAYER_ID]?.gold ?? 0,
+          };
+          
+          const stateWithDefaults = deepMerge({ ...baseInitialState }, savedState);
+          let finalState = rehydrateAndMigrateState(stateWithDefaults, _log);
+
+          const playerOnLoad = finalState.playerDetails[PLAYER_ID];
+          if (playerOnLoad && playerOnLoad.character && playerOnLoad.character.id) {
+              const freshCharacterData = CHARACTERS_DATA_MAP[playerOnLoad.character.id];
+              if (freshCharacterData) {
+                  const updatedCharacter = {
+                      ...freshCharacterData,
+                      gold: playerOnLoad.character.gold,
+                      health: playerOnLoad.character.health,
+                  };
+                  playerOnLoad.character = updatedCharacter;
+              }
+          
+              if (playerOnLoad.personality) {
+                  const { talkSkill, petSkill } = calculateSkills(playerOnLoad.character, playerOnLoad.personality);
+                  playerOnLoad.talkSkill = talkSkill;
+                  playerOnLoad.petSkill = petSkill;
+                  _log(`Character data synced and skills recalculated for loaded game.`, 'system');
+              }
+          }
+
+          finalState = rebuildEventDeckIfNeeded(finalState, _log);
+          
+          if ((!finalState.activeObjectives || finalState.activeObjectives.length === 0) && (finalState.status === 'playing' || finalState.status === 'playing_initial_reveal')) {
+              _log("No active objective found in auto-save. Generating new objective choices for this run.", 'system');
+              const allObjectiveCards = Object.values(ALL_CARDS_DATA_MAP).filter(c => c.subType === 'objective');
+              if (allObjectiveCards.length > 0) {
+                  finalState.objectiveChoices = shuffleArray(allObjectiveCards).slice(0, 3);
+                   _log(`Offering new objective choices: ${finalState.objectiveChoices.map(c => c.name).join(', ')}`, 'system');
+              } else {
+                  _log("Could not generate a new objective: no objective cards found in card data.", 'error');
+              }
+          }
+
+          if (!isFullSave) {
+              _log("Older character snapshot detected. Loading to setup screen.", "system");
+              finalState.status = 'setup'; 
+              finalState.gameJustStarted = true;
+          } else {
+              _log("Full game state save detected. Resuming session.", "system");
+              if (finalState.status === 'playing' || finalState.turn > 0) {
+                  finalState.status = 'playing';
+                  finalState.gameJustStarted = false;
+                  finalState.autosaveSlotIndex = 3; // Force to new dedicated slot
+                  saveGameToSlot(finalState, 3); // Immediately create an autosave in the new slot
+                  _log(`Game loaded. Created new autosave in Autosave Slot.`, 'system');
+              } else {
+                  finalState.status = 'setup';
+                  finalState.gameJustStarted = true;
+              }
+          }
+
+          const loadedPlayer = finalState.playerDetails[PLAYER_ID];
+          if (loadedPlayer && loadedPlayer.character) {
+              localStorage.setItem('wildWestPlayerDetailsForNGPlus_WWS', JSON.stringify({
+                  name: loadedPlayer.name,
+                  characterId: loadedPlayer.character.id,
+                  personality: loadedPlayer.personality
+              }));
+          }
+
+          setGameState({
+              ...finalState,
+              saveSlotIndex: slotIndex,
+              modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
+              activeGameBanner: initialGameBannerState,
+              pendingPlayerDamageAnimation: null,
+              scrollAnimationPhase: 'none',
+              newlyDrawnCardIndices: undefined,
+              equipAnimationIndex: null,
+              isLoadingBossIntro: false,
+              isLoadingStory: false,
+              isLoadingNGPlus: false,
+              showNGPlusRewardModal: false,
+              selectedCard: null,
+              triggerThreatShake: false,
+          });
+
+          _log(`Game loaded successfully from slot ${slotIndex + 1}.`, 'system');
+      } else {
+          _log(`No game found in slot ${slotIndex + 1}.`, 'error');
+      }
+    } catch (error) {
+      console.error(`Failed to load and rehydrate save from slot ${slotIndex + 1}:`, error);
+      _log(`The save file in slot ${slotIndex + 1} is corrupted or incompatible. The game will be reset.`, "error");
+
+      handleCardAction('SHOW_MODAL', {
+          modalType: 'message',
+          title: 'Load Failed',
+          text: `The save file in ${slotIndex === 3 ? 'the Autosave Slot' : `Slot ${slotIndex + 1}`} could not be loaded. It might be from an older version of the game or corrupted. The game will now restart.`,
+      });
+      fullResetGame();
     }
-
-    const saves = getSaveGames();
-    let savedState = saves[slotIndex];
-    if (savedState) {
-        _log(`Loading game from slot ${slotIndex + 1}...`, "system");
-
-        const isFullSave = savedState.hasOwnProperty('turn');
-
-        const ngPlusLevel = savedState.ngPlusLevel || 0;
-        const initialPlayerState = { ...INITIAL_PLAYER_STATE_TEMPLATE, runStats: { ...INITIAL_RUN_STATS, highestNGPlusLevel: ngPlusLevel }, ngPlusLevel };
-         const baseInitialState: GameState = {
-            runId: crypto.randomUUID(),
-            status: 'setup',
-            playerDetails: { [PLAYER_ID]: initialPlayerState },
-            eventDeck: [],
-            eventDiscardPile: [],
-            activeEvent: null,
-            activeObjectives: [],
-            storeItemDeck: [],
-            storeDisplayItems: [],
-            storeItemDiscardPile: [],
-            turn: 0,
-            storyGenerated: false,
-            log: [],
-            selectedCard: null,
-            ngPlusLevel: ngPlusLevel,
-            modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
-            activeGameBanner: initialGameBannerState,
-            bannerQueue: [],
-            blockTradeDueToHostileEvent: false,
-            playerDeckAugmentationPool: [],
-            initialCardPool: [],
-            activeEventTurnCounter: 0,
-            scrollAnimationPhase: 'none',
-            isLoadingStory: false,
-            pedometerFeatureEnabledByUser: localStorage.getItem('pedometerFeatureEnabled_WWS') === 'true',
-            showObjectiveSummaryModal: false,
-            objectiveSummary: undefined,
-            gameJustStarted: true,
-            newlyDrawnCardIndices: undefined,
-            equipAnimationIndex: null,
-            eventDifficultyBonus: 0,
-            saveSlotIndex: slotIndex,
-            autosaveSlotIndex: null,
-            triggerThreatShake: false,
-            playerShake: false,
-            remixDeckOnStart: false,
-            isBossFightActive: false,
-            triggerStoreRestockAnimation: false,
-            objectiveChoices: [],
-            selectedObjectiveIndices: [],
-            runStartGold: savedState.runStartGold ?? savedState.playerDetails?.[PLAYER_ID]?.gold ?? 0,
-        };
-        
-        const stateWithDefaults = deepMerge({ ...baseInitialState }, savedState);
-        let finalState = rehydrateAndMigrateState(stateWithDefaults, _log);
-
-        const playerOnLoad = finalState.playerDetails[PLAYER_ID];
-        if (playerOnLoad && playerOnLoad.character && playerOnLoad.character.id) {
-            const freshCharacterData = CHARACTERS_DATA_MAP[playerOnLoad.character.id];
-            if (freshCharacterData) {
-                const updatedCharacter = {
-                    ...freshCharacterData,
-                    gold: playerOnLoad.character.gold,
-                    health: playerOnLoad.character.health,
-                };
-                playerOnLoad.character = updatedCharacter;
-            }
-        
-            if (playerOnLoad.personality) {
-                const { talkSkill, petSkill } = calculateSkills(playerOnLoad.character, playerOnLoad.personality);
-                playerOnLoad.talkSkill = talkSkill;
-                playerOnLoad.petSkill = petSkill;
-                _log(`Character data synced and skills recalculated for loaded game.`, 'system');
-            }
-        }
-
-        finalState = rebuildEventDeckIfNeeded(finalState, _log);
-        
-        if ((!finalState.activeObjectives || finalState.activeObjectives.length === 0) && (finalState.status === 'playing' || finalState.status === 'playing_initial_reveal')) {
-            _log("No active objective found in auto-save. Generating new objective choices for this run.", 'system');
-            const allObjectiveCards = Object.values(ALL_CARDS_DATA_MAP).filter(c => c.subType === 'objective');
-            if (allObjectiveCards.length > 0) {
-                finalState.objectiveChoices = shuffleArray(allObjectiveCards).slice(0, 3);
-                 _log(`Offering new objective choices: ${finalState.objectiveChoices.map(c => c.name).join(', ')}`, 'system');
-            } else {
-                _log("Could not generate a new objective: no objective cards found in card data.", 'error');
-            }
-        }
-
-        if (!isFullSave) {
-            _log("Older character snapshot detected. Loading to setup screen.", "system");
-            finalState.status = 'setup'; 
-            finalState.gameJustStarted = true;
-        } else {
-            _log("Full game state save detected. Resuming session.", "system");
-            if (finalState.status === 'playing' || finalState.turn > 0) {
-                finalState.status = 'playing';
-                finalState.gameJustStarted = false;
-                finalState.autosaveSlotIndex = 3; // Force to new dedicated slot
-                saveGameToSlot(finalState, 3); // Immediately create an autosave in the new slot
-                _log(`Game loaded. Created new autosave in Autosave Slot.`, 'system');
-            } else {
-                finalState.status = 'setup';
-                finalState.gameJustStarted = true;
-            }
-        }
-
-        const loadedPlayer = finalState.playerDetails[PLAYER_ID];
-        if (loadedPlayer && loadedPlayer.character) {
-            localStorage.setItem('wildWestPlayerDetailsForNGPlus_WWS', JSON.stringify({
-                name: loadedPlayer.name,
-                characterId: loadedPlayer.character.id,
-                personality: loadedPlayer.personality
-            }));
-        }
-
-        setGameState({
-            ...finalState,
-            saveSlotIndex: slotIndex,
-            modals: { message: initialModalState, story: initialModalState, ngPlusReward: initialModalState },
-            activeGameBanner: initialGameBannerState,
-            pendingPlayerDamageAnimation: null,
-            scrollAnimationPhase: 'none',
-            newlyDrawnCardIndices: undefined,
-            equipAnimationIndex: null,
-            isLoadingBossIntro: false,
-            isLoadingStory: false,
-            isLoadingNGPlus: false,
-            showNGPlusRewardModal: false,
-            selectedCard: null,
-            triggerThreatShake: false,
-        });
-
-        _log(`Game loaded successfully from slot ${slotIndex + 1}.`, 'system');
-    } else {
-        _log(`No game found in slot ${slotIndex + 1}.`, 'error');
-    }
-  }, [_log]);
+  }, [_log, fullResetGame, handleCardAction]);
 
 
   const deleteGame = useCallback((slotIndex: number) => {
