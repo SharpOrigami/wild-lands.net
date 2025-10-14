@@ -615,9 +615,9 @@
             80% { opacity: 0.8; transform: scale(1); }
         }
         @keyframes skunk-spray-effect-western {
-            0%, 100% { opacity: 0; transform: scale(0.5); }
-            10% { opacity: 0.9; transform: scale(1); }
-            80% { opacity: 0.9; transform: scale(1); }
+            0%, 100% { opacity: 0; }
+            10% { opacity: 0.9; }
+            80% { opacity: 0.9; }
         }
         .animate-laudanum { animation-name: laudanum-effect-western; }
         .animate-skunk-spray { animation-name: skunk-spray-effect-western; }
@@ -648,7 +648,7 @@
         
         /* Cyberpunk & Legendary Themes */
         @keyframes laudanum-effect-cyber { 0%, 100% { opacity: 0; transform: scale(2); } 10% { opacity: 0.8; transform: scale(1); } 30%, 60% { opacity: 0.6; transform: scale(1.05); } 80% { opacity: 0.8; transform: scale(1); } }
-        @keyframes skunk-spray-effect-cyber { 0%, 100% { opacity: 0; transform: scale(0.2); } 10%, 80% { opacity: 0.95; transform: scale(1); } }
+        @keyframes skunk-spray-effect-cyber { 0%, 100% { opacity: 0; } 10%, 80% { opacity: 0.95; } }
         body.ng-plus-40-theme #laudanumEffectOverlay, body.ng-plus-50-theme #laudanumEffectOverlay { background: radial-gradient(circle, color(display-p3 0 0.8 1 / 0.6) 0%, color(display-p3 0 0.4 0.8 / 0.8) 100%); }
         body.ng-plus-40-theme #skunkSprayFullScreenOverlay, body.ng-plus-50-theme #skunkSprayFullScreenOverlay { background: radial-gradient(circle, color(display-p3 0.96 0 0.34 / 0.8) 0%, color(display-p3 0.7 0 0.2 / 0.95) 100%); }
         body.ng-plus-40-theme .animate-laudanum, body.ng-plus-50-theme .animate-laudanum { animation-name: laudanum-effect-cyber; }
