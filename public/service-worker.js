@@ -1,5 +1,5 @@
-// v7 - Generated the definitive and truly complete asset list from all game constants. This WILL fix all offline issues.
-const CACHE_NAME = 'wild-lands-cache-v7';
+// v8 - Refactored to use atomic cache.addAll() for robust, all-or-nothing caching.
+const CACHE_NAME = 'wild-lands-cache-v8';
 
 // Core application files and external resources
 const APP_SHELL_URLS = [
