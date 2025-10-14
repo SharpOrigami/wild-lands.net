@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import CardComponent from './CardComponent.tsx'; // Changed to default import
 import { CardContext, CardData, ActiveGameBannerState, PlayerDetails } from '../types.ts';
@@ -137,7 +138,7 @@ const OverlayEffectsComponent: React.FC<OverlayEffectsProps> = ({
       />
       <div
         id="laudanumEffectOverlay"
-        className={`fixed inset-0 z-[2000] pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(106,27,154,0.5)_0%,rgba(49,27,146,0.9)_100%)]
+        className={`fixed inset-0 z-[2000] pointer-events-none
                     ${activeLaudanum ? 'animate-laudanum' : 'opacity-0'}`}
       />
       <div
@@ -148,7 +149,7 @@ const OverlayEffectsComponent: React.FC<OverlayEffectsProps> = ({
       {/* New Skunk Spray Full-Screen Overlay */}
       <div
         id="skunkSprayFullScreenOverlay"
-        className={`fixed inset-0 z-[2001] pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(50,150,50,0.6)_0%,rgba(30,100,30,0.9)_100%)]
+        className={`fixed inset-0 z-[2001] pointer-events-none
                     ${activeSkunkSpray ? 'animate-skunk-spray' : 'opacity-0'}`}
       />
 

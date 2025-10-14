@@ -3190,7 +3190,7 @@ export const useGameState = () => {
                 resetGame({ hardReset: true });
             }
         } else {
-            resetGame({ hardReset: true });
+            resetGame();
         }
     }
   }, [_log, resetGame]);

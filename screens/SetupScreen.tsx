@@ -149,7 +149,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({
     charHealth = Math.max(1, charHealth);
 
     let desc = `<p class="font-bold text-lg text-[var(--ink-main)]">${character.name}</p>`;
-    desc += `<p class="text-sm italic text-[var(--ink-secondary)] mb-2">Health: ${charHealth}, Gold: ${playerDetailsProp.gold}, <span style="color: var(--faded-blue)">Talk: ${talkSuccess}%</span>, <span style="color: var(--faded-green)">Pet: ${petSuccess}%</span></p>`;
+    desc += `<p class="text-sm italic text-[var(--ink-secondary)] mb-2">Health: ${charHealth}, Gold: ${playerDetailsProp.gold}, <span style="color: var(--faded-blue)">Talk: ${talkSuccess}%</span>, <span style="color: var(--faded-blue)">Pet: ${petSuccess}%</span></p>`;
     
     if (character.description) {
       desc += `<p class="my-2 text-sm text-[var(--ink-main)]">${character.description}</p>`;
