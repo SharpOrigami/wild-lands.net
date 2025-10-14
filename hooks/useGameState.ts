@@ -12,7 +12,7 @@ import {
     PEST_IDS,
     PERSONALITY_MODIFIERS
 } from '../constants.ts';
-import { shuffleArray, calculateAttackPower, calculateHealAmount, isEventConsideredHostile, getCardCategory, pickRandomDistinctFromPool, createTrophyOrBountyCard, isFirearm, NON_HOSTILE_ON_REVEAL_IDS, getScaledCard, applyDifficultyBonus, buildEventDeck } from '../utils/cardUtils.ts';
+import { shuffleArray, calculateAttackPower, calculateHealAmount, isEventConsideredHostile, getCardCategory, pickRandomDistinctFromPool, createTrophyOrBountyCard, isFirearm, NON_HOSTILE_ON_REVEAL_IDS, getScaledCard, applyDifficultyBonus, buildEventDeck, isCustomOrModifiedCard } from '../utils/cardUtils.ts';
 import { getRandomLogVariation } from '../utils/logUtils.ts';
 import { generateStoryForGame, generateAIBossForGame, remixCardsForNGPlusGame, generateBossIntroStory, generateRemixedWeapon } from '../services/geminiService.ts';
 import { updateLifetimeStats } from '../utils/statsUtils.ts';
@@ -49,43 +49,6 @@ const cancelScrollAnimation = () => {
     window.removeEventListener('wheel', cancelScrollAnimation);
     window.removeEventListener('touchstart', cancelScrollAnimation);
     window.removeEventListener('mousedown', cancelScrollAnimation);
-};
-
-// Helper function to check if a card is custom or has been modified from its base version.
-const isCustomOrModifiedCardForRunStart = (card: CardData): boolean => {
-    if (!card || !card.id) {
-        return false;
-    }
-    if (card.isCheat || card.id.startsWith('remixed_') || card.id.startsWith('custom_')) {
-        return true;
-    }
-    const baseCard = ALL_CARDS_DATA_MAP[card.id];
-    if (!baseCard) {
-        return true; // Card not in base map, must be custom.
-    }
-    // It's modified if its in-game state (like health) differs from its base definition.
-    if (card.health !== undefined && card.health !== baseCard.health) {
-        return true;
-    }
-    // Check for AI-remixed properties
-    if (card.name !== baseCard.name) {
-        return true;
-    }
-    if (card.description !== baseCard.description) {
-        return true;
-    }
-    // A simple string comparison of effects is a robust way to check for changes.
-    if (JSON.stringify(card.effect) !== JSON.stringify(baseCard.effect)) {
-        return true;
-    }
-    if (card.buyCost !== baseCard.buyCost) {
-        return true;
-    }
-    if (card.sellValue !== baseCard.sellValue) {
-        return true;
-    }
-
-    return false;
 };
 
 // Helper function for smooth, interruptible scrolling
@@ -183,18 +146,28 @@ const rehydrateAndMigrateState = (stateWithDefaults: any, log: (message: string,
             if (item.every(val => typeof val === 'number' || typeof val === 'boolean' || val === null)) {
                 return item;
             }
-            // FIX: Filter out empty objects `{}` from arrays, as they are invalid card data.
-            return item.map(robustRehydrate).filter(value => value !== undefined && value !== null && !(isObject(value) && Object.keys(value).length === 0));
+            return item.map(robustRehydrate).filter(value => {
+                if (value === undefined) {
+                    return false; // Always remove undefined values.
+                }
+                if (value === null) {
+                    return true; // Always keep null values (e.g., for empty hand slots).
+                }
+                // For anything else that is an object, remove it if it's empty.
+                if (isObject(value) && Object.keys(value).length === 0) {
+                    return false;
+                }
+                return true;
+            });
         }
         
-        // Determine if the item is attempting to be a card (either a string ID or an object with an ID).
         let isCardAttempt = false;
         let cardId: string | undefined = undefined;
 
-        if (typeof item === 'string' && (item.includes('_') || item.startsWith('remixed_') || item.startsWith('custom_'))) {
+        if (typeof item === 'string' && sessionCardsData[item]) {
             isCardAttempt = true;
             cardId = item;
-        } else if (isObject(item) && typeof item.id === 'string' && item.id.length > 0 && item.type) {
+        } else if (isObject(item) && typeof item.id === 'string' && sessionCardsData[item.id]) {
             isCardAttempt = true;
             cardId = item.id;
         }
@@ -202,27 +175,31 @@ const rehydrateAndMigrateState = (stateWithDefaults: any, log: (message: string,
         if (isCardAttempt && cardId) {
             const baseCard = sessionCardsData[cardId];
             if (baseCard) {
-                // Valid card reference found. Build a full, valid object from the base definition.
                 let rehydratedCard = JSON.parse(JSON.stringify(baseCard));
                 if (isObject(item)) {
-                    // Merge properties from the saved object (like modified health) onto the fresh base card.
                     rehydratedCard = { ...rehydratedCard, ...item, id: cardId };
                 }
-                return migrateCard(rehydratedCard);
+                return migrateCard(rehydratedCard as CardData);
             } else {
-                // It looked like a card, but the ID is invalid or obsolete. Discard it.
                 log(`Discarding item with invalid or obsolete card ID: ${cardId}`, 'system');
                 return undefined;
             }
         }
         
-        // If it's not a card attempt, it's another object to recurse or a primitive to return.
         if (isObject(item)) {
             const newObj: { [key: string]: any } = {};
             for (const key in item) {
                 if (Object.prototype.hasOwnProperty.call(item, key)) {
                     const recursedValue = robustRehydrate(item[key]);
-                    // Only add the property back if it didn't resolve to undefined (e.g., an invalid card in a property).
+
+                    // Per analysis: filter out properties that resolve to empty objects, unless allowed.
+                    const isRecursedValueEmptyObject = isObject(recursedValue) && Object.keys(recursedValue).length === 0;
+                    const allowedEmptyObjectKeys = ['satchels', 'victoriesByCharacter']; 
+
+                    if (isRecursedValueEmptyObject && !allowedEmptyObjectKeys.includes(key)) {
+                        continue; // Skip adding this empty object property
+                    }
+                    
                     if (recursedValue !== undefined) {
                         newObj[key] = recursedValue;
                     }
@@ -231,7 +208,6 @@ const rehydrateAndMigrateState = (stateWithDefaults: any, log: (message: string,
             return newObj;
         }
 
-        // It's a primitive (number, boolean) or a string that didn't look like a card ID (e.g., a player name). Return as-is.
         return item;
     };
     
@@ -290,7 +266,6 @@ export const useGameState = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const gameStateRef = useRef<GameState | null>(null);
   const isEndingTurn = useRef(false);
-  const [activeAnimation, setActiveAnimation] = useState<{ type: string, target?: string, amount?: number} | null>(null);
   const [endDayAnimation, setEndDayAnimation] = useState<'none' | 'short' | 'long'>('none');
   const [preGeneratedAiBoss, setPreGeneratedAiBoss] = useState<CardData | null>(null);
   const [isPreGeneratingBoss, setIsPreGeneratingBoss] = useState(false);
@@ -313,6 +288,12 @@ export const useGameState = () => {
       const newLog = [newLogEntry, ...currentLog].slice(0, MAX_INTERNAL_LOG_ENTRIES);
       return { ...prev, log: newLog };
     });
+  }, []);
+
+  const triggerAnimation = useCallback(async (type: string, target?: string, amount?: number) => {
+    // This animation system is deprecated. Animations are now handled by CSS classes
+    // managed via state in GameScreen.tsx and triggered by direct state updates.
+    // This function is kept for signature compatibility with utility functions.
   }, []);
 
   const closeModal = useCallback((modalType: 'message' | 'story' | 'ngPlusReward') => {
@@ -466,24 +447,6 @@ export const useGameState = () => {
     }
   }, []);
 
-  const triggerAnimation = useCallback(async (type: string, target?: string, amount?: number) => {
-    setActiveAnimation({ type, target, amount });
-
-    let duration = 400;
-    if (['player-border-pulse-red', 'player-border-pulse-green', 'threat-card-border-pulse-red'].includes(type)) duration = 450;
-    else if (['player-damage-flash-bg', 'player-heal-flash-bg', 'threat-card-shake-damage-bg'].includes(type)) duration = 300;
-    else if (['trap-display-activated', 'player-hat-saved-damage', 'player-damage-pulse'].includes(type)) duration = 600;
-    else if (type === 'event-trapped-small') duration = 700;
-    else if (['player-is-ill', 'player-scarlet-fever-effect'].includes(type)) duration = (type === 'player-scarlet-fever-effect') ? 1000 : 1600;
-    else if (type === 'event-item-taken') duration = 500;
-    else if (type === 'threat-attacks-player') duration = 800;
-    else if (type === 'player-area-shake-effect') duration = 500;
-    else if (type === 'player-heal-flash-bg') duration = 300;
-    else if (type === 'player-border-pulse-green') duration = 450;
-
-    setTimeout(() => setActiveAnimation(null), duration);
-  }, []);
-
   const handleObjectiveCompletionChecks = useCallback((player: PlayerDetails, objective: CardData, boss: CardData, turn: number, lastAttackPower: number, activeEvent: CardData | null) => {
     return handleObjectiveCompletionChecksUtil(player, objective, boss, turn, lastAttackPower, activeEvent, triggerGoldFlash, _log);
   }, [triggerGoldFlash, _log]);
@@ -523,7 +486,7 @@ export const useGameState = () => {
     const equippedItemsToSave = playerForFinish.equippedItems;
     const satchelsToSave = playerForFinish.satchels;
     
-    localStorage.setItem('wildWestEquippedForNGPlus_WWS', JSON.stringify(equippedItemsToSave.map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id)));
+    localStorage.setItem('wildWestEquippedForNGPlus_WWS', JSON.stringify(equippedItemsToSave.map(c => isCustomOrModifiedCard(c) ? c : c.id)));
     localStorage.setItem('wildWestSatchelsForNGPlus_WWS', JSON.stringify(satchelsToSave));
     localStorage.removeItem('wildWestActiveTrapForNGPlus_WWS'); // Trap now goes to deck review
     
@@ -1319,7 +1282,6 @@ export const useGameState = () => {
                 }
                 const { index } = payload;
                 const currentSelection = initialGameState.selectedObjectiveIndices || [];
-                // FIX: Explicitly type the Set to Set<number> to help TypeScript inference.
                 const newSelection = new Set<number>(currentSelection);
                 if (newSelection.has(index)) {
                     newSelection.delete(index);
@@ -2528,12 +2490,12 @@ export const useGameState = () => {
     
     const satchelsWithIds: { [key: number]: (string | CardData)[] } = {};
     for (const key in playerDetailsFromSetup.satchels) {
-      satchelsWithIds[Number(key)] = (playerDetailsFromSetup.satchels[key] || []).map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id);
+      satchelsWithIds[Number(key)] = (playerDetailsFromSetup.satchels[key] || []).map(c => isCustomOrModifiedCard(c) ? c : c.id);
     }
     const runStartState = {
-        deck: [...finalPlayerDeck, ...actualInitialHandCards].map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id),
-        discard: finalPlayerDiscard.map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id),
-        equipped: playerDetailsFromSetup.equippedItems.map(c => isCustomOrModifiedCardForRunStart(c) ? c : c.id),
+        deck: [...finalPlayerDeck, ...actualInitialHandCards].map(c => isCustomOrModifiedCard(c) ? c : c.id),
+        discard: finalPlayerDiscard.map(c => isCustomOrModifiedCard(c) ? c : c.id),
+        equipped: playerDetailsFromSetup.equippedItems.map(c => isCustomOrModifiedCard(c) ? c : c.id),
         satchels: satchelsWithIds,
         gold: playerDetailsFromSetup.gold,
         name: playerDetailsFromSetup.name,

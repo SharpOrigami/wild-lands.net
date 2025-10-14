@@ -1,5 +1,6 @@
 import { GameState, CardData } from '../types.ts';
 import { ALL_CARDS_DATA_MAP } from '../constants.ts';
+import { isCustomOrModifiedCard } from './cardUtils.ts';
 
 const SAVE_GAME_KEY = 'wildWestGameSaves_WWS';
 const NUM_SAVE_SLOTS = 4; // 3 manual + 1 autosave
@@ -31,48 +32,6 @@ export function getSaveGames(): (GameState | null)[] {
     // Return a default empty array of slots if anything goes wrong
     return Array(NUM_SAVE_SLOTS).fill(null);
 }
-
-const isCustomOrModifiedCard = (card: CardData): boolean => {
-    // FIX: Add a guard to prevent crash on malformed card objects without an ID.
-    if (!card || !card.id) {
-        // This can happen if state gets corrupted. Treat as not-custom.
-        // It will be dehydrated to its (non-existent) ID, which will be filtered on load.
-        return false;
-    }
-
-    // It's custom if it's a cheat card, has a special ID prefix, or isn't in the base card map.
-    if (card.isCheat || card.id.startsWith('remixed_') || card.id.startsWith('custom_')) {
-        return true;
-    }
-    const baseCard = ALL_CARDS_DATA_MAP[card.id];
-    if (!baseCard) {
-        return true; // Card not in base map, must be custom.
-    }
-    // It's modified if its in-game state (like health) differs from its base definition.
-    if (card.health !== undefined && card.health !== baseCard.health) {
-        return true;
-    }
-    // Check for AI-remixed properties
-    if (card.name !== baseCard.name) {
-        return true;
-    }
-    if (card.description !== baseCard.description) {
-        return true;
-    }
-    // A simple string comparison of effects is a robust way to check for changes.
-    if (JSON.stringify(card.effect) !== JSON.stringify(baseCard.effect)) {
-        return true;
-    }
-    // Check other potentially remixed properties
-    if (card.buyCost !== baseCard.buyCost) {
-        return true;
-    }
-    if (card.sellValue !== baseCard.sellValue) {
-        return true;
-    }
-
-    return false;
-};
 
 export const dehydrateState = (gameState: GameState): any => {
     const stateCopy = JSON.parse(JSON.stringify(gameState));

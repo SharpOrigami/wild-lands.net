@@ -120,6 +120,24 @@ export function isBow(card: CardData | null): boolean {
     return false;
 }
 
+const getIncrementAmount = (ngPlusLevel: number): number => {
+  if (ngPlusLevel <= 0) {
+    return 0;
+  }
+  if (ngPlusLevel < 50) {
+    // Levels 1-49: reset every 10 levels.
+    return ngPlusLevel % NG_PLUS_THEME_MILESTONE_INTERVAL;
+  }
+  if (ngPlusLevel < 100) {
+    // Levels 50-99: scale linearly from 50.
+    return ngPlusLevel - 50;
+  }
+  // Levels 100+: base bonus for every 100 levels, plus remainder.
+  const baseBonus = Math.floor(ngPlusLevel / 100) * 10;
+  const remainder = ngPlusLevel % 100;
+  return baseBonus + remainder;
+}
+
 export const getScaledCard = (baseCard: CardData, ngPlusLevel: number): CardData => {
     if (ngPlusLevel <= 0) return baseCard;
 
@@ -128,7 +146,7 @@ export const getScaledCard = (baseCard: CardData, ngPlusLevel: number): CardData
 
     // Threat Scaling
     if (baseCard.type === 'Event' && (baseCard.subType === 'animal' || baseCard.subType === 'human')) {
-        const incrementAmount = ngPlusLevel % NG_PLUS_THEME_MILESTONE_INTERVAL;
+        const incrementAmount = getIncrementAmount(ngPlusLevel);
 
         if (incrementAmount > 0) {
             isModified = true;
@@ -760,3 +778,46 @@ export function getCardDescriptionHtml(card: CardData | null, source: string, pl
 
     return desc;
   };
+
+/**
+ * Helper function to check if a card is custom or has been modified from its base version.
+ * This is crucial for deciding whether to save the full card object or just its ID.
+ * @param card The card data object to check.
+ * @returns True if the card is custom/modified, false otherwise.
+ */
+export const isCustomOrModifiedCard = (card: CardData): boolean => {
+    if (!card || !card.id) {
+        return false;
+    }
+    if (card.isCheat || card.id.startsWith('remixed_') || card.id.startsWith('custom_')) {
+        return true;
+    }
+    const baseCard = ALL_CARDS_DATA_MAP[card.id];
+    if (!baseCard) {
+        return true; // Card not in base map, must be custom.
+    }
+    // It's modified if its in-game state (like health) differs from its base definition.
+    if (card.health !== undefined && card.health !== baseCard.health) {
+        return true;
+    }
+    // Check for AI-remixed properties
+    if (card.name !== baseCard.name) {
+        return true;
+    }
+    if (card.description !== baseCard.description) {
+        return true;
+    }
+    // A simple string comparison of effects is a robust way to check for changes.
+    if (JSON.stringify(card.effect) !== JSON.stringify(baseCard.effect)) {
+        return true;
+    }
+    // Check other potentially remixed properties
+    if (card.buyCost !== baseCard.buyCost) {
+        return true;
+    }
+    if (card.sellValue !== baseCard.sellValue) {
+        return true;
+    }
+
+    return false;
+};
