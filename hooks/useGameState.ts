@@ -1911,8 +1911,8 @@ export const useGameState = () => {
     
     const deckToPreserve: CardData[] = isNGZeroRun ? [] : (currentState?.deckForNextRun || []);
     const discardToPreserve: CardData[] = [];
-    const equippedToPreserve: CardData[] = [];
-    const satchelsToPreserve: { [key: number]: CardData[] } = {};
+    const equippedToPreserve: CardData[] = shouldPreserveFromState ? currentState.playerDetails[PLAYER_ID].equippedItems : [];
+    const satchelsToPreserve: { [key: number]: CardData[] } = shouldPreserveFromState ? currentState.playerDetails[PLAYER_ID].satchels : {};
 
     let runStartStateToPreserveForNextState = currentState?.runStartState;
     if (isNGZeroRun || (ngPlusOverride !== undefined && currentState && ngPlusOverride !== currentState.ngPlusLevel)) {
