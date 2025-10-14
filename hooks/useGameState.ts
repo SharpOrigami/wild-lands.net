@@ -1319,7 +1319,8 @@ export const useGameState = () => {
                 }
                 const { index } = payload;
                 const currentSelection = initialGameState.selectedObjectiveIndices || [];
-                const newSelection = new Set(currentSelection);
+                // FIX: Explicitly type the Set to Set<number> to help TypeScript inference.
+                const newSelection = new Set<number>(currentSelection);
                 if (newSelection.has(index)) {
                     newSelection.delete(index);
                 } else {

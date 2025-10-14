@@ -149,56 +149,56 @@ export const CHARACTERS_DATA_MAP: { [id: string]: Character } = {
         id: 'hunter', name: 'Hunter', health: 30, gold: 60,
         starterDeck: ['item_bow_t1', 'upgrade_quiver_t1', 'upgrade_lucky_arrowhead', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'upgrade_bearskin_coat', 'provision_steak'],
         description: "A master of the wilderness, living by the bow and the trail. They know the signs of the land and the ways of the beasts that roam it.",
-        talkSkill: 102, petSkill: 54, // Bad talker, better petter
+        talkSkill: 97, petSkill: 59, // Bad talker, better petter
         personality: { archetype: 'The Wanderer', temperament: 'Cautious', motivation: 'Seeking Peace' }
     },
     trapper: { 
         id: 'trapper', name: 'Trapper', health: 31, gold: 45,
         starterDeck: ['item_sharp_knife_t1', 'item_large_trap_t1', 'upgrade_worn_whetstone', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'upgrade_bearskin_coat', 'provision_water_t1'],
         description: "Life on the frontier is about patience and preparation. This solitary figure knows how to set a snare for any creature, four-legged or two.",
-        talkSkill: 106, petSkill: 67, // V. bad talker, even worse with animals
+        talkSkill: 101, petSkill: 72, // V. bad talker, even worse with animals
         personality: { archetype: 'The Pragmatist', temperament: 'Cautious', motivation: 'Seeking Fortune' }
     },
     gunslinger: { 
         id: 'gunslinger', name: 'Gunslinger', health: 34, gold: 85,
         starterDeck: ['item_six_shooter_t1', 'item_six_shooter_t1', 'upgrade_lucky_bullet', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'upgrade_bandolier_t1', 'provision_laudanum_t1'],
         description: "In a land where law is often decided by the fastest draw, the gunslinger's reputation precedes them. They live by the gun, and expect to die by it.",
-        talkSkill: 99, petSkill: 61, // Balanced
+        talkSkill: 94, petSkill: 66, // Balanced
         personality: { archetype: 'The Mercenary', temperament: 'Reckless', motivation: 'Seeking Vengeance' }
     },
     doctor: { 
         id: 'doctor', name: 'Doctor', health: 31, gold: 105,
         starterDeck: ['item_sharp_knife_t1', 'provision_miracle_cure_t1', 'upgrade_medical_journal', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'upgrade_deer_skin_coat_t1', 'provision_laudanum_t1'],
         description: "An educated man in an uneducated land. His bag contains remedies for ills both common and strange, a skill worth more than gold in these parts.",
-        talkSkill: 97, petSkill: 60, // Good talker, less so with animals
+        talkSkill: 92, petSkill: 65, // Good talker, less so with animals
         personality: { archetype: 'The Idealist', temperament: 'Compassionate', motivation: 'Seeking Redemption' }
     },
     herbalist: { 
         id: 'herbalist', name: 'Herbalist', health: 33, gold: 40,
         starterDeck: ['item_sharp_knife_t1', 'upgrade_leather_satchel_t1', 'upgrade_herb_pouch', 'provision_juniper_t1', 'provision_juniper_t1', 'provision_juniper_t1', 'upgrade_deer_skin_coat_t1', 'provision_basil_t1', 'provision_basil_t1', 'provision_basil_t1'],
         description: "The land provides for those who know how to listen. This herbalist finds powerful poultices and cures in the weeds and flowers others overlook.",
-        talkSkill: 105, petSkill: 57, // Bad talker, good petter
+        talkSkill: 100, petSkill: 62, // Bad talker, good petter
         personality: { archetype: 'The Wanderer', temperament: 'Superstitious', motivation: 'Seeking Knowledge' }
     },
     explorer: { 
         id: 'explorer', name: 'Explorer', health: 30, gold: 150,
         starterDeck: ['item_six_shooter_t1', 'upgrade_sturdy_boots_t1', 'upgrade_treasure_map', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'upgrade_deer_skin_coat_t1', 'provision_water_t1'],
         description: "Driven by a thirst for the unknown and the promise of fortune, the explorer charts the blank spaces on the map, facing peril for the hope of discovery.",
-        talkSkill: 96, petSkill: 60, // Balanced good
+        talkSkill: 91, petSkill: 65, // Balanced good
         personality: { archetype: 'The Idealist', temperament: 'Reckless', motivation: 'Seeking Fortune' }
     },
     preacher: {
         id: 'preacher', name: 'Preacher', health: 34, gold: 120,
         starterDeck: ['item_sawed_off_t1', 'item_knife_t1', 'upgrade_tattered_bible', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_laudanum_t1', 'provision_water_t1'],
         description: "Wields a holy book in one hand and a shotgun in the other. They believe salvation is for everyone, but some folks need more convincing than others.",
-        talkSkill: 92, petSkill: 64, // Good talker, bad petter
+        talkSkill: 87, petSkill: 69, // Good talker, bad petter
         personality: { archetype: 'The Zealot', temperament: 'Deceitful', motivation: 'Seeking Power' }
     },
     prospector: {
         id: 'prospector', name: 'Prospector', health: 32, gold: 30,
         starterDeck: ['item_sawed_off_t1', 'upgrade_leather_satchel_t1', 'item_gold_pan', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_dried_meat', 'provision_laudanum_t1', 'provision_water_t1'],
         description: "With a pan and a pick, they sift the dirt and chip the rock, always hoping the next gleam of gold will be the one that changes their life forever.",
-        talkSkill: 103, petSkill: 64, // Bad talker, bad petter
+        talkSkill: 98, petSkill: 69, // Bad talker, bad petter
         personality: { archetype: 'The Pragmatist', temperament: 'Greedy', motivation: 'Seeking Fortune' }
     }
 };

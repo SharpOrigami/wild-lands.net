@@ -95,13 +95,15 @@ export const dehydrateState = (gameState: GameState): any => {
     // Dehydrate world decks to save space. Player cards are left as full objects.
     stateCopy.eventDeck = dehydrateNonPlayerArray(stateCopy.eventDeck);
     stateCopy.eventDiscardPile = dehydrateNonPlayerArray(stateCopy.eventDiscardPile);
-    stateCopy.activeEvent = dehydrateNonPlayerCard(stateCopy.activeEvent);
+    // FIX: Cast the 'any' type from JSON.parse to the expected type for the function.
+    stateCopy.activeEvent = dehydrateNonPlayerCard(stateCopy.activeEvent as CardData | null);
     stateCopy.storeItemDeck = dehydrateNonPlayerArray(stateCopy.storeItemDeck);
     stateCopy.storeDisplayItems = dehydrateNonPlayerArray(stateCopy.storeDisplayItems);
     stateCopy.storeItemDiscardPile = dehydrateNonPlayerArray(stateCopy.storeItemDiscardPile);
     
     if (stateCopy.aiBoss) {
-        stateCopy.aiBoss = dehydrateNonPlayerCard(stateCopy.aiBoss);
+        // FIX: Cast the 'any' type from JSON.parse to the expected type for the function.
+        stateCopy.aiBoss = dehydrateNonPlayerCard(stateCopy.aiBoss as CardData | null);
     }
     
     // Player-owned cards are left as full objects in the stateCopy.
