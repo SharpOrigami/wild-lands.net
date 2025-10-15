@@ -8,11 +8,19 @@ import { ALL_CARDS_DATA_MAP } from '../constants.ts';
  * @returns The theme name string.
  */
 export const getThemeName = (level: number): Theme => {
+    if (level >= 500) {
+        const themes: Theme[] = ['western', 'japan', 'safari', 'horror', 'cyberpunk'];
+        return themes[Math.floor(Math.random() * themes.length)];
+    }
+    if (level >= 400) return 'cyberpunk';
+    if (level >= 300) return 'horror';
+    if (level >= 200) return 'safari';
+    if (level >= 100) return 'japan';
     if (level >= 40 && level < 50) return 'cyberpunk';
     if (level >= 30 && level < 40) return 'horror';
     if (level >= 20 && level < 30) return 'safari';
     if (level >= 10 && level < 20) return 'japan';
-    return 'western';
+    return 'western'; // This covers 0-9 and 50-99
 };
 
 /**
@@ -21,11 +29,16 @@ export const getThemeName = (level: number): Theme => {
  * @returns The theme suffix string or null for the base theme or NG+50+.
  */
 export const getThemeSuffix = (level: number): string | null => {
+    if (level >= 500) return null;
+    if (level >= 400) return '_cp';
+    if (level >= 300) return '_sh';
+    if (level >= 200) return '_as';
+    if (level >= 100) return '_fj';
     if (level >= 40 && level < 50) return '_cp'; // Cyberpunk
     if (level >= 30 && level < 40) return '_sh'; // Supernatural Horror
     if (level >= 20 && level < 30) return '_as'; // Africa Safari
     if (level >= 10 && level < 20) return '_fj'; // Feudal Japan
-    return null; // Base Wild West theme or NG+50+
+    return null; // Base Wild West theme or NG+50-99
 };
 
 /**
@@ -50,28 +63,41 @@ export const getThemeSuffixForMilestone = (milestone: number): string | null => 
 export const getThemedCardPool = (level: number, cardPool: { [id: string]: CardData }): CardData[] => {
     const allCards = Object.values(cardPool);
 
-    if (level >= 50) {
-        // NG+ 50+ uses all cards from all themes.
+    if (level >= 500) {
         return allCards;
     }
-    
-    const themeSuffix = getThemeSuffix(level);
 
-    if (!themeSuffix) {
-        // Base Wild West theme (NG+0-9): Filter out any card that has a theme suffix.
-        return allCards.filter(card => !/_fj$|_as$|_sh$|_cp$/.test(card.id));
+    const westernCards = allCards.filter(card => !/_fj$|_as$|_sh$|_cp$/.test(card.id));
+    let combined: CardData[] = [];
+
+    if (level >= 400) { // Western + Cyberpunk
+        const themeCards = allCards.filter(card => card.id.endsWith('_cp'));
+        combined = [...westernCards, ...themeCards];
+    } else if (level >= 300) { // Western + Horror
+        const themeCards = allCards.filter(card => card.id.endsWith('_sh'));
+        combined = [...westernCards, ...themeCards];
+    } else if (level >= 200) { // Western + Africa
+        const themeCards = allCards.filter(card => card.id.endsWith('_as'));
+        combined = [...westernCards, ...themeCards];
+    } else if (level >= 100) { // Western + Japan
+        const themeCards = allCards.filter(card => card.id.endsWith('_fj'));
+        combined = [...westernCards, ...themeCards];
+    } else if (level >= 50) { // 50-99 is all themes
+        return allCards;
+    } else { // Below 50 uses old logic
+        const themeSuffix = getThemeSuffix(level);
+        if (!themeSuffix) {
+            return westernCards; // This now correctly handles Western
+        }
+        const objectiveCards = allCards.filter(card => card.subType === 'objective');
+        const themeCards = allCards.filter(card => card.id.endsWith(themeSuffix));
+        combined = [...objectiveCards, ...themeCards];
+        const uniqueCards = [...new Map(combined.map(item => [item.id, item])).values()];
+        return uniqueCards;
     }
 
-    // Themed Run (NG+10-49):
-    // 1. Get all cards for the current theme.
-    const themedCards = allCards.filter(card => card.id.endsWith(themeSuffix));
-    
-    // 2. Get all objective cards (which have no suffix and are universal).
-    const objectiveCards = allCards.filter(card => card.subType === 'objective');
-
-    // 3. Combine them. This ensures objectives are always present, but other cards are theme-specific.
-    const combined = [...objectiveCards, ...themedCards];
+    // For levels 100+, combine western, the specific theme, and then get unique cards.
+    // The westernCards filter already includes objectives because they have no suffix.
     const uniqueCards = [...new Map(combined.map(item => [item.id, item])).values()];
-    
     return uniqueCards;
 };

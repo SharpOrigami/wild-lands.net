@@ -2206,6 +2206,16 @@ export const useGameState = () => {
     const playerChar = playerDetailsFromSetup.character as Character;
     let gameUpdates: Partial<GameState> = {};
     
+    if (currentState.ngPlusLevel === 100) {
+        _log("Congratulations on reaching NG+100! The true Wild Lands begin.", "system");
+        bannerIdCounter.current++;
+        gameUpdates.bannerQueue = [...(currentState.bannerQueue || []), {
+            message: 'Congratulations on NG+100!',
+            bannerType: 'generic_info',
+            bannerId: bannerIdCounter.current
+        }];
+    }
+    
     // --- DECK CONSTRUCTION ---
     let finalPlayerDeck: CardData[] = [...playerDetailsFromSetup.playerDeck];
     

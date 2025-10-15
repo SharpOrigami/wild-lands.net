@@ -426,7 +426,25 @@ const App: React.FC = () => {
       let portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image2.png';
       let themeToApply: string | null = null;
 
-      if (ngPlusLevel >= 50) {
+      if (ngPlusLevel >= 500) {
+        themeToApply = themeClass50; // Legendary Western is the visual base for the all-mix
+      } else if (ngPlusLevel >= 400) {
+        themeToApply = themeClass40;
+        landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_cp.png';
+        portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_cp2.png';
+      } else if (ngPlusLevel >= 300) {
+        themeToApply = themeClass30;
+        landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_sh.png';
+        portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_sh2.png';
+      } else if (ngPlusLevel >= 200) {
+        themeToApply = themeClass20;
+        landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_as.png';
+        portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_as2.png';
+      } else if (ngPlusLevel >= 100) {
+        themeToApply = themeClass10;
+        landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_fj.png';
+        portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_fj2.png';
+      } else if (ngPlusLevel >= 50) {
         themeToApply = themeClass50;
       } else if (ngPlusLevel >= 40) {
         themeToApply = themeClass40;
@@ -445,6 +463,7 @@ const App: React.FC = () => {
         landscapeUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_fj.png';
         portraitUrl = 'https://storage.googleapis.com/wild-lands-card-images/background_image_fj2.png';
       }
+
 
       const updateBackgrounds = () => {
         const cachedLandscape = imageManager.getCachedUrl(landscapeUrl);
